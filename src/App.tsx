@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { lazy, Suspense } from "react";
 import Index from "./pages/Index";
 import Placeholder from "./pages/Placeholder";
+const FlightSearchResults = lazy(() => import("./pages/FlightSearchResults"));
 
 const Destinations = lazy(() => import("./pages/Destinations"));
 const ContinentPage = lazy(() => import("./pages/ContinentPage"));
@@ -43,12 +44,13 @@ const App = () => (
             <Route path="/shop" element={<Shop />} />
             <Route path="/shop/:productId" element={<ProductDetailPage />} />
             {[
-              "/flights", "/flights/search", "/flights/:id", "/hotels", "/hotels/search", "/hotels/:id",
+              "/flights", "/flights/:id", "/hotels", "/hotels/search", "/hotels/:id",
               "/tours", "/tours/:id", "/ziyarat", "/ziyarat/:id", "/trains", "/trains/search", "/buses", "/buses/search",
               "/visa", "/visa/:country", "/insurance", "/cip", "/destinations/:slug", "/blog", "/blog/:slug",
               "/auth/login", "/auth/register", "/auth/otp", "/auth/forgot-password", "/cart", "/checkout/passengers", "/checkout/review", "/checkout/payment", "/checkout/result",
               "/account", "/account/orders", "/account/orders/:id", "/account/passengers", "/account/wallet", "/account/refunds", "/account/favorites", "/account/notifications", "/account/support", "/account/profile", "/support", "/faq", "/terms",
             ].map((path) => <Route key={path} path={path} element={<Placeholder />} />)}
+            <Route path="/flights/search" element={<FlightSearchResults />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
