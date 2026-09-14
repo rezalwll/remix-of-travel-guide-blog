@@ -9,7 +9,10 @@ import Placeholder from "./pages/Placeholder";
 const FlightSearchResults = lazy(() => import("./pages/FlightSearchResults"));
 const CheckoutPassengers = lazy(() => import("./pages/CheckoutPassengers"));
 const CheckoutReview = lazy(() => import("./pages/CheckoutReview"));
-const PaymentPlaceholder = lazy(() => import("./pages/PaymentPlaceholder"));
+const CheckoutPayment = lazy(() => import("./pages/CheckoutPayment"));
+const MockGateway = lazy(() => import("./pages/MockGateway"));
+const CheckoutResult = lazy(() => import("./pages/CheckoutResult"));
+const OrderDetail = lazy(() => import("./pages/OrderDetail"));
 
 const Destinations = lazy(() => import("./pages/Destinations"));
 const ContinentPage = lazy(() => import("./pages/ContinentPage"));
@@ -50,13 +53,16 @@ const App = () => (
               "/flights", "/flights/:id", "/hotels", "/hotels/search", "/hotels/:id",
               "/tours", "/tours/:id", "/ziyarat", "/ziyarat/:id", "/trains", "/trains/search", "/buses", "/buses/search",
               "/visa", "/visa/:country", "/insurance", "/cip", "/destinations/:slug", "/blog", "/blog/:slug",
-              "/auth/login", "/auth/register", "/auth/otp", "/auth/forgot-password", "/checkout/result",
-              "/account", "/account/orders", "/account/orders/:id", "/account/passengers", "/account/wallet", "/account/refunds", "/account/favorites", "/account/notifications", "/account/support", "/account/profile", "/support", "/faq", "/terms",
+              "/auth/login", "/auth/register", "/auth/otp", "/auth/forgot-password",
+              "/account", "/account/orders", "/account/passengers", "/account/wallet", "/account/refunds", "/account/favorites", "/account/notifications", "/account/support", "/account/profile", "/support", "/faq", "/terms",
             ].map((path) => <Route key={path} path={path} element={<Placeholder />} />)}
             <Route path="/flights/search" element={<FlightSearchResults />} />
             <Route path="/checkout/passengers" element={<CheckoutPassengers />} />
             <Route path="/checkout/review" element={<CheckoutReview />} />
-            <Route path="/checkout/payment" element={<PaymentPlaceholder />} />
+            <Route path="/checkout/payment" element={<CheckoutPayment />} />
+            <Route path="/checkout/gateway" element={<MockGateway />} />
+            <Route path="/checkout/result" element={<CheckoutResult />} />
+            <Route path="/orders/:id" element={<OrderDetail />} />
             <Route path="/cart" element={<CheckoutReview />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
