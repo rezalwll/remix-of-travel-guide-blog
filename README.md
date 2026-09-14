@@ -1,24 +1,29 @@
-# Remix of Travel Guide Blog
+# کی‌آشی — پایهٔ فرانت‌اند پلتفرم سفر
 
-Remix of b7c2fb55-820a-47bf-91b3-7fee1e0d1ed7
+کی‌آشی یک فرانت‌اند مستقل و فارسی‌زبان برای برنامه‌ریزی و رزرو سفر است. این فاز روی پایهٔ فنی محصول تمرکز دارد: رابط راست‌به‌چپ، طراحی واکنش‌گرا، پوستهٔ مشترک، توکن‌های طراحی، مسیرهای قابل توسعه و مرزهای سرویس‌های mock.
 
-This project was built with [Lovable](https://lovable.dev).
+## اجرا
 
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/24ad66a0-c47f-4e3b-92e3-0965b5f46c7f).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+```bash
+npm install
 npm run dev
 ```
+
+برای بررسی production build:
+
+```bash
+npm run build
+npm run lint
+npm test
+```
+
+## ساختار اصلی
+
+- `src/components/layout`: پوسته، هدر و فوتر
+- `src/components/ui`: primitives دسترس‌پذیر مبتنی بر Radix
+- `src/pages`: صفحات فعلی، صفحهٔ خطا و placeholderهای مسیرهای آینده
+- `src/types`: مدل‌های typed دامنهٔ سفر
+- `src/services`: مرز سرویس‌های mock قابل جایگزینی با API
+- `src/data`: داده‌های محتوایی فعلی پروژه
+
+این پروژه در حال حاضر frontend-only است و داده‌های واقعی، پرداخت و احراز هویت در آن پیاده‌سازی نشده‌اند.

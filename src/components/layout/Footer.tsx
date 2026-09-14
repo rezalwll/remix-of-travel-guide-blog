@@ -1,77 +1,23 @@
-import { Link } from "react-router-dom";
-import { Instagram, Facebook, Youtube } from "lucide-react";
-import { products } from "@/data/products";
+import { Link } from 'react-router-dom';
+import { Instagram, Send, Headphones } from 'lucide-react';
 
-const Footer = () => {
-  return (
-    <footer className="bg-earth-dark text-primary-foreground/70">
-      <div className="max-w-7xl mx-auto px-4 md:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-          {/* About */}
-          <div>
-            <span className="font-display text-xl font-bold text-primary-foreground italic block mb-4">
-              We Are Travellers
-            </span>
-            <p className="text-xs leading-relaxed text-primary-foreground/50">
-              At We Are Travellers, we share travel stories, practical tips, and inspiration for your next adventure. After years of exploring the world, we created this platform to help fellow travelers discover the beauty our planet has to offer.
-            </p>
-            <div className="flex gap-3 mt-4">
-              {[Instagram, Facebook, Youtube].map((Icon, i) => (
-                <a key={i} href="#" className="w-8 h-8 rounded-full bg-primary-foreground/10 flex items-center justify-center hover:bg-primary/30 transition text-primary-foreground/50 hover:text-primary-foreground">
-                  <Icon className="w-4 h-4" />
-                </a>
-              ))}
-            </div>
-          </div>
+const groups = [
+  { title: 'خدمات سفر', links: [['پرواز داخلی و خارجی', '/flights'], ['رزرو هتل', '/hotels'], ['تورهای سفر', '/tours'], ['قطار و اتوبوس', '/trains']] },
+  { title: 'راهنمایی و پشتیبانی', links: [['پیگیری سفارش', '/account/orders'], ['پشتیبانی', '/support'], ['قوانین و مقررات', '/terms'], ['سوالات متداول', '/faq']] },
+  { title: 'کشف مقصدها', links: [['مقصدهای محبوب', '/destinations'], ['مجله سفر', '/blog'], ['بیمه مسافرتی', '/insurance'], ['خدمات ویزا', '/visa']] },
+];
 
-          {/* Contact */}
-          <div>
-            <h4 className="font-display font-bold text-primary-foreground mb-4 text-sm">Contact & Connect</h4>
-            <p className="text-xs text-primary-foreground/50 mb-2">
-              Have a question or want to collaborate?
-            </p>
-            <p className="text-xs text-primary-foreground/50">
-              We Are Travellers is open for collaborations and sponsored content. Feel free to reach out!
-            </p>
-          </div>
-
-          {/* Latest tips */}
-          <div>
-            <h4 className="font-display font-bold text-primary-foreground mb-4 text-sm">Latest Tips</h4>
-            <ul className="space-y-2">
-              {["Accommodation tips", "Travel guides", "Attractions", "Road trips", "Food & Culture"].map((cat) => (
-                <li key={cat}>
-                  <Link to="/destinations" className="text-xs text-primary-foreground/40 hover:text-primary transition">
-                    {cat}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Products */}
-          <div>
-            <h4 className="font-display font-bold text-primary-foreground mb-4 text-sm">Our Travel Guides</h4>
-            <div className="space-y-2">
-              {products.map((product) => (
-                <Link key={product.id} to={`/shop/${product.id}`} className="flex items-center gap-3 bg-primary-foreground/5 rounded-md p-2 hover:bg-primary-foreground/10 transition">
-                  <img src={product.image} alt={product.name} className="w-10 h-10 rounded object-cover" loading="lazy" />
-                  <div>
-                    <p className="text-xs font-medium text-primary-foreground/80">{product.name}</p>
-                    <p className="text-[10px] text-primary">€{product.price.toFixed(2)}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-12 pt-8 border-t border-primary-foreground/10 text-center">
-          <p className="text-[10px] text-primary-foreground/30 tracking-wide">© 2025 We Are Travellers. All rights reserved.</p>
-        </div>
+const Footer = () => <footer className="mt-auto bg-[hsl(220_22%_17%)] text-white/80">
+  <div className="container-page py-12 sm:py-16">
+    <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[1.2fr_2fr]">
+      <div>
+        <Link to="/" className="inline-flex items-center gap-2 text-xl font-extrabold text-white"><span className="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground">ک</span> کی‌آشی</Link>
+        <p className="mt-4 max-w-xs text-sm leading-7 text-white/60">همراه مطمئن شما برای برنامه‌ریزی، رزرو و تجربه‌ی بهتر سفر.</p>
+        <div className="mt-5 flex gap-2"><a href="#" aria-label="اینستاگرام" className="rounded-lg bg-white/10 p-2 hover:bg-primary"><Instagram className="size-4" /></a><a href="#" aria-label="تلگرام" className="rounded-lg bg-white/10 p-2 hover:bg-primary"><Send className="size-4" /></a><a href="tel:02100000000" aria-label="تماس با پشتیبانی" className="rounded-lg bg-white/10 p-2 hover:bg-primary"><Headphones className="size-4" /></a></div>
       </div>
-    </footer>
-  );
-};
-
+      <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">{groups.map((group) => <div key={group.title}><h2 className="mb-4 text-sm font-bold text-white">{group.title}</h2><ul className="space-y-3">{group.links.map(([label, to]) => <li key={to}><Link to={to} className="text-sm text-white/60 transition hover:text-white">{label}</Link></li>)}</ul></div>)}</div>
+    </div>
+    <div className="mt-10 flex flex-col gap-3 border-t border-white/10 pt-6 text-xs text-white/45 sm:flex-row sm:items-center sm:justify-between"><span>© {new Date().getFullYear()} کی‌آشی — تمامی حقوق محفوظ است.</span><span>پلتفرم مستقل رزرو و برنامه‌ریزی سفر</span></div>
+  </div>
+</footer>;
 export default Footer;
