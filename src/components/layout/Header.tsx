@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { Headphones, Menu, Search, UserRound, X, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
 
 const primaryLinks = [
   { label: 'پرواز', to: '/flights' }, { label: 'هتل', to: '/hotels' },
@@ -12,6 +13,7 @@ const primaryLinks = [
 const Header = () => {
   const [open, setOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const { user, logout } = useAuth();
   const linkClass = ({ isActive }: { isActive: boolean }) => cn('text-sm font-medium transition-colors hover:text-primary', isActive ? 'text-primary' : 'text-foreground/75');
   const close = () => setOpen(false);
 
@@ -37,7 +39,7 @@ const Header = () => {
       <div className="hidden items-center gap-2 md:flex">
         <Link to="/support" className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-foreground/70 hover:bg-muted hover:text-primary"><Headphones className="size-4" /> پشتیبانی</Link>
         <Link to="/account/orders" className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-foreground/70 hover:bg-muted hover:text-primary"><Search className="size-4" /> پیگیری سفارش</Link>
-        <Link to="/auth/login" className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:border-primary hover:text-primary"><UserRound className="size-4" /> ورود / ثبت‌نام</Link>
+        {user ? <div className="flex items-center gap-2"><Link to="/account" className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:border-primary hover:text-primary"><UserRound className="size-4" /> {user.firstName}</Link><button type="button" onClick={logout} className="rounded-lg px-2 py-2 text-xs text-muted-foreground hover:bg-muted">خروج</button></div> : <Link to="/auth/login" className="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm font-semibold hover:border-primary hover:text-primary"><UserRound className="size-4" /> ورود / ثبت‌نام</Link>}
       </div>
 
       <button type="button" onClick={() => setOpen((value) => !value)} className="rounded-lg p-2 hover:bg-muted lg:hidden" aria-label={open ? 'بستن منو' : 'باز کردن منو'} aria-expanded={open}>{open ? <X className="size-5" /> : <Menu className="size-5" />}</button>
@@ -45,7 +47,7 @@ const Header = () => {
     {open && <div className="border-t border-border bg-card lg:hidden">
       <nav className="container-page flex flex-col gap-1 py-3" aria-label="منوی موبایل">
         {primaryLinks.map((item) => <NavLink key={item.to} to={item.to} onClick={close} className={({ isActive }) => cn('rounded-lg px-3 py-3 text-sm font-medium', isActive ? 'bg-primary/10 text-primary' : 'hover:bg-muted')}>{item.label}</NavLink>)}
-        {[['ویزا', '/visa'], ['بیمه سفر', '/insurance'], ['CIP فرودگاه', '/cip'], ['مجله سفر', '/blog'], ['پشتیبانی', '/support'], ['ورود / ثبت‌نام', '/auth/login']].map(([label, to]) => <Link key={to} to={to} onClick={close} className="rounded-lg px-3 py-3 text-sm font-medium hover:bg-muted">{label}</Link>)}
+        {[['ویزا', '/visa'], ['بیمه سفر', '/insurance'], ['CIP فرودگاه', '/cip'], ['مجله سفر', '/blog'], ['پشتیبانی', '/support'], [user ? 'حساب کاربری' : 'ورود / ثبت‌نام', user ? '/account' : '/auth/login']].map(([label, to]) => <Link key={to} to={to} onClick={close} className="rounded-lg px-3 py-3 text-sm font-medium hover:bg-muted">{label}</Link>)}
       </nav>
     </div>}
   </header>;

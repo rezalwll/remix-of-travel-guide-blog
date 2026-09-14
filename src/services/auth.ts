@@ -1,0 +1,13 @@
+import type { AuthSession, AuthUser } from '@/types/auth';
+import { claimOrdersForUser } from './payment';
+const SESSION_KEY = 'kiashi.auth.session'; const USERS_KEY = 'kiashi.users'; const DEMO_OTP = '12345';
+const read = <T>(key: string, fallback: T): T => { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) as T : fallback; } catch { return fallback; } };
+const write = (key: string, value: unknown) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* demo storage is optional */ } };
+const demo: AuthUser = { id: 'user-reza', firstName: 'رضا', lastName: 'احمدی', mobile: '09121234567', email: 'reza@example.com', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+const users = () => { const existing = read<AuthUser[]>(USERS_KEY, []); if (existing.some((user) => user.mobile === demo.mobile)) return existing; const next = [...existing, demo]; write(USERS_KEY, next); return next; };
+export const getCurrentSession = () => read<AuthSession | null>(SESSION_KEY, null);
+export const requestOtp = async (mobile: string) => ({ mobile, demoCode: DEMO_OTP });
+export const verifyOtp = (mobile: string, code: string, registration?: Pick<AuthUser, 'firstName' | 'lastName' | 'email'>) => { if (code !== DEMO_OTP) throw new Error('کد آزمایشی صحیح نیست.'); const list = users(); let user = list.find((item) => item.mobile === mobile); if (!user) { user = { id: `user-${Date.now()}`, firstName: registration?.firstName || 'کاربر', lastName: registration?.lastName || 'کی‌آشی', mobile, email: registration?.email, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; write(USERS_KEY, [...list, user]); } else if (registration) { user = { ...user, ...registration, updatedAt: new Date().toISOString() }; write(USERS_KEY, list.map((item) => item.id === user?.id ? user as AuthUser : item)); } const session = { user, authenticatedAt: new Date().toISOString() }; write(SESSION_KEY, session); claimOrdersForUser(user.id, user.mobile); return session; };
+export const logout = () => { try { localStorage.removeItem(SESSION_KEY); } catch { /* ignore */ } };
+export const updateProfile = (updates: Partial<Pick<AuthUser, 'firstName' | 'lastName' | 'email' | 'birthDate' | 'nationalId'>>) => { const session = getCurrentSession(); if (!session) return null; const user = { ...session.user, ...updates, updatedAt: new Date().toISOString() }; write(SESSION_KEY, { ...session, user }); write(USERS_KEY, users().map((item) => item.id === user.id ? user : item)); return { ...session, user }; };
+export const demoOtp = DEMO_OTP;

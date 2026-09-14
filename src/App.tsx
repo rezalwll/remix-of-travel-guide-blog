@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { lazy, Suspense } from "react";
 import Index from "./pages/Index";
 import Placeholder from "./pages/Placeholder";
+import { AuthProvider } from "./context/AuthContext";
+import { GuestRoute, ProtectedRoute } from "./components/auth/ProtectedRoute";
 const FlightSearchResults = lazy(() => import("./pages/FlightSearchResults"));
 const CheckoutPassengers = lazy(() => import("./pages/CheckoutPassengers"));
 const CheckoutReview = lazy(() => import("./pages/CheckoutReview"));
@@ -13,6 +15,8 @@ const CheckoutPayment = lazy(() => import("./pages/CheckoutPayment"));
 const MockGateway = lazy(() => import("./pages/MockGateway"));
 const CheckoutResult = lazy(() => import("./pages/CheckoutResult"));
 const OrderDetail = lazy(() => import("./pages/OrderDetail"));
+const AccountPage = lazy(() => import("./pages/AccountPage"));
+import { Login, Register, Otp, ForgotPassword } from "./pages/AuthPages";
 
 const Destinations = lazy(() => import("./pages/Destinations"));
 const ContinentPage = lazy(() => import("./pages/ContinentPage"));
@@ -38,6 +42,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <AuthProvider>
         <Suspense fallback={<Loading />}>
           <Routes>
             <Route path="/" element={<Index />} />
@@ -53,8 +58,7 @@ const App = () => (
               "/flights", "/flights/:id", "/hotels", "/hotels/search", "/hotels/:id",
               "/tours", "/tours/:id", "/ziyarat", "/ziyarat/:id", "/trains", "/trains/search", "/buses", "/buses/search",
               "/visa", "/visa/:country", "/insurance", "/cip", "/destinations/:slug", "/blog", "/blog/:slug",
-              "/auth/login", "/auth/register", "/auth/otp", "/auth/forgot-password",
-              "/account", "/account/orders", "/account/passengers", "/account/wallet", "/account/refunds", "/account/favorites", "/account/notifications", "/account/support", "/account/profile", "/support", "/faq", "/terms",
+              "/support", "/faq", "/terms",
             ].map((path) => <Route key={path} path={path} element={<Placeholder />} />)}
             <Route path="/flights/search" element={<FlightSearchResults />} />
             <Route path="/checkout/passengers" element={<CheckoutPassengers />} />
@@ -63,10 +67,25 @@ const App = () => (
             <Route path="/checkout/gateway" element={<MockGateway />} />
             <Route path="/checkout/result" element={<CheckoutResult />} />
             <Route path="/orders/:id" element={<OrderDetail />} />
+            <Route path="/auth/login" element={<GuestRoute><Login /></GuestRoute>} />
+            <Route path="/auth/register" element={<GuestRoute><Register /></GuestRoute>} />
+            <Route path="/auth/otp" element={<GuestRoute><Otp /></GuestRoute>} />
+            <Route path="/auth/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
+            <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
+            <Route path="/account/orders" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
+            <Route path="/account/orders/:id" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
+            <Route path="/account/passengers" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
+            <Route path="/account/wallet" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
+            <Route path="/account/refunds" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
+            <Route path="/account/favorites" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
+            <Route path="/account/notifications" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
+            <Route path="/account/support" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
+            <Route path="/account/profile" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
             <Route path="/cart" element={<CheckoutReview />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

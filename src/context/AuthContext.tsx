@@ -1,0 +1,7 @@
+import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import type { AuthSession, AuthUser } from '@/types/auth';
+import * as authService from '@/services/auth';
+interface AuthContextValue { session: AuthSession | null; user: AuthUser | null; login: (mobile: string, code: string, registration?: Pick<AuthUser, 'firstName' | 'lastName' | 'email'>) => AuthSession; logout: () => void; updateProfile: (updates: Partial<Pick<AuthUser, 'firstName' | 'lastName' | 'email' | 'birthDate' | 'nationalId'>>) => void; }
+const AuthContext = createContext<AuthContextValue | null>(null);
+export const AuthProvider = ({ children }: { children: ReactNode }) => { const [session, setSession] = useState<AuthSession | null>(() => authService.getCurrentSession()); const value = useMemo(() => ({ session, user: session?.user || null, login: (mobile: string, code: string, registration?: Pick<AuthUser, 'firstName' | 'lastName' | 'email'>) => { const next = authService.verifyOtp(mobile, code, registration); setSession(next); return next; }, logout: () => { authService.logout(); setSession(null); }, updateProfile: (updates: Partial<Pick<AuthUser, 'firstName' | 'lastName' | 'email' | 'birthDate' | 'nationalId'>>) => { const next = authService.updateProfile(updates); if (next) setSession(next); } }), [session]); return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>; };
+export const useAuth = () => { const value = useContext(AuthContext); if (!value) throw new Error('useAuth must be used within AuthProvider'); return value; };
