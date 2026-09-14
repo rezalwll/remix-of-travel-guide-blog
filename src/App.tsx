@@ -9,6 +9,9 @@ import Placeholder from "./pages/Placeholder";
 import { AuthProvider } from "./context/AuthContext";
 import { GuestRoute, ProtectedRoute } from "./components/auth/ProtectedRoute";
 const FlightSearchResults = lazy(() => import("./pages/FlightSearchResults"));
+const HotelSearchResults = lazy(() => import("./pages/HotelSearchResults"));
+const HotelDetail = lazy(() => import("./pages/HotelDetail"));
+const HotelGuests = lazy(() => import("./pages/HotelGuests"));
 const CheckoutPassengers = lazy(() => import("./pages/CheckoutPassengers"));
 const CheckoutReview = lazy(() => import("./pages/CheckoutReview"));
 const CheckoutPayment = lazy(() => import("./pages/CheckoutPayment"));
@@ -55,12 +58,15 @@ const App = () => (
             <Route path="/shop" element={<Shop />} />
             <Route path="/shop/:productId" element={<ProductDetailPage />} />
             {[
-              "/flights", "/flights/:id", "/hotels", "/hotels/search", "/hotels/:id",
+              "/flights", "/flights/:id", "/hotels",
               "/tours", "/tours/:id", "/ziyarat", "/ziyarat/:id", "/trains", "/trains/search", "/buses", "/buses/search",
               "/visa", "/visa/:country", "/insurance", "/cip", "/destinations/:slug", "/blog", "/blog/:slug",
               "/support", "/faq", "/terms",
             ].map((path) => <Route key={path} path={path} element={<Placeholder />} />)}
             <Route path="/flights/search" element={<FlightSearchResults />} />
+            <Route path="/hotels/search" element={<HotelSearchResults />} />
+            <Route path="/hotels/:id" element={<HotelDetail />} />
+            <Route path="/checkout/hotel-guests" element={<HotelGuests />} />
             <Route path="/checkout/passengers" element={<CheckoutPassengers />} />
             <Route path="/checkout/review" element={<CheckoutReview />} />
             <Route path="/checkout/payment" element={<CheckoutPayment />} />
