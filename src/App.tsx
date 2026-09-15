@@ -17,6 +17,11 @@ const TourDetail = lazy(() => import("./pages/TourDetail"));
 const ZiyaratPage = lazy(() => import("./pages/ZiyaratPage"));
 const ZiyaratDetail = lazy(() => import("./pages/ZiyaratDetail"));
 const ExperienceTravelers = lazy(() => import("./pages/ExperienceTravelers"));
+const SecondaryServicePage = lazy(() => import("./pages/SecondaryServicePage"));
+const SecondaryPassengers = lazy(() => import("./pages/SecondaryPassengers"));
+const VisaCenter = lazy(() => import("./pages/VisaCenter"));
+const VisaCountry = lazy(() => import("./pages/VisaCountry"));
+const VisaApply = lazy(() => import("./pages/VisaApply"));
 const CheckoutPassengers = lazy(() => import("./pages/CheckoutPassengers"));
 const CheckoutReview = lazy(() => import("./pages/CheckoutReview"));
 const CheckoutPayment = lazy(() => import("./pages/CheckoutPayment"));
@@ -64,8 +69,7 @@ const App = () => (
             <Route path="/shop/:productId" element={<ProductDetailPage />} />
             {[
               "/flights", "/flights/:id", "/hotels",
-              "/trains", "/trains/search", "/buses", "/buses/search",
-              "/visa", "/visa/:country", "/insurance", "/cip", "/destinations/:slug", "/blog", "/blog/:slug",
+              "/destinations/:slug", "/blog", "/blog/:slug",
               "/support", "/faq", "/terms",
             ].map((path) => <Route key={path} path={path} element={<Placeholder />} />)}
             <Route path="/flights/search" element={<FlightSearchResults />} />
@@ -78,6 +82,18 @@ const App = () => (
             <Route path="/ziyarat/:id" element={<ZiyaratDetail />} />
             <Route path="/checkout/tour-travelers" element={<ExperienceTravelers type="tour" />} />
             <Route path="/checkout/ziyarat-travelers" element={<ExperienceTravelers type="ziyarat" />} />
+            <Route path="/trains/search" element={<SecondaryServicePage type="train" />} />
+            <Route path="/buses/search" element={<SecondaryServicePage type="bus" />} />
+            <Route path="/trains" element={<SecondaryServicePage type="train" />} />
+            <Route path="/buses" element={<SecondaryServicePage type="bus" />} />
+            <Route path="/insurance" element={<SecondaryServicePage type="insurance" />} />
+            <Route path="/cip" element={<SecondaryServicePage type="cip" />} />
+            <Route path="/transfer" element={<SecondaryServicePage type="transfer" />} />
+            <Route path="/transfers" element={<SecondaryServicePage type="transfer" />} />
+            <Route path="/checkout/secondary-passengers" element={<SecondaryPassengers />} />
+            <Route path="/visa" element={<VisaCenter />} />
+            <Route path="/visa/:country" element={<VisaCountry />} />
+            <Route path="/visa/:country/apply" element={<VisaApply />} />
             <Route path="/checkout/passengers" element={<CheckoutPassengers />} />
             <Route path="/checkout/review" element={<CheckoutReview />} />
             <Route path="/checkout/payment" element={<CheckoutPayment />} />
@@ -98,6 +114,7 @@ const App = () => (
             <Route path="/account/notifications" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
             <Route path="/account/support" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
             <Route path="/account/profile" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
+            <Route path="/account/visa" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
             <Route path="/cart" element={<CheckoutReview />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

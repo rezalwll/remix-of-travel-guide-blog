@@ -1,0 +1,13 @@
+import { buses, cipPackages, insurancePlans, trains, transferVehicles } from '@/data/secondary';
+import type { BusOffer, CipPackage, InsurancePlan, SecondaryType, TrainOffer, TransferVehicle } from '@/types/secondary';
+export const filterTrains=(items:TrainOffer[],query:Record<string,string>)=>items.filter((item)=>!query.from||item.origin.includes(query.from)).filter((item)=>!query.to||item.destination.includes(query.to));
+export const sortTrains=(items:TrainOffer[],sort='recommended')=>[...items].sort((a,b)=>sort==='price'?a.price-b.price:sort==='early'?a.departure.localeCompare(b.departure):sort==='fast'?a.duration.localeCompare(b.duration):Number(b.stars)-Number(a.stars)||a.price-b.price);
+export const filterBuses=(items:BusOffer[],query:Record<string,string>)=>items.filter((item)=>!query.from||item.origin.includes(query.from)).filter((item)=>!query.to||item.destination.includes(query.to));
+export const sortBuses=(items:BusOffer[],sort='recommended')=>[...items].sort((a,b)=>sort==='price'?a.price-b.price:sort==='early'?a.departure.localeCompare(b.departure):sort==='vip'?Number(b.busType==='VIP')-Number(a.busType==='VIP'):a.price-b.price);
+export const calculateTrainPrice=(item:TrainOffer,count:number)=>item.price*Math.max(1,count);
+export const calculateBusPrice=(item:BusOffer,count:number)=>item.price*Math.max(1,count);
+export const calculateInsurancePrice=(plan:InsurancePlan,count:number)=>plan.price*Math.max(1,count);
+export const calculateCipPrice=(pack:CipPackage,count:number)=>pack.price*Math.max(1,count);
+export const calculateTransferPrice=(vehicle:TransferVehicle)=>vehicle.price;
+export const secondaryService={trains,buses,insurancePlans,cipPackages,transferVehicles,getTrain:(id:string)=>trains.find((item)=>item.id===id),getBus:(id:string)=>buses.find((item)=>item.id===id),getInsurance:(id:string)=>insurancePlans.find((item)=>item.id===id),getCip:(id:string)=>cipPackages.find((item)=>item.id===id),getTransfer:(id:string)=>transferVehicles.find((item)=>item.id===id)};
+export const secondaryLabel=(type:SecondaryType)=>({train:'قطار',bus:'اتوبوس',insurance:'بیمه مسافرتی',cip:'CIP فرودگاهی',transfer:'ترانسفر'})[type];
