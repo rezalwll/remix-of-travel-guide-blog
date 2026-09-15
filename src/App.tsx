@@ -5,7 +5,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { lazy, Suspense } from "react";
 import Index from "./pages/Index";
-import Placeholder from "./pages/Placeholder";
 import { AuthProvider } from "./context/AuthContext";
 import { GuestRoute, ProtectedRoute } from "./components/auth/ProtectedRoute";
 const FlightSearchResults = lazy(() => import("./pages/FlightSearchResults"));
@@ -30,6 +29,12 @@ const CheckoutResult = lazy(() => import("./pages/CheckoutResult"));
 const OrderDetail = lazy(() => import("./pages/OrderDetail"));
 const AccountPage = lazy(() => import("./pages/AccountPage"));
 import { Login, Register, Otp, ForgotPassword } from "./pages/AuthPages";
+const TrackOrder = lazy(() => import("./pages/TrackOrder"));
+const HelpCenter = lazy(() => import("./pages/HelpCenter"));
+const PublicInfoPage = lazy(() => import("./pages/PublicInfoPage"));
+const ServiceLanding = lazy(() => import("./pages/ServiceLanding"));
+const ServiceOverview = lazy(() => import("./pages/ServiceOverview"));
+const BlogIndex = lazy(() => import("./pages/BlogIndex"));
 
 const Destinations = lazy(() => import("./pages/Destinations"));
 const ContinentPage = lazy(() => import("./pages/ContinentPage"));
@@ -67,11 +72,32 @@ const App = () => (
             <Route path="/routes/:routeId" element={<RouteDetailPage />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/shop/:productId" element={<ProductDetailPage />} />
-            {[
-              "/flights", "/flights/:id", "/hotels",
-              "/destinations/:slug", "/blog", "/blog/:slug",
-              "/support", "/faq", "/terms",
-            ].map((path) => <Route key={path} path={path} element={<Placeholder />} />)}
+            <Route path="/flights" element={<ServiceOverview kind="flights" />} />
+            <Route path="/flights/:id" element={<ServiceOverview kind="flights" />} />
+            <Route path="/hotels" element={<ServiceOverview kind="hotels" />} />
+            <Route path="/support" element={<HelpCenter />} />
+            <Route path="/help" element={<HelpCenter />} />
+            <Route path="/faq" element={<HelpCenter />} />
+            <Route path="/help/purchase-guide" element={<PublicInfoPage kind="purchase" />} />
+            <Route path="/help/refund-guide" element={<PublicInfoPage kind="refund-guide" />} />
+            <Route path="/track-order" element={<TrackOrder />} />
+            <Route path="/order-tracking" element={<TrackOrder />} />
+            <Route path="/about" element={<PublicInfoPage kind="about" />} />
+            <Route path="/contact" element={<PublicInfoPage kind="contact" />} />
+            <Route path="/terms" element={<PublicInfoPage kind="terms" />} />
+            <Route path="/privacy" element={<PublicInfoPage kind="privacy" />} />
+            <Route path="/refund-policy" element={<PublicInfoPage kind="refund" />} />
+            <Route path="/licenses" element={<PublicInfoPage kind="licenses" />} />
+            <Route path="/business-travel" element={<PublicInfoPage kind="business" />} />
+            <Route path="/club" element={<PublicInfoPage kind="club" />} />
+            <Route path="/travel-preparation" element={<PublicInfoPage kind="travel-preparation" />} />
+            <Route path="/travel-checklist" element={<PublicInfoPage kind="travel-preparation" />} />
+            <Route path="/fast-track" element={<ServiceLanding kind="fast-track" />} />
+            <Route path="/esim" element={<ServiceLanding kind="esim" />} />
+            <Route path="/city-tours" element={<ServiceLanding kind="city-tours" />} />
+            <Route path="/experiences" element={<ServiceLanding kind="city-tours" />} />
+            <Route path="/blog" element={<BlogIndex />} />
+            <Route path="/blog/:slug" element={<BlogIndex />} />
             <Route path="/flights/search" element={<FlightSearchResults />} />
             <Route path="/hotels/search" element={<HotelSearchResults />} />
             <Route path="/hotels/:id" element={<HotelDetail />} />

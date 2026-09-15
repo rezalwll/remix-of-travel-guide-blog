@@ -2,7 +2,7 @@ import type { BookingDraft, PriceBreakdown } from './checkout';
 import type { ExperienceOffer, ExperienceDeparture, ExperiencePackage, ExperienceTraveler } from './experience';
 import type { Hotel, HotelGuest, HotelRatePlan, HotelRoom, HotelSearchParams } from './hotel';
 import type { SecondaryItem, SecondaryTraveler, SecondaryType } from './secondary';
-export type PaymentMethodKind = 'online' | 'wallet' | 'combined' | 'installment';
+export type PaymentMethodKind = 'online' | 'wallet' | 'combined' | 'installment' | 'organization';
 export type PaymentStatus = 'pending' | 'processing' | 'success' | 'failed' | 'cancelled';
 export interface WalletState { balance: number; currency: 'IRR'; updatedAt: string; }
 export interface InstallmentPlan { id: string; count: number; upfront: number; monthly: number; total: number; label: string; }
