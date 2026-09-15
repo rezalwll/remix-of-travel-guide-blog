@@ -1,0 +1,3 @@
+import { beforeEach, describe, expect, it } from 'vitest';
+import { clearRecentlyViewed, listRecentlyViewed, recordRecentlyViewed } from '@/services/recentlyViewed';
+describe('recently viewed persistence',()=>{beforeEach(()=>clearRecentlyViewed());it('keeps newest items and deduplicates by type/id',()=>{recordRecentlyViewed('hotel','h1');recordRecentlyViewed('tour','t1');recordRecentlyViewed('hotel','h1');expect(listRecentlyViewed().map((item)=>`${item.type}:${item.id}`)).toEqual(['hotel:h1','tour:t1']);});it('stores only supported identity fields',()=>{const item=recordRecentlyViewed('destination','d1')[0];expect(Object.keys(item).sort()).toEqual(['id','type','viewedAt']);});});

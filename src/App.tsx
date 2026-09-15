@@ -35,6 +35,7 @@ const PublicInfoPage = lazy(() => import("./pages/PublicInfoPage"));
 const ServiceLanding = lazy(() => import("./pages/ServiceLanding"));
 const ServiceOverview = lazy(() => import("./pages/ServiceOverview"));
 const BlogIndex = lazy(() => import("./pages/BlogIndex"));
+const AccountTrips = lazy(() => import("./pages/AccountTrips"));
 
 const Destinations = lazy(() => import("./pages/Destinations"));
 const ContinentPage = lazy(() => import("./pages/ContinentPage"));
@@ -132,6 +133,7 @@ const App = () => (
             <Route path="/auth/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
             <Route path="/account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
             <Route path="/account/orders" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
+            <Route path="/account/trips" element={<ProtectedRoute><AccountTrips /></ProtectedRoute>} />
             <Route path="/account/orders/:id" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
             <Route path="/account/passengers" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
             <Route path="/account/wallet" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />

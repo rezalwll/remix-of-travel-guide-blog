@@ -1,15 +1,8 @@
-import { Link, useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 
 const NotFound = () => {
-  const location = useLocation();
-
-  useEffect(() => {
-    console.error("404 Error: User attempted to access non-existent route:", location.pathname);
-  }, [location.pathname]);
-
-  return <Layout><main className="container-page flex min-h-[55vh] items-center justify-center py-20"><div className="text-center"><p className="mb-3 text-sm font-semibold text-primary">خطای ۴۰۴</p><h1 className="mb-4 text-4xl font-extrabold">صفحه پیدا نشد</h1><p className="mb-6 text-muted-foreground">آدرس واردشده وجود ندارد یا جابه‌جا شده است.</p><Link to="/" className="text-primary underline hover:text-primary/90">بازگشت به صفحه اصلی</Link></div></main></Layout>;
+  return <Layout><main className="container-page flex min-h-[55vh] items-center justify-center py-20"><div className="max-w-xl text-center"><p className="mb-3 text-sm font-semibold text-primary">خطای ۴۰۴</p><h1 className="mb-4 text-4xl font-extrabold">این مسیر پیدا نشد</h1><p className="mb-7 text-sm leading-7 text-muted-foreground">ممکن است آدرس تغییر کرده باشد. از یکی از مسیرهای زیر ادامه دهید.</p><div className="flex flex-wrap justify-center gap-2"><Link to="/" className="rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white">صفحه اصلی</Link><Link to="/flights" className="rounded-lg border border-border px-4 py-3 text-sm font-bold">پرواز</Link><Link to="/hotels" className="rounded-lg border border-border px-4 py-3 text-sm font-bold">هتل</Link><Link to="/help" className="rounded-lg border border-border px-4 py-3 text-sm font-bold">مرکز راهنما</Link></div></div></main></Layout>;
 };
 
 export default NotFound;
