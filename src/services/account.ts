@@ -1,7 +1,7 @@
 import type { BookingPassenger } from '@/types/checkout';
 import type { MockOrder } from '@/types/payment';
 type Refund = { id: string; userId: string; orderId: string; status: 'requested' | 'under_review' | 'approved_mock' | 'rejected_mock' | 'completed_mock'; reason: string; requestedAmount: number; estimatedRefund: number; createdAt: string; };
-type Favorite = { id: string; userId: string; type: 'destination' | 'hotel' | 'tour'; itemId: string; title: string; href: string; image?: string; };
+type Favorite = { id: string; userId: string; type: 'destination' | 'hotel' | 'tour' | 'ziyarat'; itemId: string; title: string; href: string; image?: string; };
 type Notification = { id: string; userId: string; type: string; title: string; body: string; read: boolean; createdAt: string; };
 type Ticket = { id: string; userId: string; subject: string; category: string; message: string; status: 'open' | 'waiting' | 'answered' | 'closed'; replies: { id: string; message: string; author: string; createdAt: string }[]; createdAt: string; };
 const read = <T>(key: string, fallback: T): T => { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) as T : fallback; } catch { return fallback; } }; const write = (key: string, value: unknown) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* safe fallback */ } };
