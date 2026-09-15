@@ -5,11 +5,16 @@ import Layout from "@/components/layout/Layout";
 import ArticleCard from "@/components/ArticleCard";
 import NewsletterSignup from "@/components/NewsletterSignup";
 import { getArticleById, getAllArticles } from "@/data/destinations";
+import { travelArticles } from "@/data/homepage";
 import NotFound from "./NotFound";
 
 const ArticlePage = () => {
-  const { articleId } = useParams<{ articleId: string }>();
-  const result = getArticleById(articleId || "");
+  const { articleId, slug } = useParams<{ articleId?: string; slug?: string }>();
+  const key = articleId || slug || "";
+  const result = getArticleById(key) ?? (() => {
+    const homeArticle = travelArticles.find((item) => item.id === key || item.slug === key);
+    return homeArticle ? { article: { ...homeArticle, date: new Date().toISOString(), content: [homeArticle.excerpt], author: undefined }, country: undefined, continent: undefined } : undefined;
+  })();
 
   if (!result) return <NotFound />;
 

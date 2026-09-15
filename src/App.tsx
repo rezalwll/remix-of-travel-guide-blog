@@ -98,7 +98,7 @@ const App = () => (
             <Route path="/city-tours" element={<ServiceLanding kind="city-tours" />} />
             <Route path="/experiences" element={<ServiceLanding kind="city-tours" />} />
             <Route path="/blog" element={<BlogIndex />} />
-            <Route path="/blog/:slug" element={<BlogIndex />} />
+            <Route path="/blog/:slug" element={<ArticlePage />} />
             <Route path="/flights/search" element={<FlightSearchResults />} />
             <Route path="/hotels/search" element={<HotelSearchResults />} />
             <Route path="/hotels/:id" element={<HotelDetail />} />

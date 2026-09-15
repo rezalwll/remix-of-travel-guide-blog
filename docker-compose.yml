@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: kiashi
+      POSTGRES_PASSWORD: kiashi
+      POSTGRES_DB: kiashi
+    ports:
+      - "5432:5432"
+    volumes:
+      - kiashi-postgres:/var/lib/postgresql/data
+volumes:
+  kiashi-postgres:
