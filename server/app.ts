@@ -68,7 +68,19 @@ export async function buildApp(options: AppOptions = {}) {
   app.get("/api/auth/me", async (request, reply) => { const user = await requireUser(request, reply); return user ? { user } : undefined; });
 
   app.get("/api/account/profile", async (request, reply) => { const user = await requireUser(request, reply); return user ? { user: await repository.profile(user.id) } : undefined; });
-  app.patch("/api/account/profile", async (request, reply) => { const user = await requireUser(request, reply); if (!user) return; const parsed = z.object({ firstName: z.string().max(80).optional(), lastName: z.string().max(80).optional() }).safeParse(request.body); if (!parsed.success) return errorResponse(reply, 400, "VALIDATION_ERROR", "اطلاعات پروفایل معتبر نیست"); return { user: await repository.updateProfile(user.id, parsed.data) }; });
+  app.patch("/api/account/profile", async (request, reply) => {
+    const user = await requireUser(request, reply);
+    if (!user) return;
+    const parsed = z.object({
+      firstName: z.string().max(80).optional(),
+      lastName: z.string().max(80).optional(),
+      email: z.union([z.string().email(), z.literal("")]).optional(),
+      birthDate: z.union([z.string().date(), z.literal("")]).optional(),
+      nationalId: z.string().max(20).optional(),
+    }).safeParse(request.body);
+    if (!parsed.success) return errorResponse(reply, 400, "VALIDATION_ERROR", "اطلاعات پروفایل معتبر نیست");
+    return { user: await repository.updateProfile(user.id, parsed.data) };
+  });
 
   app.post("/api/checkout/sessions", async (request, reply) => {
     const user = await currentUser(request);

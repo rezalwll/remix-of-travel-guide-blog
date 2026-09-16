@@ -11,7 +11,7 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
   } catch {
     throw new ApiError(0, "API_UNAVAILABLE", "ارتباط با سرویس برقرار نشد؛ لطفاً دوباره تلاش کنید.");
   }
-  const body = await response.json().catch(() => undefined);
+  const body = response.status === 204 ? undefined : await response.json().catch(() => undefined);
   if (!response.ok) { const error = body?.error; throw new ApiError(response.status, error?.code ?? "REQUEST_FAILED", error?.message ?? "درخواست انجام نشد"); }
   return body as T;
 }

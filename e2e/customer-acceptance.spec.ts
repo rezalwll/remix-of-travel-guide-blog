@@ -16,8 +16,9 @@ test('anonymous customer can search flights and reach passenger checkout', async
 });
 
 test('tracking and help provide useful invalid and search states', async ({ page }) => {
+  await page.route('**/api/order-tracking', async (route) => route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ error: { code: 'NOT_FOUND', message: 'سفارش با این مشخصات پیدا نشد' } }) }));
   await page.goto('/track-order');
-  await page.getByLabel('شماره سفارش / کد پیگیری').fill('KIA-INVALID');
+  await page.getByLabel('شناسه سفارش').fill('KIA-INVALID');
   await page.getByLabel('موبایل خریدار').fill('09120000000');
   await page.getByRole('button', { name: 'جست‌وجوی سفارش' }).click();
   await expect(page.getByRole('alert')).toContainText('پیدا نشد');

@@ -1,26 +1,66 @@
-import type { BookingDraft, HotelBookingDraft, ExperienceCheckoutDraft, SecondaryCheckoutDraft } from '@/types/checkout';
-import type { InstallmentPlan, MockOrder, PaymentAttempt, PaymentMethodKind, TransactionRecord, WalletState } from '@/types/payment';
-import { calculateAnyDraftPrice } from './checkout';
+import type { BookingDraft, ExperienceCheckoutDraft, HotelBookingDraft, SecondaryCheckoutDraft } from '@/types/checkout';
+import type { InstallmentPlan, PaymentMethodKind } from '@/types/payment';
+import { backend, type ApiOrder, type CheckoutPayload } from './backend';
 
-const keys = { wallet: 'kiashi.wallet', orders: 'kiashi.orders', transactions: 'kiashi.transactions', attempts: 'kiashi.payment-attempts' };
-const read = <T>(key: string, fallback: T): T => { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) as T : fallback; } catch { return fallback; } };
-const write = (key: string, value: unknown) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* persistence is optional in demo */ } };
-const uid = () => typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-export const getWallet = (): WalletState => read(keys.wallet, { balance: 4250000, currency: 'IRR', updatedAt: new Date().toISOString() });
-export const calculateInstallmentPlans = (total: number): InstallmentPlan[] => [{ id: 'plan-3', count: 3, upfront: Math.round(total / 3), monthly: Math.round((total - Math.round(total / 3)) / 2), total, label: '۳ قسط' }, { id: 'plan-4', count: 4, upfront: Math.round(total / 4), monthly: Math.round((total - Math.round(total / 4)) / 3), total, label: '۴ قسط' }];
-export const createAttempt = (draft: BookingDraft, method: PaymentMethodKind, plan?: InstallmentPlan): PaymentAttempt => { const pricing = calculateAnyDraftPrice(draft); const walletAmount = method === 'wallet' || method === 'combined' ? Math.min(getWallet().balance, pricing.total) : 0; const onlineAmount = pricing.total - walletAmount; const attempt: PaymentAttempt = { id: uid(), draftId: draft.searchUrl, method, amount: pricing.total, walletAmount, onlineAmount, installmentPlan: plan, status: 'pending', createdAt: new Date().toISOString() }; const attempts = read<PaymentAttempt[]>(keys.attempts, []); write(keys.attempts, [...attempts, attempt]); return attempt; };
-export const updateAttempt = (attempt: PaymentAttempt): PaymentAttempt => { const attempts = read<PaymentAttempt[]>(keys.attempts, []); write(keys.attempts, [...attempts.filter((item) => item.id !== attempt.id), attempt]); return attempt; };
-export const getAttempt = (id: string) => read<PaymentAttempt[]>(keys.attempts, []).find((item) => item.id === id) ?? null;
-export const saveTransaction = (transaction: TransactionRecord) => { const items = read<TransactionRecord[]>(keys.transactions, []); const existing = items.find((item) => item.attemptId === transaction.attemptId && item.status === 'success'); if (existing) return existing; write(keys.transactions, [...items, transaction]); return transaction; };
-export const getTransactionByAttempt = (attemptId: string) => read<TransactionRecord[]>(keys.transactions, []).find((item) => item.attemptId === attemptId) ?? null;
-export const listTransactions = () => read<TransactionRecord[]>(keys.transactions, []);
-export const listOrders = () => read<MockOrder[]>(keys.orders, []);
-export const getOrder = (id: string) => listOrders().find((order) => order.id === id || order.orderNumber === id) ?? null;
-export const listOrdersForUser = (userId: string) => listOrders().filter((order) => order.userId === userId);
-export const claimOrdersForUser = (userId: string, mobile: string) => { const orders = listOrders(); let changed = false; const next = orders.map((order) => { if (!order.userId && order.buyer.mobile === mobile) { changed = true; return { ...order, userId }; } return order; }); if (changed) write(keys.orders, next); return next.filter((order) => order.userId === userId); };
-const orderNumber = () => `KIA-${new Date().getFullYear()}-${String(listOrders().length + 1).padStart(6, '0')}`;
-export const createOrderFromPaidBooking = (draft: BookingDraft, transaction: TransactionRecord, attempt: PaymentAttempt): MockOrder => { const existing = listOrders().find((order) => order.payment.transactionReference === transaction.referenceNumber); if (existing) return existing; const pricing = calculateAnyDraftPrice(draft); const isHotel = draft.serviceType === 'hotel'; const isExperience = draft.serviceType === 'tour' || draft.serviceType === 'ziyarat'; const isSecondary = ['train', 'bus', 'insurance', 'cip', 'transfer'].includes(draft.serviceType || ''); const hotelDraft = draft as HotelBookingDraft; const experienceDraft = draft as ExperienceCheckoutDraft; const secondaryDraft = draft as SecondaryCheckoutDraft; const order: MockOrder = { id: uid(), orderNumber: orderNumber(), createdAt: new Date().toISOString(), status: 'confirmed_mock', paymentStatus: 'paid', serviceType: draft.serviceType || 'flight', buyer: draft.buyer, passengers: draft.passengers, outbound: draft.outbound, inbound: draft.inbound, ancillaries: draft.ancillaries, coupon: draft.coupon, pricing, payment: { method: attempt.method, transactionReference: transaction.referenceNumber, amount: transaction.amount, walletAmount: transaction.walletAmount, onlineAmount: transaction.onlineAmount, installmentPlan: attempt.installmentPlan }, searchUrl: draft.searchUrl, hotelSnapshot: isHotel ? { hotel: hotelDraft.hotel, stayParams: hotelDraft.hotelSearch, room: hotelDraft.hotelRoom, ratePlan: hotelDraft.hotelRatePlan, roomCount: hotelDraft.roomCount, guests: hotelDraft.hotelGuests, addOns: hotelDraft.hotelAddOns, nights: Math.max(0, Math.round((new Date(`${hotelDraft.hotelSearch.checkOut}T00:00:00`).getTime() - new Date(`${hotelDraft.hotelSearch.checkIn}T00:00:00`).getTime()) / 86400000)) } : undefined, experienceSnapshot: isExperience ? { type: experienceDraft.experienceType, offer: experienceDraft.offer, departure: experienceDraft.departure, package: experienceDraft.package, travelers: experienceDraft.travelers, addOns: experienceDraft.addOns } : undefined, secondarySnapshot: isSecondary ? { type: secondaryDraft.secondaryType, item: secondaryDraft.item, query: secondaryDraft.query, quantity: secondaryDraft.quantity, selectedSeats: secondaryDraft.selectedSeats, travelers: secondaryDraft.travelers, addOns: secondaryDraft.addOns } : undefined }; write(keys.orders, [...listOrders(), order]); return order; };
-export const applyWalletAfterSuccess = (amount: number) => { const wallet = getWallet(); const next = { ...wallet, balance: Math.max(0, wallet.balance - amount), updatedAt: new Date().toISOString() }; write(keys.wallet, next); return next; };
-export const createSuccessfulTransaction = (attempt: PaymentAttempt): TransactionRecord => { const existing = getTransactionByAttempt(attempt.id); if (existing?.status === 'success') return existing; const transaction: TransactionRecord = { id: uid(), attemptId: attempt.id, status: 'success', amount: attempt.amount, currency: 'IRR', method: attempt.method, referenceNumber: String(Date.now()).slice(-10), gatewayName: attempt.method === 'wallet' ? 'کیف پول دمو' : 'درگاه آزمایشی', walletAmount: attempt.walletAmount, onlineAmount: attempt.onlineAmount, createdAt: attempt.createdAt, completedAt: new Date().toISOString() }; return saveTransaction(transaction); };
-export const createFailedTransaction = (attempt: PaymentAttempt, reason: string): TransactionRecord => { const transaction: TransactionRecord = { id: uid(), attemptId: attempt.id, status: 'failed', amount: attempt.amount, currency: 'IRR', method: attempt.method, referenceNumber: String(Date.now()).slice(-10), gatewayName: attempt.method === 'wallet' ? 'کیف پول دمو' : 'درگاه آزمایشی', walletAmount: attempt.walletAmount, onlineAmount: attempt.onlineAmount, createdAt: attempt.createdAt, failureReason: reason }; const items = read<TransactionRecord[]>(keys.transactions, []); write(keys.transactions, [...items, transaction]); return transaction; };
-export const completeSuccessfulAttempt = (draft: BookingDraft, attempt: PaymentAttempt) => { const existing = getTransactionByAttempt(attempt.id); const transaction = createSuccessfulTransaction(attempt); if (!existing && attempt.walletAmount > 0) applyWalletAfterSuccess(attempt.walletAmount); const order = createOrderFromPaidBooking(draft, transaction, attempt); return { transaction, order }; };
+export const calculateInstallmentPlans = (total: number): InstallmentPlan[] => [
+  { id: 'plan-3', count: 3, upfront: Math.round(total / 3), monthly: Math.round((total - Math.round(total / 3)) / 2), total, label: '۳ قسط' },
+  { id: 'plan-4', count: 4, upfront: Math.round(total / 4), monthly: Math.round((total - Math.round(total / 4)) / 3), total, label: '۴ قسط' },
+];
+
+export const paymentMethodToApi = (method: PaymentMethodKind) => ({
+  online: 'online_mock',
+  wallet: 'wallet',
+  combined: 'combined',
+  installment: 'installment_mock',
+  organization: 'organizational_credit_mock',
+} as const)[method];
+
+const serviceSnapshot = (draft: BookingDraft): Record<string, unknown> => {
+  if (draft.serviceType === 'hotel') {
+    const hotel = draft as HotelBookingDraft;
+    return { hotel: hotel.hotel, stay: hotel.hotelSearch, room: hotel.hotelRoom, ratePlan: hotel.hotelRatePlan, roomCount: hotel.roomCount, addOns: hotel.hotelAddOns, searchUrl: draft.searchUrl };
+  }
+  if (draft.serviceType === 'tour' || draft.serviceType === 'ziyarat') {
+    const experience = draft as ExperienceCheckoutDraft;
+    return { offer: experience.offer, departure: experience.departure, package: experience.package, addOns: experience.addOns, searchUrl: draft.searchUrl };
+  }
+  if (['train', 'bus', 'insurance', 'cip', 'transfer'].includes(draft.serviceType || '')) {
+    const secondary = draft as SecondaryCheckoutDraft;
+    return { item: secondary.item, query: secondary.query, selectedSeats: secondary.selectedSeats, addOns: secondary.addOns, searchUrl: draft.searchUrl };
+  }
+  return { outbound: draft.outbound, inbound: draft.inbound, searchParams: draft.searchParams, searchUrl: draft.searchUrl };
+};
+
+const travelers = (draft: BookingDraft): unknown[] => {
+  if (draft.serviceType === 'hotel') return (draft as HotelBookingDraft).hotelGuests;
+  if (draft.serviceType === 'tour' || draft.serviceType === 'ziyarat') return (draft as ExperienceCheckoutDraft).travelers;
+  if (['train', 'bus', 'insurance', 'cip', 'transfer'].includes(draft.serviceType || '')) return (draft as SecondaryCheckoutDraft).travelers;
+  return draft.passengers;
+};
+
+const addOnCodes = (draft: BookingDraft): string[] => {
+  if (draft.serviceType === 'hotel') return (draft as HotelBookingDraft).hotelAddOns;
+  if (draft.serviceType === 'tour' || draft.serviceType === 'ziyarat') return (draft as ExperienceCheckoutDraft).addOns;
+  if (['train', 'bus', 'insurance', 'cip', 'transfer'].includes(draft.serviceType || '')) return (draft as SecondaryCheckoutDraft).addOns;
+  return draft.ancillaries;
+};
+
+export const checkoutPayloadFromDraft = (draft: BookingDraft): CheckoutPayload => {
+  const draftTravelers = travelers(draft);
+  return {
+    serviceType: draft.serviceType || 'flight',
+    quantity: Math.max(1, draftTravelers.length),
+    guestMobile: draft.buyer.mobile,
+    buyer: { ...draft.buyer },
+    travelers: draftTravelers,
+    service: serviceSnapshot(draft),
+    addOns: addOnCodes(draft).map((code) => ({ code })),
+    coupon: draft.coupon?.code,
+  };
+};
+
+export const createServerCheckout = async (draft: BookingDraft) => (await backend.createCheckout(checkoutPayloadFromDraft(draft))).checkoutSession;
+export const payServerCheckout = async (checkoutId: string, method: PaymentMethodKind, idempotencyKey: string, metadata?: Record<string, unknown>) => backend.pay(checkoutId, { method: paymentMethodToApi(method), idempotencyKey, metadata });
+export const listOrders = async (): Promise<ApiOrder[]> => (await backend.orders()).orders;
+export const getOrder = async (id: string): Promise<ApiOrder> => (await backend.order(id)).order;
+export const getWallet = async () => (await backend.wallet()).wallet;

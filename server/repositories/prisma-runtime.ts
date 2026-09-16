@@ -71,7 +71,18 @@ export class PrismaRuntimeRepository {
   }
   async logout(token: string) { await this.prisma.authSession.deleteMany({ where: { tokenHash: hash(token) } }); }
   profile(userId: string) { return this.prisma.user.findUniqueOrThrow({ where: { id: userId } }); }
-  updateProfile(userId: string, data: { firstName?: string; lastName?: string }) { return this.prisma.user.update({ where: { id: userId }, data }); }
+  updateProfile(userId: string, data: { firstName?: string; lastName?: string; email?: string; birthDate?: string; nationalId?: string }) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email === "" ? null : data.email,
+        birthDate: data.birthDate ? new Date(`${data.birthDate}T00:00:00.000Z`) : data.birthDate === "" ? null : undefined,
+        nationalId: data.nationalId === "" ? null : data.nationalId,
+      },
+    });
+  }
 
   async createCheckout(userId: string | undefined, input: CheckoutInput) {
     const quantity = Math.max(1, Math.min(9, Math.trunc(input.quantity)));

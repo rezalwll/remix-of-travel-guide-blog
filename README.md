@@ -28,7 +28,7 @@ npm run dev:web
 
 وب روی `http://localhost:8080` و API روی `http://localhost:8787` اجرا می‌شوند. API بدون اتصال PostgreSQL بالا نمی‌آید و هیچ fallback خاموشی به حافظه ندارد. مسیرهای `/health/live` و `/health/ready` به‌ترتیب زنده‌بودن process و دسترسی دیتابیس را گزارش می‌کنند.
 
-متغیرهای محیطی در `.env.example` هستند: `DATABASE_URL`، `DATABASE_URL_TEST`، `API_PORT`، `WEB_ORIGIN`، `SESSION_TTL_HOURS` و `NODE_ENV`.
+متغیرهای محیطی در `.env.example` هستند: `DATABASE_URL`، `DATABASE_URL_TEST`، `API_PORT`، `WEB_ORIGIN`، `VITE_API_URL`، `SESSION_TTL_HOURS` و `NODE_ENV`. فرانت تمام عملیات احراز هویت، حساب، checkout، پرداخت، سفارش، کیف پول، پیگیری، پشتیبانی، ویزا و استرداد را از API می‌خواند؛ `VITE_API_URL` در توسعه روی `http://localhost:8787` است.
 
 ## Runtime و امنیت
 
@@ -74,6 +74,10 @@ npm run db:generate
 npm run db:migrate:deploy
 npm run db:seed
 ```
+
+## مالکیت داده در فرانت
+
+session با cookie امن `HttpOnly` بازیابی می‌شود و هیچ token یا user session در storage مرورگر نوشته نمی‌شود. صفحات account، سفارش‌ها، کیف پول، مسافران، علاقه‌مندی‌ها، اعلان‌ها، پشتیبانی، ویزا و استرداد مستقیماً API-backed هستند. checkout در مرحله پرداخت یک session سروری می‌سازد و نتیجه پرداخت و سفارش را فقط از پاسخ backend نمایش می‌دهد. `sessionStorage` صرفاً برای draft رزرو و challenge کوتاه‌عمر OTP استفاده می‌شود؛ `localStorage` فقط برای جست‌وجوی اخیر و recently viewed غیرحساس باقی مانده است.
 
 ## وضعیت و محدودیت‌ها
 

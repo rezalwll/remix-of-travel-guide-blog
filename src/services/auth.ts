@@ -1,13 +1,52 @@
 import type { AuthSession, AuthUser } from '@/types/auth';
-import { claimOrdersForUser } from './payment';
-const SESSION_KEY = 'kiashi.auth.session'; const USERS_KEY = 'kiashi.users'; const DEMO_OTP = '12345';
-const read = <T>(key: string, fallback: T): T => { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) as T : fallback; } catch { return fallback; } };
-const write = (key: string, value: unknown) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* demo storage is optional */ } };
-const demo: AuthUser = { id: 'user-reza', firstName: 'رضا', lastName: 'احمدی', mobile: '09121234567', email: 'reza@example.com', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
-const users = () => { const existing = read<AuthUser[]>(USERS_KEY, []); if (existing.some((user) => user.mobile === demo.mobile)) return existing; const next = [...existing, demo]; write(USERS_KEY, next); return next; };
-export const getCurrentSession = () => read<AuthSession | null>(SESSION_KEY, null);
-export const requestOtp = async (mobile: string) => ({ mobile, demoCode: DEMO_OTP });
-export const verifyOtp = (mobile: string, code: string, registration?: Pick<AuthUser, 'firstName' | 'lastName' | 'email'>) => { if (code !== DEMO_OTP) throw new Error('کد آزمایشی صحیح نیست.'); const list = users(); let user = list.find((item) => item.mobile === mobile); if (!user) { user = { id: `user-${Date.now()}`, firstName: registration?.firstName || 'کاربر', lastName: registration?.lastName || 'کی‌آشی', mobile, email: registration?.email, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; write(USERS_KEY, [...list, user]); } else if (registration) { user = { ...user, ...registration, updatedAt: new Date().toISOString() }; write(USERS_KEY, list.map((item) => item.id === user?.id ? user as AuthUser : item)); } const session = { user, authenticatedAt: new Date().toISOString() }; write(SESSION_KEY, session); claimOrdersForUser(user.id, user.mobile); return session; };
-export const logout = () => { try { localStorage.removeItem(SESSION_KEY); } catch { /* ignore */ } };
-export const updateProfile = (updates: Partial<Pick<AuthUser, 'firstName' | 'lastName' | 'email' | 'birthDate' | 'nationalId'>>) => { const session = getCurrentSession(); if (!session) return null; const user = { ...session.user, ...updates, updatedAt: new Date().toISOString() }; write(SESSION_KEY, { ...session, user }); write(USERS_KEY, users().map((item) => item.id === user.id ? user : item)); return { ...session, user }; };
-export const demoOtp = DEMO_OTP;
+import { ApiError } from './apiClient';
+import { backend, type ApiUser } from './backend';
+
+const toAuthUser = (user: ApiUser): AuthUser => ({
+  id: user.id,
+  mobile: user.mobile,
+  firstName: user.firstName,
+  lastName: user.lastName,
+  email: user.email || undefined,
+  birthDate: user.birthDate ? user.birthDate.slice(0, 10) : undefined,
+  nationalId: user.nationalId || undefined,
+  createdAt: user.createdAt || new Date().toISOString(),
+  updatedAt: user.updatedAt || new Date().toISOString(),
+});
+
+const sessionFromUser = (user: ApiUser): AuthSession => ({ user: toAuthUser(user), authenticatedAt: new Date().toISOString() });
+
+export const restoreSession = async (): Promise<AuthSession | null> => {
+  try {
+    const { user } = await backend.me();
+    return sessionFromUser(user);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 401) return null;
+    throw error;
+  }
+};
+
+export const requestOtp = (mobile: string) => backend.requestOtp(mobile);
+
+export const verifyOtp = async (
+  challengeId: string,
+  code: string,
+  registration?: Pick<AuthUser, 'firstName' | 'lastName' | 'email'>,
+): Promise<AuthSession> => {
+  const verified = await backend.verifyOtp(challengeId, code);
+  let user = verified.user;
+  if (registration) {
+    const updated = await backend.updateProfile(registration);
+    user = updated.user;
+  }
+  return sessionFromUser(user);
+};
+
+export const logout = () => backend.logout();
+
+export const updateProfile = async (updates: Partial<Pick<AuthUser, 'firstName' | 'lastName' | 'email' | 'birthDate' | 'nationalId'>>): Promise<AuthSession> => {
+  const { user } = await backend.updateProfile(updates);
+  return sessionFromUser(user);
+};
+
+export const demoOtp = '12345';

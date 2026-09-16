@@ -1,11 +1,16 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { backend } from '@/services/backend';
 import { findPublicOrder, maskMobile } from '@/services/orderTracking';
 
-const order = { id: 'order-1', orderNumber: 'KIA-2026-000001', buyer: { mobile: '09120000000' }, payment: { transactionReference: '123456' } } as never;
+vi.mock('@/services/backend', () => ({ backend: { track: vi.fn() } }));
+
 describe('public order tracking', () => {
-  it('finds by order/reference and rejects a mismatched mobile', () => {
-    expect(findPublicOrder('KIA-2026-000001', '09120000000', [order])).toEqual({ order });
-    expect(findPublicOrder('123456', '09121111111', [order])).toEqual({ error: 'mobile_mismatch' });
+  it('delegates lookup and mobile matching to the API', async () => {
+    const tracking = { orderNumber: 'KIA-2026-000001', trackingCode: 'TRK-1', serviceType: 'flight', summary: {}, relevantDate: null, paymentStatus: 'paid', bookingStatus: 'confirmed', total: 8900000, currency: 'TOMAN' as const, createdAt: new Date().toISOString(), buyerMobile: '0912***4567' };
+    vi.mocked(backend.track).mockResolvedValue({ tracking });
+    await expect(findPublicOrder(' KIA-2026-000001 ', '0912 1234567')).resolves.toEqual(tracking);
+    expect(backend.track).toHaveBeenCalledWith('KIA-2026-000001', '09121234567');
   });
+
   it('masks mobile numbers in public views', () => expect(maskMobile('09120000000')).toBe('0912•••••••'));
 });

@@ -1,23 +1,50 @@
-import type { BookingPassenger } from '@/types/checkout';
-import type { MockOrder } from '@/types/payment';
-type Refund = { id: string; userId: string; orderId: string; status: 'requested' | 'under_review' | 'approved_mock' | 'rejected_mock' | 'completed_mock'; reason: string; requestedAmount: number; estimatedRefund: number; createdAt: string; };
-type Favorite = { id: string; userId: string; type: 'destination' | 'hotel' | 'tour' | 'ziyarat'; itemId: string; title: string; href: string; image?: string; };
-type Notification = { id: string; userId: string; type: string; title: string; body: string; read: boolean; createdAt: string; };
-type Ticket = { id: string; userId: string; subject: string; category: string; message: string; status: 'open' | 'waiting' | 'answered' | 'closed'; replies: { id: string; message: string; author: string; createdAt: string }[]; createdAt: string; };
-const read = <T>(key: string, fallback: T): T => { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) as T : fallback; } catch { return fallback; } }; const write = (key: string, value: unknown) => { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* safe fallback */ } };
-const key = { passengers: 'kiashi.passengers', refunds: 'kiashi.refunds', favorites: 'kiashi.favorites', notifications: 'kiashi.notifications', tickets: 'kiashi.supportTickets' };
-export const getPassengers = (userId: string) => read<BookingPassenger[]>(key.passengers, []).filter((item) => (item as BookingPassenger & { userId?: string }).userId === userId);
-export const savePassenger = (userId: string, passenger: BookingPassenger) => { const all = read<(BookingPassenger & { userId: string })[]>(key.passengers, []); const value = { ...passenger, userId }; write(key.passengers, [...all.filter((item) => item.id !== passenger.id || item.userId !== userId), value]); return value; };
-export const removePassenger = (userId: string, id: string) => write(key.passengers, read<(BookingPassenger & { userId: string })[]>(key.passengers, []).filter((item) => !(item.userId === userId && item.id === id)));
-export const getRefunds = (userId: string) => read<Refund[]>(key.refunds, []).filter((item) => item.userId === userId);
-export const requestRefund = (userId: string, order: MockOrder, reason: string): Refund => { const refund: Refund = { id: `refund-${Date.now()}`, userId, orderId: order.id, status: 'requested', reason, requestedAmount: order.pricing.total, estimatedRefund: Math.round(order.pricing.total * 0.7), createdAt: new Date().toISOString() }; write(key.refunds, [...read<Refund[]>(key.refunds, []), refund]); addNotification(userId, 'refund', 'درخواست استرداد دریافت شد', 'درخواست شما برای بررسی آزمایشی ثبت شد.'); return refund; };
-export const getFavorites = (userId: string) => read<Favorite[]>(key.favorites, []).filter((item) => item.userId === userId);
-export const toggleFavorite = (favorite: Omit<Favorite, 'id'>) => { const all = read<Favorite[]>(key.favorites, []); const existing = all.find((item) => item.userId === favorite.userId && item.itemId === favorite.itemId && item.type === favorite.type); const next = existing ? all.filter((item) => item.id !== existing.id) : [...all, { ...favorite, id: `favorite-${Date.now()}` }]; write(key.favorites, next); return next.filter((item) => item.userId === favorite.userId); };
-export const getNotifications = (userId: string) => read<Notification[]>(key.notifications, []).filter((item) => item.userId === userId);
-export const addNotification = (userId: string, type: string, title: string, body: string) => { const all = read<Notification[]>(key.notifications, []); if (all.some((item) => item.userId === userId && item.title === title && item.body === body)) return; write(key.notifications, [...all, { id: `notification-${Date.now()}`, userId, type, title, body, read: false, createdAt: new Date().toISOString() }]); };
-export const markNotificationRead = (userId: string, id: string) => write(key.notifications, read<Notification[]>(key.notifications, []).map((item) => item.userId === userId && item.id === id ? { ...item, read: true } : item));
-export const markAllNotificationsRead = (userId: string) => write(key.notifications, read<Notification[]>(key.notifications, []).map((item) => item.userId === userId ? { ...item, read: true } : item));
-export const getTickets = (userId: string) => read<Ticket[]>(key.tickets, []).filter((item) => item.userId === userId);
-export const createTicket = (userId: string, subject: string, category: string, message: string) => { const ticket: Ticket = { id: `ticket-${Date.now()}`, userId, subject, category, message, status: 'open', replies: [], createdAt: new Date().toISOString() }; write(key.tickets, [...read<Ticket[]>(key.tickets, []), ticket]); return ticket; };
-export const replyTicket = (userId: string, ticketId: string, message: string) => { const all = read<Ticket[]>(key.tickets, []); write(key.tickets, all.map((ticket) => ticket.id === ticketId && ticket.userId === userId ? { ...ticket, status: 'waiting' as const, replies: [...ticket.replies, { id: `reply-${Date.now()}`, message, author: 'شما', createdAt: new Date().toISOString() }] } : ticket)); };
-export type { Refund, Favorite, Notification, Ticket };
+import { backend, type ApiFavorite, type ApiNotification, type ApiPassenger, type ApiRefund, type ApiSupportTicket } from './backend';
+
+export const getPassengers = async () => (await backend.passengers()).passengers;
+export const savePassenger = async (passenger: { id?: string; firstName: string; lastName: string; nationalId?: string; passportNumber?: string }) => passenger.id
+  ? (await backend.updatePassenger(passenger.id, passenger)).passenger
+  : (await backend.createPassenger(passenger)).passenger;
+export const removePassenger = (id: string) => backend.deletePassenger(id);
+export const getRefunds = async () => (await backend.refunds()).refunds;
+export const requestRefund = async (orderId: string, reason: string, destination: 'wallet' | 'original_payment' = 'original_payment') => (await backend.requestRefund(orderId, reason, destination)).refund;
+export type Favorite = ApiFavorite & { type: string; title: string; href: string; image?: string };
+let favoriteCache: Favorite[] = [];
+let favoritesLoading = false;
+export const preloadFavorites = async () => {
+  if (favoritesLoading) return favoriteCache;
+  favoritesLoading = true;
+  try {
+    const { favorites } = await backend.favorites();
+    favoriteCache = favorites.map((item) => ({ ...item, type: item.itemType, title: item.itemId, href: `/${item.itemType}s/${item.itemId}` }));
+    return favoriteCache;
+  } finally { favoritesLoading = false; }
+};
+export const clearFavoriteCache = () => { favoriteCache = []; };
+const syncFavorites = () => {
+  if (favoritesLoading) return;
+  void preloadFavorites();
+};
+export const getFavorites = (_userId?: string): Favorite[] => { syncFavorites(); return favoriteCache; };
+export const toggleFavorite = (favorite: { type: string; itemId: string; title: string; href: string; image?: string; userId?: string }): Favorite[] => {
+  const existing = favoriteCache.find((item) => item.itemType === favorite.type && item.itemId === favorite.itemId);
+  if (existing) {
+    favoriteCache = favoriteCache.filter((item) => item.id !== existing.id);
+    void backend.deleteFavorite(existing.id);
+  } else {
+    const optimistic: Favorite = { id: `pending-${favorite.type}-${favorite.itemId}`, itemType: favorite.type, itemId: favorite.itemId, createdAt: new Date().toISOString(), type: favorite.type, title: favorite.title, href: favorite.href, image: favorite.image };
+    favoriteCache = [...favoriteCache, optimistic];
+    void backend.createFavorite(favorite.type, favorite.itemId).then(({ favorite: saved }) => { favoriteCache = favoriteCache.map((item) => item.id === optimistic.id ? { ...optimistic, ...saved } : item); });
+  }
+  return favoriteCache;
+};
+export const getNotifications = async () => (await backend.notifications()).notifications;
+export const markNotificationRead = (id: string) => backend.readNotification(id);
+export const markAllNotificationsRead = () => backend.readAllNotifications();
+export const getTickets = async () => (await backend.support()).tickets;
+export const createTicket = async (subject: string, message: string) => (await backend.createSupport(subject, message)).ticket;
+export const replyTicket = async (ticketId: string, message: string) => backend.replySupport(ticketId, message);
+
+export type Passenger = ApiPassenger;
+export type Refund = ApiRefund;
+export type Notification = ApiNotification;
+export type Ticket = ApiSupportTicket;

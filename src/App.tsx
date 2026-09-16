@@ -120,13 +120,13 @@ const App = () => (
             <Route path="/checkout/secondary-passengers" element={<SecondaryPassengers />} />
             <Route path="/visa" element={<VisaCenter />} />
             <Route path="/visa/:country" element={<VisaCountry />} />
-            <Route path="/visa/:country/apply" element={<VisaApply />} />
+            <Route path="/visa/:country/apply" element={<ProtectedRoute><VisaApply /></ProtectedRoute>} />
             <Route path="/checkout/passengers" element={<CheckoutPassengers />} />
             <Route path="/checkout/review" element={<CheckoutReview />} />
-            <Route path="/checkout/payment" element={<CheckoutPayment />} />
-            <Route path="/checkout/gateway" element={<MockGateway />} />
-            <Route path="/checkout/result" element={<CheckoutResult />} />
-            <Route path="/orders/:id" element={<OrderDetail />} />
+            <Route path="/checkout/payment" element={<ProtectedRoute><CheckoutPayment /></ProtectedRoute>} />
+            <Route path="/checkout/gateway" element={<ProtectedRoute><MockGateway /></ProtectedRoute>} />
+            <Route path="/checkout/result" element={<ProtectedRoute><CheckoutResult /></ProtectedRoute>} />
+            <Route path="/orders/:id" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
             <Route path="/auth/login" element={<GuestRoute><Login /></GuestRoute>} />
             <Route path="/auth/register" element={<GuestRoute><Register /></GuestRoute>} />
             <Route path="/auth/otp" element={<GuestRoute><Otp /></GuestRoute>} />

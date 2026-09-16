@@ -29,6 +29,9 @@ integration("PostgreSQL runtime persistence", () => {
     await prisma.wallet.update({ where: { userId: user.id }, data: { balance: 20_000_000 } });
     const me = await firstApp.inject({ method: "GET", url: "/api/auth/me", headers: { cookie } });
     expect(me.statusCode).toBe(200);
+    const profile = await firstApp.inject({ method: "PATCH", url: "/api/account/profile", headers: { cookie }, payload: { firstName: "رضا", lastName: "احمدی", email: "reza@example.com", birthDate: "1990-03-12", nationalId: "0012345678" } });
+    expect(profile.statusCode).toBe(200);
+    expect(profile.json().user.email).toBe("reza@example.com");
     const created = await firstApp.inject({ method: "POST", url: "/api/checkout/sessions", headers: { cookie }, payload: { serviceType: "flight", quantity: 1 } });
     expect(created.statusCode).toBe(201);
     const checkout = created.json().checkoutSession;
@@ -42,6 +45,7 @@ integration("PostgreSQL runtime persistence", () => {
     await restartedRepository.connect();
     const secondApp = await buildApp({ repository: restartedRepository, env });
     expect((await secondApp.inject({ method: "GET", url: "/api/auth/me", headers: { cookie } })).statusCode).toBe(200);
+    expect((await secondApp.inject({ method: "GET", url: "/api/account/profile", headers: { cookie } })).json().user.nationalId).toBe("0012345678");
     const orders = await secondApp.inject({ method: "GET", url: "/api/account/orders", headers: { cookie } });
     expect(orders.json().orders.some((item: { id: string }) => item.id === order.id)).toBe(true);
     const duplicate = await secondApp.inject({ method: "POST", url: `/api/checkout/sessions/${checkout.id}/payments`, headers: { cookie }, payload: { idempotencyKey: "integration-payment-1", method: "wallet" } });

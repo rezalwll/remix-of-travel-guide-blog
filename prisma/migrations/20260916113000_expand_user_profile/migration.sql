@@ -1,0 +1,4 @@
+ALTER TABLE "User"
+ADD COLUMN "email" TEXT,
+ADD COLUMN "birthDate" TIMESTAMP(3),
+ADD COLUMN "nationalId" TEXT;
