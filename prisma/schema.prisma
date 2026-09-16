@@ -8,191 +8,264 @@ datasource db {
 }
 
 model User {
-  id              String            @id @default(uuid()) @db.Uuid
-  mobile          String            @unique
-  firstName       String            @default("")
-  lastName        String            @default("")
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  sessions        AuthSession[]
-  otpChallenges   OtpChallenge[]
-  passengers      Passenger[]
+  id               String            @id @default(uuid()) @db.Uuid
+  mobile           String            @unique
+  firstName        String            @default("")
+  lastName         String            @default("")
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  sessions         AuthSession[]
+  otpChallenges    OtpChallenge[]
+  passengers       Passenger[]
   checkoutSessions CheckoutSession[]
-  orders          Order[]
-  wallet          Wallet?
-  favorites       Favorite[]
-  notifications   Notification[]
-  supportTickets  SupportTicket[]
+  orders           Order[]
+  wallet           Wallet?
+  favorites        Favorite[]
+  notifications    Notification[]
+  supportTickets   SupportTicket[]
   visaApplications VisaApplication[]
-  refunds         RefundRequest[]
+  refunds          RefundRequest[]
 }
 
 model AuthSession {
-  id String @id @default(uuid()) @db.Uuid
-  userId String @db.Uuid
-  tokenHash String @unique
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  tokenHash String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId, expiresAt])
 }
+
 model OtpChallenge {
-  id String @id @default(uuid()) @db.Uuid
-  userId String? @db.Uuid
-  mobile String
-  codeHash String
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String?   @db.Uuid
+  mobile    String
+  codeHash  String
   expiresAt DateTime
-  attempts Int @default(0)
-  usedAt DateTime?
-  createdAt DateTime @default(now())
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  attempts  Int       @default(0)
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
   @@index([mobile, expiresAt])
+  @@index([mobile, createdAt])
 }
+
 model Passenger {
-  id String @id @default(uuid()) @db.Uuid
-  userId String @db.Uuid
-  firstName String
-  lastName String
-  birthDate DateTime?
-  nationalId String?
+  id             String    @id @default(uuid()) @db.Uuid
+  userId         String    @db.Uuid
+  firstName      String
+  lastName       String
+  birthDate      DateTime?
+  nationalId     String?
   passportNumber String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
 }
+
 model CheckoutSession {
-  id String @id @default(uuid()) @db.Uuid
-  userId String? @db.Uuid
-  serviceType String
-  payload Json
-  total Int
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
-  orders Order[]
-  @@index([userId, expiresAt])
-}
-model Order {
-  id String @id @default(uuid()) @db.Uuid
-  userId String? @db.Uuid
-  checkoutSessionId String? @db.Uuid
-  trackingCode String @unique
-  serviceType String
-  status String
-  total Int
-  currency String @default("IRR")
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String?   @db.Uuid
   guestMobile String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
-  checkoutSession CheckoutSession? @relation(fields: [checkoutSessionId], references: [id], onDelete: SetNull)
-  payments PaymentAttempt[]
-  refunds RefundRequest[]
-  transactions Transaction[]
+  serviceType String
+  status      String    @default("ready_for_payment")
+  service     Json
+  buyer       Json
+  travelers   Json
+  addOns      Json
+  coupon      String?
+  pricing     Json
+  total       Int
+  currency    String    @default("TOMAN")
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  order       Order?
+  payments    PaymentAttempt[]
+
   @@index([userId, createdAt])
-  @@index([guestMobile, trackingCode])
+  @@index([guestMobile, createdAt])
+  @@index([status, expiresAt])
 }
+
+model OrderCounter {
+  id        Int      @id
+  nextValue Int      @default(0)
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id                   String           @id @default(uuid()) @db.Uuid
+  userId               String?          @db.Uuid
+  checkoutSessionId    String           @unique @db.Uuid
+  orderNumber          String           @unique
+  trackingCode         String           @unique
+  guestMobile          String?
+  serviceType          String
+  summary              Json
+  buyer                Json
+  travelers            Json
+  serviceSnapshot      Json
+  pricingSnapshot      Json
+  paymentSnapshot      Json
+  total                Int
+  currency             String           @default("TOMAN")
+  paymentStatus        String           @default("paid")
+  bookingStatus        String           @default("confirmed")
+  relevantDate         DateTime?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  user                 User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  checkoutSession      CheckoutSession  @relation(fields: [checkoutSessionId], references: [id], onDelete: Restrict)
+  payments             PaymentAttempt[]
+  refunds              RefundRequest[]
+  transactions         Transaction[]
+
+  @@index([userId, createdAt])
+  @@index([guestMobile, createdAt])
+}
+
 model PaymentAttempt {
-  id String @id @default(uuid()) @db.Uuid
-  orderId String @db.Uuid
-  provider String
-  idempotencyKey String
-  status String
-  amount Int
-  rawResponse Json?
-  createdAt DateTime @default(now())
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  @@unique([orderId, idempotencyKey])
+  id                String           @id @default(uuid()) @db.Uuid
+  checkoutSessionId String           @db.Uuid
+  orderId           String?          @db.Uuid
+  provider          String
+  method            String
+  status            String
+  amount            Int
+  walletAmount      Int              @default(0)
+  onlineAmount      Int              @default(0)
+  idempotencyKey    String
+  reference         String?          @unique
+  metadata          Json?
+  createdAt         DateTime         @default(now())
+  completedAt       DateTime?
+  checkoutSession   CheckoutSession  @relation(fields: [checkoutSessionId], references: [id], onDelete: Cascade)
+  order             Order?           @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@unique([checkoutSessionId, idempotencyKey])
+  @@index([orderId, createdAt])
 }
+
 model Transaction {
-  id String @id @default(uuid()) @db.Uuid
-  orderId String? @db.Uuid
-  walletId String? @db.Uuid
-  type String
-  amount Int
-  reference String @unique
+  id        String   @id @default(uuid()) @db.Uuid
+  orderId   String?  @db.Uuid
+  walletId  String?  @db.Uuid
+  type      String
+  status    String
+  amount    Int
+  currency  String   @default("TOMAN")
+  reference String   @unique
   createdAt DateTime @default(now())
-  order Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
-  wallet Wallet? @relation(fields: [walletId], references: [id], onDelete: SetNull)
+  order     Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  wallet    Wallet?  @relation(fields: [walletId], references: [id], onDelete: SetNull)
 }
+
 model Wallet {
-  id String @id @default(uuid()) @db.Uuid
-  userId String @unique @db.Uuid
-  balance Int @default(0)
-  currency String @default("IRR")
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String              @id @default(uuid()) @db.Uuid
+  userId       String              @unique @db.Uuid
+  balance      Int                 @default(0)
+  currency     String              @default("TOMAN")
+  updatedAt    DateTime            @updatedAt
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions WalletTransaction[]
-  ledger Transaction[]
+  ledger       Transaction[]
 }
+
 model WalletTransaction {
-  id String @id @default(uuid()) @db.Uuid
-  walletId String @db.Uuid
-  type String
-  amount Int
+  id           String   @id @default(uuid()) @db.Uuid
+  walletId     String   @db.Uuid
+  type         String
+  amount       Int
   balanceAfter Int
-  reference String @unique
-  createdAt DateTime @default(now())
-  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  reference    String   @unique
+  createdAt    DateTime @default(now())
+  wallet       Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
   @@index([walletId, createdAt])
 }
+
 model RefundRequest {
-  id String @id @default(uuid()) @db.Uuid
-  orderId String @db.Uuid
-  userId String? @db.Uuid
-  amount Int
-  reason String
-  status String @default("requested")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
-}
-model Favorite {
-  id String @id @default(uuid()) @db.Uuid
-  userId String @db.Uuid
-  itemType String
-  itemId String
-  createdAt DateTime @default(now())
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  @@unique([userId, itemType, itemId])
-}
-model Notification {
-  id String @id @default(uuid()) @db.Uuid
-  userId String @db.Uuid
-  title String
-  body String
-  readAt DateTime?
-  createdAt DateTime @default(now())
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String   @id @default(uuid()) @db.Uuid
+  orderId     String   @db.Uuid
+  userId      String?  @db.Uuid
+  amount      Int
+  reason      String
+  destination String
+  status      String   @default("requested")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([orderId, status])
   @@index([userId, createdAt])
 }
+
+model Favorite {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  itemType  String
+  itemId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemType, itemId])
+}
+
+model Notification {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  type      String    @default("system")
+  title     String
+  body      String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
+}
+
 model SupportTicket {
-  id String @id @default(uuid()) @db.Uuid
-  userId String? @db.Uuid
-  subject String
-  status String @default("open")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
-  messages SupportMessage[]
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String?          @db.Uuid
+  subject   String
+  status    String           @default("open")
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  user      User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  messages  SupportMessage[]
+
+  @@index([userId, createdAt])
 }
+
 model SupportMessage {
-  id String @id @default(uuid()) @db.Uuid
-  ticketId String @db.Uuid
+  id         String        @id @default(uuid()) @db.Uuid
+  ticketId   String        @db.Uuid
   authorType String
-  body String
-  createdAt DateTime @default(now())
-  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  body       String
+  createdAt  DateTime      @default(now())
+  ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
 }
+
 model VisaApplication {
-  id String @id @default(uuid()) @db.Uuid
-  userId String @db.Uuid
-  country String
-  status String @default("draft")
-  payload Json
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  country   String
+  status    String   @default("draft")
+  payload   Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId, createdAt])
 }

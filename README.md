@@ -1,14 +1,14 @@
 # کی‌آشی — پلتفرم سفر فارسی
 
-کی‌آشی یک محصول سفر راست‌به‌چپ با جست‌وجو و رزرو نمایشی پرواز، هتل، تور، زیارت و سرویس‌های مکمل است. این مخزن اکنون یک پایهٔ backend قابل اجرا هم دارد تا داده‌های حساس از localStorage جدا شوند و مسیر اتصال به تأمین‌کننده‌های واقعی روشن باشد.
+کی‌آشی یک محصول سفر راست‌به‌چپ با جست‌وجو و رزرو نمایشی پرواز، هتل، تور، زیارت و سرویس‌های مکمل است. PostgreSQL منبع حقیقت runtime است؛ MemoryStore از اجرای برنامه حذف شده و فقط فیک‌های صریح برای unit testهای مستقل مجازند.
 
 ## پشتهٔ فنی
 
 - وب: React 18، Vite، TypeScript، React Router، Tailwind و Radix UI
 - API: Node.js 20، Fastify، Zod، Pino و cookie session امن
-- داده: PostgreSQL 16، Prisma و migration/seed آماده
-- پرداخت: `MockPaymentProvider` در API فعلی؛ هیچ درگاه یا تأمین‌کنندهٔ واقعی وصل نیست
-- آزمون: Vitest، Testing Library و Playwright
+- داده: PostgreSQL 16، Prisma و migrationهای نسخه‌گذاری‌شده
+- پرداخت: mock provider با settlement تراکنشی؛ هیچ درگاه یا supplier واقعی وصل نیست
+- آزمون: Vitest، Testing Library، Playwright و تست integration با PostgreSQL
 
 ## اجرای محلی
 
@@ -17,7 +17,7 @@ npm install
 cp .env.example .env
 docker compose up -d postgres
 npm run db:generate
-npm run db:migrate
+npm run db:migrate:deploy
 npm run db:seed
 
 # ترمینال اول
@@ -26,19 +26,40 @@ npm run dev:api
 npm run dev:web
 ```
 
-وب روی `http://localhost:8080` و API روی `http://localhost:8787` اجرا می‌شوند. اگر PostgreSQL در دسترس نباشد، تست‌های API از `MemoryStore` کنترل‌شده استفاده می‌کنند؛ production نباید بدون اتصال دیتابیس اجرا شود.
+وب روی `http://localhost:8080` و API روی `http://localhost:8787` اجرا می‌شوند. API بدون اتصال PostgreSQL بالا نمی‌آید و هیچ fallback خاموشی به حافظه ندارد. مسیرهای `/health/live` و `/health/ready` به‌ترتیب زنده‌بودن process و دسترسی دیتابیس را گزارش می‌کنند.
 
-متغیرهای محیطی اصلی در `.env.example` هستند: `DATABASE_URL`، `API_PORT`، `WEB_ORIGIN`، `SESSION_TTL_HOURS` و `NODE_ENV`.
+متغیرهای محیطی در `.env.example` هستند: `DATABASE_URL`، `DATABASE_URL_TEST`، `API_PORT`، `WEB_ORIGIN`، `SESSION_TTL_HOURS` و `NODE_ENV`.
 
-## API و امنیت
+## Runtime و امنیت
 
-مسیرهای پایهٔ `/api/auth`، پروفایل، checkout، سفارش، پرداخت idempotent، کیف پول، استرداد و tracking در `server/app.ts` ثبت شده‌اند. OTP در حالت توسعه با کد نمایشی `12345` پاسخ داده می‌شود و در production هرگز برگردانده نمی‌شود. کد OTP هش‌شده، منقضی‌شونده، تک‌مصرف و محدود به پنج تلاش است. session در cookie `HttpOnly` با `SameSite=Lax` نگهداری می‌شود.
+`server/app.ts` فقط controller است و عملیات دامنه را به `PrismaRuntimeRepository` می‌سپارد. یک PrismaClient در `server/db/prisma.ts` ساخته می‌شود و در shutdown با graceful disconnect بسته می‌شود. OTP، user، session، checkout، order، payment، wallet، ledger، refund، passenger، favorite، notification، support و visa همگی در PostgreSQL ذخیره می‌شوند.
 
-قیمت checkout در سرور محاسبه می‌شود، مالکیت سفارش بررسی می‌شود و پرداخت با `idempotencyKey` تکرارپذیر نیست. خطاها شکل یکنواخت `{ error: { code, message } }` دارند و کلاینت typed در `src/services/apiClient.ts` خطاهای در دسترس نبودن API را به `ApiError` تبدیل می‌کند.
+session یک token تصادفی opaque در cookie `HttpOnly` است و فقط SHA-256 آن در دیتابیس ذخیره می‌شود. OTP hash شده، دو دقیقه معتبر، تک‌مصرف، پنج‌تلاشی و دارای throttle درخواست است. هیچ OTP، token، کارت، CVV، شماره ملی یا پاسپورت log نمی‌شود.
 
-کاربر seed شده: `09121234567` با کیف پول `4,250,000` ریال. اطلاعات این محیط demo است.
+checkout فقط `CheckoutSession` می‌سازد. order پس از settlement موفق ساخته می‌شود و snapshotهای buyer، traveler، service، pricing و payment را immutable نگه می‌دارد. payment finalization در یک transaction Prisma انجام می‌شود: اعتبارسنجی checkout، محاسبه split، debit کیف پول، ledger، payment، transaction، order، notification و تکمیل checkout.
 
-## فرمان‌های مفید
+## پول و پرداخت
+
+واحد canonical داخلی backend `TOMAN` است و amountهای API، دیتابیس، wallet و transaction بر حسب تومان صحیح هستند. بعضی catalogهای static قدیمی فرانت هنوز برای نمایش mock مقدار `IRR` دارند و تا cutover کامل catalog به‌عنوان دادهٔ غیر authoritative نگه داشته شده‌اند. مرز درگاه آینده در [money.ts](/home/mohamadreza-azizi/Downloads/kiashi/remix-of-travel-guide-blog/server/domain/money.ts) با `toGatewayRial` و `fromGatewayRial` جدا شده است.
+
+روش‌های domain فعلی: `online_mock`، `wallet`، `combined`، `installment_mock`، `organizational_credit_mock` و `voucher_mock`. هیچ‌کدام provider واقعی نیستند. idempotency با unique constraint دیتابیس روی `(checkoutSessionId, idempotencyKey)` و transaction ایزوله تضمین می‌شود. order number هم با `OrderCounter` به شکل concurrency-safe مثل `KIA-2026-000001` تولید می‌شود.
+
+کاربر seed شده `09121234567` و کیف پول او `4,250,000 TOMAN` است.
+
+## APIهای اصلی
+
+- `/api/auth/*`: OTP، session، profile
+- `/api/checkout/sessions`: ساخت checkout و پرداخت
+- `/api/account/orders`, `passengers`, `wallet`, `refunds`, `favorites`, `notifications`, `support`, `visa-applications`
+- `/api/order-tracking`: شناسهٔ order/tracking/payment reference به‌همراه mobile؛ پاسخ فقط اطلاعات masked و summary است
+
+مسیرهای قدیمی order/wallet برای سازگاری نگه داشته شده‌اند. tracking فقط با mobile خریدار جواب می‌دهد و شمارهٔ موبایل را mask می‌کند. login با mobile منطبق، order مهمانِ همان mobile را claim می‌کند؛ order دارای مالک هرگز reassigned نمی‌شود.
+
+سرویس‌های فعال backend: `flight`, `hotel`, `tour`, `ziyarat`, `train`, `bus`, `insurance`, `cip`, `transfer`. eSIM، Fast Track و city-tour در این فاز request-only هستند و order قابل settlement ندارند.
+
+## Migration و تست PostgreSQL
+
+Migration در `prisma/migrations/` commit شده است؛ برای محیط واقعی از `npm run db:migrate:deploy` استفاده کنید، نه `db push`. CI یک PostgreSQL service جدا بالا می‌آورد، migration را اعمال می‌کند و `npm run test:api` را با `DATABASE_URL_TEST` اجرا می‌کند. تست integration شامل session بعد از restart app، persistence checkout/order/wallet، idempotency، ownership و tracking با mobile اشتباه است.
 
 ```bash
 npm run dev:web
@@ -47,16 +68,15 @@ npm run build:web
 npm run build:api
 npm run lint
 npm test -- --run
-npm run test:api
+npm run test:api -- --run
 npm run test:e2e
-npm run db:migrate
+npm run db:generate
+npm run db:migrate:deploy
 npm run db:seed
 ```
 
-CI در `.github/workflows/ci.yml` نصب با `npm ci`، تولید Prisma، typecheck، lint، تست واحد و build را اجرا می‌کند.
+## وضعیت و محدودیت‌ها
 
-## وضعیت محصول و محدودیت‌ها
+داده‌های پیشنهاد، ظرفیت، پیامک، پرداخت، installment، organizational credit و همهٔ supplierها mock هستند. پنل ادمین، settlement واقعی، webhook و provider integration ساخته نشده‌اند. localStorage فقط برای searchهای اخیر، recently viewed، ترجیحات UI و cache غیرحساس فرم مجاز است؛ سفارش، پرداخت، wallet، auth و داده‌های حساب browser-owned نیستند.
 
-صفحات مشتری و مسیرهای اصلی checkout کامل و قابل تست هستند، اما داده‌های پیشنهاد پرواز/هتل، پیامک، پرداخت و ظرفیت هنوز mock هستند. در این فاز پنل ادمین، settlement، webhook و اتصال supplier پیاده‌سازی نشده‌اند. برای اتصال واقعی، interfaceهای provider باید پشت API و بدون ورود secret به کلاینت پیاده‌سازی شوند. localStorage فقط برای ترجیحات UI، جست‌وجوهای اخیر و recently viewed مجاز است؛ منبع حقیقت سفارش و پرداخت API است.
-
-مسیر canonical مقاله‌ها `/blog/:slug` است؛ `/article/:articleId` برای سازگاری قدیمی باقی مانده است.
+CI در [.github/workflows/ci.yml](/home/mohamadreza-azizi/Downloads/kiashi/remix-of-travel-guide-blog/.github/workflows/ci.yml) نصب، generate، migration، typecheck، build، lint، unit و PostgreSQL integration test را اجرا می‌کند.
