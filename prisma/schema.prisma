@@ -91,6 +91,7 @@ model CheckoutSession {
   user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
   order       Order?
   payments    PaymentAttempt[]
+  paymentIntents PaymentIntent[]
 
   @@index([userId, createdAt])
   @@index([guestMobile, createdAt])
@@ -121,6 +122,9 @@ model Order {
   currency             String           @default("TOMAN")
   paymentStatus        String           @default("paid")
   bookingStatus        String           @default("confirmed")
+  providerName         String?
+  externalReference    String?
+  providerPayload      Json?
   relevantDate         DateTime?
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
@@ -129,6 +133,7 @@ model Order {
   payments             PaymentAttempt[]
   refunds              RefundRequest[]
   transactions         Transaction[]
+  bookingAttempts      BookingAttempt[]
 
   @@index([userId, createdAt])
   @@index([guestMobile, createdAt])
@@ -154,6 +159,58 @@ model PaymentAttempt {
 
   @@unique([checkoutSessionId, idempotencyKey])
   @@index([orderId, createdAt])
+}
+
+model PaymentIntent {
+  id                String            @id @default(uuid()) @db.Uuid
+  checkoutSessionId String            @db.Uuid
+  provider          String
+  method            String
+  amount            Int
+  currency          String            @default("TOMAN")
+  status            String            @default("created")
+  idempotencyKey    String
+  externalReference String            @unique
+  redirectUrl       String
+  metadata          Json?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  checkoutSession   CheckoutSession   @relation(fields: [checkoutSessionId], references: [id], onDelete: Cascade)
+  callbacks         PaymentCallback[]
+  verifications     PaymentVerification[]
+
+  @@unique([checkoutSessionId, idempotencyKey])
+  @@index([externalReference, status])
+}
+
+model PaymentCallback {
+  id                String        @id @default(uuid()) @db.Uuid
+  paymentIntentId   String        @db.Uuid
+  provider          String
+  externalReference String
+  status            String
+  signature         String?
+  payload           Json?
+  callbackKey       String        @unique
+  processedAt       DateTime?
+  createdAt         DateTime      @default(now())
+  paymentIntent     PaymentIntent @relation(fields: [paymentIntentId], references: [id], onDelete: Cascade)
+
+  @@index([externalReference, createdAt])
+}
+
+model PaymentVerification {
+  id                String        @id @default(uuid()) @db.Uuid
+  paymentIntentId   String        @db.Uuid
+  provider          String
+  externalReference String
+  status            String
+  errorCode         String?
+  response          Json?
+  createdAt         DateTime      @default(now())
+  paymentIntent     PaymentIntent @relation(fields: [paymentIntentId], references: [id], onDelete: Cascade)
+
+  @@index([externalReference, createdAt])
 }
 
 model Transaction {
@@ -271,4 +328,36 @@ model VisaApplication {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+}
+
+model SmsDeliveryAttempt {
+  id                String   @id @default(uuid()) @db.Uuid
+  mobile            String
+  template          String
+  provider          String
+  status            String
+  providerReference String?
+  errorCode         String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([mobile, createdAt])
+  @@index([providerReference])
+}
+
+model BookingAttempt {
+  id                String   @id @default(uuid()) @db.Uuid
+  orderId           String?  @db.Uuid
+  provider          String
+  providerReference String?
+  status            String
+  requestSnapshot   Json?
+  responseSnapshot  Json?
+  error             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  order             Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([orderId, createdAt])
+  @@index([provider, status])
 }

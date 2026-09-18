@@ -45,6 +45,43 @@ export class PrismaRuntimeRepository {
     return this.prisma.otpChallenge.create({ data: { mobile, codeHash: hash(code), expiresAt: new Date(Date.now() + 120_000) }, select: { id: true, expiresAt: true } });
   }
 
+  createSmsDeliveryAttempt(input: { mobile: string; template: string; provider: string; status: string; providerReference?: string; errorCode?: string }) {
+    return this.prisma.smsDeliveryAttempt.create({ data: input, select: { id: true } });
+  }
+  updateSmsDeliveryAttempt(id: string, input: { status: string; providerReference?: string; errorCode?: string }) {
+    return this.prisma.smsDeliveryAttempt.update({ where: { id }, data: input });
+  }
+
+  async createPaymentIntent(input: { checkoutSessionId: string; userId: string; provider: string; method: string; amount: number; currency: string; idempotencyKey: string; externalReference: string; redirectUrl: string; metadata?: Record<string, unknown> }) {
+    const checkout = await this.prisma.checkoutSession.findFirst({ where: { id: input.checkoutSessionId, userId: input.userId } });
+    if (!checkout) throw forbidden();
+    return this.prisma.paymentIntent.create({ data: { checkoutSessionId: input.checkoutSessionId, provider: input.provider, method: input.method, amount: input.amount, currency: input.currency, idempotencyKey: input.idempotencyKey, externalReference: input.externalReference, redirectUrl: input.redirectUrl, metadata: asJson(input.metadata ?? {}) } });
+  }
+  async getPaymentIntentByKey(checkoutSessionId: string, idempotencyKey: string) {
+    return this.prisma.paymentIntent.findUnique({ where: { checkoutSessionId_idempotencyKey: { checkoutSessionId, idempotencyKey } }, select: { externalReference: true, redirectUrl: true, provider: true, status: true } });
+  }
+  async recordPaymentCallback(input: { paymentIntentReference: string; provider: string; status: string; payload?: Record<string, unknown>; signature?: string; callbackKey: string }) {
+    const intent = await this.prisma.paymentIntent.findUnique({ where: { externalReference: input.paymentIntentReference } });
+    if (!intent) throw new DomainError("INVALID_CALLBACK", "مرجع callback معتبر نیست", 400);
+    try {
+      await this.prisma.paymentCallback.create({ data: { paymentIntentId: intent.id, provider: input.provider, externalReference: input.paymentIntentReference, status: input.status, payload: asJson(input.payload ?? {}), signature: input.signature, callbackKey: input.callbackKey, processedAt: new Date() } });
+      await this.prisma.paymentIntent.update({ where: { id: intent.id }, data: { status: input.status } });
+      return { duplicate: false };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") return { duplicate: true };
+      throw error;
+    }
+  }
+  async recordPaymentVerification(input: { paymentIntentReference: string; provider: string; status: string; providerPayload?: Record<string, unknown>; errorCode?: string }) {
+    const intent = await this.prisma.paymentIntent.findUnique({ where: { externalReference: input.paymentIntentReference } });
+    if (!intent) throw new DomainError("INVALID_CALLBACK", "مرجع پرداخت معتبر نیست", 400);
+    return this.prisma.paymentVerification.create({ data: { paymentIntentId: intent.id, provider: input.provider, externalReference: input.paymentIntentReference, status: input.status, response: asJson(input.providerPayload ?? {}), errorCode: input.errorCode } });
+  }
+
+  createBookingAttempt(input: { orderId?: string; provider: string; providerReference?: string; status: string; requestSnapshot?: unknown; responseSnapshot?: unknown; error?: string }) {
+    return this.prisma.bookingAttempt.create({ data: { orderId: input.orderId, provider: input.provider, providerReference: input.providerReference, status: input.status, requestSnapshot: input.requestSnapshot ? asJson(input.requestSnapshot) : undefined, responseSnapshot: input.responseSnapshot ? asJson(input.responseSnapshot) : undefined, error: input.error } });
+  }
+
   async verifyOtp(challengeId: string, code: string, sessionTtlHours: number) {
     const challenge = await this.prisma.otpChallenge.findUnique({ where: { id: challengeId } });
     if (!challenge || challenge.usedAt || challenge.expiresAt <= new Date()) throw new DomainError("OTP_EXPIRED", "کد تایید منقضی شده است");
@@ -99,7 +136,7 @@ export class PrismaRuntimeRepository {
   listOrders(userId: string) { return this.prisma.order.findMany({ where: { userId }, orderBy: { createdAt: "desc" } }); }
   async getOrder(id: string, userId: string) { const order = await this.prisma.order.findFirst({ where: { id, userId }, include: { payments: true, refunds: true } }); if (!order) throw forbidden(); return order; }
 
-  async finalizePayment(checkoutSessionId: string, userId: string, idempotencyKey: string, method: PaymentMethod, metadata?: Record<string, unknown>) {
+  async finalizePayment(checkoutSessionId: string, userId: string, idempotencyKey: string, method: PaymentMethod | string, metadata?: Record<string, unknown>, providerData?: { provider: string; externalReference?: string; payload?: Record<string, unknown> }) {
     const existing = await this.prisma.paymentAttempt.findUnique({ where: { checkoutSessionId_idempotencyKey: { checkoutSessionId, idempotencyKey } }, include: { order: true } });
     if (existing?.status === "succeeded" && existing.order) return { payment: existing, order: existing.order };
     try {
@@ -116,7 +153,7 @@ export class PrismaRuntimeRepository {
         const walletAmount = method === "wallet" ? checkout.total : method === "combined" ? Math.min(balance, checkout.total) : 0;
         const onlineAmount = checkout.total - walletAmount;
         if (method === "wallet" && balance < checkout.total) throw new DomainError("INSUFFICIENT_WALLET", "موجودی کیف پول کافی نیست", 409);
-        const payment = duplicate ?? await tx.paymentAttempt.create({ data: { checkoutSessionId, provider: "mock", method, status: "pending", amount: checkout.total, walletAmount, onlineAmount, idempotencyKey, metadata: asJson(metadata ?? {}) } });
+        const payment = duplicate ?? await tx.paymentAttempt.create({ data: { checkoutSessionId, provider: providerData?.provider ?? "mock", method, status: "pending", amount: checkout.total, walletAmount, onlineAmount, idempotencyKey, metadata: asJson({ ...(metadata ?? {}), providerPayload: providerData?.payload ?? {} }) } });
         if (walletAmount > 0) {
           if (!wallet) throw new DomainError("INSUFFICIENT_WALLET", "کیف پول پیدا نشد", 409);
           const debited = await tx.wallet.updateMany({ where: { id: wallet.id, balance: { gte: walletAmount } }, data: { balance: { decrement: walletAmount } } });
@@ -128,7 +165,7 @@ export class PrismaRuntimeRepository {
         const orderNumber = `KIA-${new Date().getUTCFullYear()}-${String(counter.nextValue).padStart(6, "0")}`;
         const reference = `PAY-${randomUUID().replaceAll("-", "").slice(0, 16).toUpperCase()}`;
         const trackingCode = `TRK-${randomUUID().replaceAll("-", "").slice(0, 12).toUpperCase()}`;
-        const order = await tx.order.create({ data: { userId, checkoutSessionId: checkout.id, orderNumber, trackingCode, guestMobile: checkout.guestMobile ?? checkout.user?.mobile, serviceType: checkout.serviceType, summary: asJson({ serviceType: checkout.serviceType }), buyer: checkout.buyer, travelers: checkout.travelers, serviceSnapshot: checkout.service, pricingSnapshot: checkout.pricing, paymentSnapshot: asJson({ method, reference, walletAmount, onlineAmount, metadata: metadata ?? {} }), total: checkout.total, currency: MONEY_CURRENCY, paymentStatus: "paid", bookingStatus: "confirmed" } });
+        const order = await tx.order.create({ data: { userId, checkoutSessionId: checkout.id, orderNumber, trackingCode, guestMobile: checkout.guestMobile ?? checkout.user?.mobile, serviceType: checkout.serviceType, summary: asJson({ serviceType: checkout.serviceType }), buyer: checkout.buyer, travelers: checkout.travelers, serviceSnapshot: checkout.service, pricingSnapshot: checkout.pricing, paymentSnapshot: asJson({ method, reference, walletAmount, onlineAmount, metadata: metadata ?? {}, provider: providerData?.provider ?? "mock", externalReference: providerData?.externalReference }), total: checkout.total, currency: MONEY_CURRENCY, paymentStatus: "paid", bookingStatus: "confirmed", providerName: providerData?.provider ?? "mock", externalReference: providerData?.externalReference, providerPayload: providerData?.payload ? asJson(providerData.payload) : undefined } });
         const completed = await tx.paymentAttempt.update({ where: { id: payment.id }, data: { orderId: order.id, status: "succeeded", reference, completedAt: new Date() } });
         await tx.transaction.create({ data: { orderId: order.id, walletId: walletAmount ? wallet?.id : undefined, type: "payment", status: "succeeded", amount: checkout.total, currency: MONEY_CURRENCY, reference } });
         await tx.checkoutSession.update({ where: { id: checkout.id }, data: { status: "completed" } });

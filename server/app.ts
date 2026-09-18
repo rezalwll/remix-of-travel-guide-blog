@@ -9,6 +9,9 @@ import { config } from "./config.js";
 import { getPrismaClient } from "./db/prisma.js";
 import { DomainError } from "./domain/errors.js";
 import { PrismaRuntimeRepository, type CheckoutInput, type PaymentMethod } from "./repositories/prisma-runtime.js";
+import { createProviderRegistry, type ProviderRegistry } from "./providers/registry.js";
+import { SmsService } from "./services/sms-service.js";
+import { PaymentService } from "./services/payment-service.js";
 
 const sessionCookie = "kiashi_session";
 const mobileSchema = z.string().regex(/^09\d{9}$/);
@@ -16,11 +19,14 @@ const serviceTypeSchema = z.enum(["flight", "hotel", "tour", "ziyarat", "train",
 const paymentMethodSchema = z.enum(["online_mock", "wallet", "combined", "installment_mock", "organizational_credit_mock", "voucher_mock"]);
 const errorResponse = (reply: FastifyReply, status: number, code: string, message: string) => reply.code(status).send({ error: { code, message } });
 
-export type AppOptions = { repository?: PrismaRuntimeRepository; env?: typeof config };
+export type AppOptions = { repository?: PrismaRuntimeRepository; env?: Partial<typeof config>; providers?: ProviderRegistry };
 
 export async function buildApp(options: AppOptions = {}) {
   const repository = options.repository ?? new PrismaRuntimeRepository(getPrismaClient());
-  const env = options.env ?? config;
+  const env = { ...config, ...options.env };
+  const providers = options.providers ?? createProviderRegistry(env);
+  const smsService = new SmsService(providers.sms, repository);
+  const paymentService = new PaymentService(providers.payment, repository);
   const app = Fastify({ logger: env.NODE_ENV === "test" ? false : { level: "info" }, requestIdHeader: "x-request-id", genReqId: () => randomUUID() });
   await app.register(cookie);
   await app.register(cors, { origin: env.WEB_ORIGIN, credentials: true });
@@ -55,6 +61,7 @@ export async function buildApp(options: AppOptions = {}) {
     if (!parsed.success) return errorResponse(reply, 400, "VALIDATION_ERROR", "شماره موبایل معتبر نیست");
     const demoCode = "12345";
     const challenge = await repository.requestOtp(parsed.data.mobile, demoCode);
+    await smsService.send({ mobile: parsed.data.mobile, template: "login_otp", variables: { code: demoCode }, idempotencyKey: challenge.id });
     return reply.code(202).send({ challengeId: challenge.id, expiresIn: 120, ...(env.NODE_ENV === "production" ? {} : { demoCode }) });
   });
   app.post("/api/auth/verify-otp", async (request, reply) => {
@@ -94,14 +101,37 @@ export async function buildApp(options: AppOptions = {}) {
     const user = await requireUser(request, reply); if (!user) return;
     const parsed = z.object({ idempotencyKey: z.string().min(8).max(120), method: paymentMethodSchema.default("online_mock"), metadata: z.record(z.unknown()).optional() }).safeParse(request.body);
     if (!parsed.success) return errorResponse(reply, 400, "VALIDATION_ERROR", "درخواست پرداخت معتبر نیست");
-    return repository.finalizePayment(request.params.id, user.id, parsed.data.idempotencyKey, parsed.data.method as PaymentMethod, parsed.data.metadata);
+    const checkout = await repository.getCheckout(request.params.id, user.id);
+    if (!checkout) return errorResponse(reply, 404, "NOT_FOUND", "checkout پیدا نشد");
+    const handled = await paymentService.pay({ checkoutSessionId: checkout.id, userId: user.id, method: parsed.data.method as PaymentMethod, idempotencyKey: parsed.data.idempotencyKey, amount: checkout.total, currency: checkout.currency, callbackUrl: `${env.WEB_ORIGIN}/api/payments/callback/${providers.payment.name}`, metadata: parsed.data.metadata });
+    return handled.result;
+  });
+  app.post<{ Params: { id: string } }>("/api/checkout/sessions/:id/payment-intents", async (request, reply) => {
+    const user = await requireUser(request, reply); if (!user) return;
+    const parsed = z.object({ idempotencyKey: z.string().min(8).max(120), method: paymentMethodSchema.default("online_mock"), metadata: z.record(z.unknown()).optional() }).safeParse(request.body);
+    if (!parsed.success) return errorResponse(reply, 400, "VALIDATION_ERROR", "درخواست پرداخت معتبر نیست");
+    const checkout = await repository.getCheckout(request.params.id, user.id);
+    if (!checkout) return errorResponse(reply, 404, "NOT_FOUND", "checkout پیدا نشد");
+    const intent = await paymentService.createIntent({ checkoutSessionId: checkout.id, userId: user.id, method: parsed.data.method, amount: checkout.total, currency: checkout.currency, idempotencyKey: parsed.data.idempotencyKey, callbackUrl: `${env.WEB_ORIGIN}/api/payments/callback/${providers.payment.name}`, metadata: parsed.data.metadata });
+    return reply.code(201).send({ paymentIntent: intent });
+  });
+  app.post<{ Params: { provider: string } }>("/api/payments/callback/:provider", async (request, reply) => {
+    const user = await requireUser(request, reply); if (!user) return;
+    if (request.params.provider !== providers.payment.name) return errorResponse(reply, 400, "INVALID_CALLBACK", "provider callback معتبر نیست");
+    const parsed = z.object({ checkoutSessionId: z.string().uuid(), method: paymentMethodSchema.default("online_mock"), idempotencyKey: z.string().min(8).max(120), externalReference: z.string().min(3), status: z.enum(["succeeded", "failed", "cancelled"]), signature: z.string().optional(), payload: z.record(z.unknown()).optional() }).safeParse(request.body);
+    if (!parsed.success) return errorResponse(reply, 400, "INVALID_CALLBACK", "callback معتبر نیست");
+    const handled = await paymentService.handleCallback({ checkoutSessionId: parsed.data.checkoutSessionId, userId: user.id, method: parsed.data.method, idempotencyKey: parsed.data.idempotencyKey, externalReference: parsed.data.externalReference, callback: { externalReference: parsed.data.externalReference, status: parsed.data.status, signature: parsed.data.signature, payload: parsed.data.payload } });
+    return handled.result ?? handled;
   });
   app.post<{ Params: { id: string } }>("/api/orders/:id/payments", async (request, reply) => {
     const user = await requireUser(request, reply); if (!user) return;
     const parsed = z.object({ idempotencyKey: z.string().min(8).max(120), method: paymentMethodSchema.optional(), provider: z.string().optional() }).safeParse(request.body);
     if (!parsed.success) return errorResponse(reply, 400, "VALIDATION_ERROR", "درخواست پرداخت معتبر نیست");
     const order = await repository.getOrder(request.params.id, user.id);
-    return repository.finalizePayment(order.checkoutSessionId, user.id, parsed.data.idempotencyKey, parsed.data.method ?? "online_mock");
+    const checkout = await repository.getCheckout(order.checkoutSessionId, user.id);
+    if (!checkout) return errorResponse(reply, 404, "NOT_FOUND", "checkout پیدا نشد");
+    const handled = await paymentService.pay({ checkoutSessionId: checkout.id, userId: user.id, method: parsed.data.method ?? "online_mock", idempotencyKey: parsed.data.idempotencyKey, amount: checkout.total, currency: checkout.currency, callbackUrl: `${env.WEB_ORIGIN}/api/payments/callback/${providers.payment.name}` });
+    return handled.result;
   });
 
   const ordersHandler = async (request: FastifyRequest, reply: FastifyReply) => { const user = await requireUser(request, reply); return user ? { orders: await repository.listOrders(user.id) } : undefined; };
