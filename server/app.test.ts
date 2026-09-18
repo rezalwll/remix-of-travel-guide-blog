@@ -2,6 +2,10 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { PrismaClient } from "@prisma/client";
 import { buildApp } from "./app.js";
 import { PrismaRuntimeRepository } from "./repositories/prisma-runtime.js";
+import { createProviderRegistry } from "./providers/registry.js";
+import { MockPaymentGateway } from "./providers/payment.js";
+import { mockFlights } from "../src/data/flights.js";
+import { vi } from "vitest";
 
 const databaseUrl = process.env.DATABASE_URL_TEST;
 const integration = describe.skipIf(!databaseUrl);
@@ -68,6 +72,57 @@ integration("PostgreSQL runtime persistence", () => {
     const tracked = await app.inject({ method: "POST", url: "/api/order-tracking", payload: { identifier: order.trackingCode, mobile } });
     expect(tracked.statusCode).toBe(200);
     expect(tracked.json().tracking.buyerMobile).toContain("***");
+    await app.close();
+  });
+
+  it("routes OTP through the SMS interface and processes signed callbacks once", async () => {
+    const mobile = `09${String(Date.now() + 2).slice(-9)}`;
+    const gateway = new MockPaymentGateway();
+    const send = vi.fn().mockResolvedValue({ status: "sent", providerReference: "SMS-TEST" });
+    const providers = { ...createProviderRegistry(), payment: gateway, sms: { name: "probe", send, checkStatus: async () => "sent" as const } };
+    const app = await buildApp({ repository, env, providers });
+    const cookie = await login(app, mobile);
+    expect(send).toHaveBeenCalledWith(expect.objectContaining({ mobile, template: "login_otp" }));
+    const checkoutResponse = await app.inject({ method: "POST", url: "/api/checkout/sessions", headers: { cookie }, payload: { serviceType: "flight", quantity: 1, service: { outbound: mockFlights[0] } } });
+    expect(checkoutResponse.statusCode).toBe(201);
+    const checkoutId = checkoutResponse.json().checkoutSession.id;
+    const created = await app.inject({ method: "POST", url: `/api/checkout/sessions/${checkoutId}/payment-intents`, headers: { cookie }, payload: { idempotencyKey: "callback-integration-1", method: "online_mock" } });
+    expect(created.statusCode).toBe(201);
+    const reference = created.json().paymentIntent.externalReference;
+    const callbackUrl = "/api/payments/callback/mock";
+    const unsigned = await app.inject({ method: "POST", url: callbackUrl, payload: { externalReference: reference, status: "succeeded" } });
+    expect(unsigned.statusCode).toBe(400);
+    const callback = gateway.createTestCallback(reference, "succeeded");
+    const paid = await app.inject({ method: "POST", url: callbackUrl, payload: callback });
+    expect(paid.statusCode).toBe(200);
+    expect(paid.json()).toMatchObject({ ok: true, status: "succeeded", duplicate: false });
+    const order = await prisma.order.findUniqueOrThrow({ where: { checkoutSessionId: checkoutId } });
+    expect(order.bookingStatus).toBe("confirmed");
+    expect(order.providerName).toBe("flight-mock");
+    const repeated = await app.inject({ method: "POST", url: callbackUrl, payload: callback });
+    expect(repeated.statusCode).toBe(200);
+    expect(repeated.json()).toMatchObject({ ok: true, duplicate: true });
+    expect(await prisma.paymentCallback.count({ where: { externalReference: reference } })).toBe(1);
+    expect(await prisma.bookingAttempt.count({ where: { orderId: order.id } })).toBe(1);
+    await app.close();
+  });
+
+  it("keeps failed and cancelled mock simulations unpaid", async () => {
+    const mobile = `09${String(Date.now() + 3).slice(-9)}`;
+    const app = await buildApp({ repository, env });
+    const cookie = await login(app, mobile);
+    const checkout = (await app.inject({ method: "POST", url: "/api/checkout/sessions", headers: { cookie }, payload: { serviceType: "hotel", quantity: 1 } })).json().checkoutSession;
+    for (const status of ["failed", "cancelled"] as const) {
+      const created = await app.inject({ method: "POST", url: `/api/checkout/sessions/${checkout.id}/payment-intents`, headers: { cookie }, payload: { idempotencyKey: `simulate-${status}-1`, method: "online_mock" } });
+      expect(created.statusCode).toBe(201);
+      const reference = created.json().paymentIntent.externalReference;
+      const url = `/api/payments/mock/${reference}/simulate`;
+      expect((await app.inject({ method: "POST", url, payload: { status } })).statusCode).toBe(401);
+      const simulated = await app.inject({ method: "POST", url, headers: { cookie }, payload: { status } });
+      expect(simulated.statusCode).toBe(200);
+      expect(simulated.json().verification.status).toBe(status);
+    }
+    expect(await prisma.order.count({ where: { checkoutSessionId: checkout.id } })).toBe(0);
     await app.close();
   });
 });

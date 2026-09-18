@@ -121,7 +121,7 @@ model Order {
   total                Int
   currency             String           @default("TOMAN")
   paymentStatus        String           @default("paid")
-  bookingStatus        String           @default("confirmed")
+  bookingStatus        String           @default("pending")
   providerName         String?
   externalReference    String?
   providerPayload      Json?

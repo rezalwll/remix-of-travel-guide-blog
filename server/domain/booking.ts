@@ -7,7 +7,7 @@ const transitions: Record<BookingState, readonly BookingState[]> = {
   PRICE_VALIDATED: ["RESERVED", "CANCELLED"],
   RESERVED: ["CONFIRMED", "CANCELLED"],
   CONFIRMED: ["CANCELLED", "REFUNDED"],
-  CANCELLED: [],
+  CANCELLED: ["REFUNDED"],
   REFUNDED: [],
 };
 

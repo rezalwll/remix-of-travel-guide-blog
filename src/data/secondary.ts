@@ -1,4 +1,4 @@
-import type { BusOffer, CipPackage, InsurancePlan, TrainOffer, TransferVehicle } from '@/types/secondary';
+import type { BusOffer, CipPackage, InsurancePlan, TrainOffer, TransferVehicle } from '../types/secondary.js';
 
 export const trains: TrainOffer[] = [
   { id: 't1', company: 'رجا', trainName: 'پردیس', trainNumber: '120', origin: 'تهران', destination: 'مشهد', departure: '06:20', arrival: '14:45', duration: '۸ ساعت و ۲۵ دقیقه', coachType: 'مسافری', compartmentType: '۴ تخته', stars: 4, amenities: ['تهویه مطبوع', 'پریز برق', 'پذیرایی'], meal: true, refundable: true, price: 2850000, currency: 'IRR', tags: ['پیشنهادی'] },

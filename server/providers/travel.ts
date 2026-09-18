@@ -15,40 +15,44 @@ export interface TravelSupplier {
   refund(reservation: Reservation): Promise<Reservation>;
 }
 
-export interface FlightSupplier extends TravelSupplier {}
-export interface HotelSupplier extends TravelSupplier {}
-export interface TrainSupplier extends TravelSupplier {}
-export interface BusSupplier extends TravelSupplier {}
-export interface InsuranceSupplier extends TravelSupplier {}
-export interface CipSupplier extends TravelSupplier {}
-export interface TransferSupplier extends TravelSupplier {}
-export interface VisaProvider extends TravelSupplier {}
+export type FlightSupplier = TravelSupplier;
+export type HotelSupplier = TravelSupplier;
+export type TrainSupplier = TravelSupplier;
+export type BusSupplier = TravelSupplier;
+export type InsuranceSupplier = TravelSupplier;
+export type CipSupplier = TravelSupplier;
+export type TransferSupplier = TravelSupplier;
+export type VisaProvider = TravelSupplier;
 
 export class MockTravelSupplier implements TravelSupplier {
   private readonly reservations = new Map<string, Reservation>();
   constructor(public readonly name: string, private readonly catalog: SupplierItem[] = []) {}
 
   async search(query: SupplierQuery) {
-    const text = Object.values(query).filter((value) => typeof value === "string").join(" ").toLowerCase();
-    return this.catalog.filter((item) => !text || JSON.stringify(item).toLowerCase().includes(text));
+    return this.catalog.filter((item) => Object.entries(query).every(([key, value]) => {
+      if (value === undefined || value === null || value === "") return true;
+      if (key === "q") return JSON.stringify(item).toLowerCase().includes(String(value).toLowerCase());
+      return String(item[key] ?? "").toLowerCase() === String(value).toLowerCase();
+    }));
   }
   async validate(item: SupplierItem) {
-    const valid = this.catalog.some((candidate) => candidate.id === item.id);
-    return valid ? { valid: true, price: typeof item.price === "number" ? item.price : undefined } : { valid: false, errors: ["ITEM_NOT_FOUND"] };
+    const candidate = this.catalog.find((entry) => entry.id === item.id);
+    return candidate ? { valid: true, price: typeof candidate.price === "number" ? candidate.price : undefined } : { valid: false, errors: ["ITEM_NOT_FOUND"] };
   }
   async reserve(item: SupplierItem) {
     const validation = await this.validate(item);
     if (!validation.valid) throw new ProviderError("NOT_FOUND", "Supplier item was not found", false, this.name);
-    const reservation = { reservationId: randomUUID(), providerReference: `MOCK-${this.name.toUpperCase()}-${randomUUID().slice(0, 10)}`, status: "reserved" as const, item };
+    const reservation = { reservationId: randomUUID(), providerReference: `MOCK-${this.name.toUpperCase()}-${randomUUID().slice(0, 10)}`, status: "reserved" as const, item: this.catalog.find((candidate) => candidate.id === item.id)! };
     this.reservations.set(reservation.reservationId, reservation);
     return reservation;
   }
-  async confirm(reservation: Reservation) { return this.update(reservation, "confirmed"); }
-  async cancel(reservation: Reservation) { return this.update(reservation, "cancelled"); }
-  async refund(reservation: Reservation) { return this.update(reservation, "refunded"); }
-  private update(reservation: Reservation, status: Reservation["status"]) {
+  async confirm(reservation: Reservation) { return this.update(reservation, "confirmed", ["reserved"]); }
+  async cancel(reservation: Reservation) { return this.update(reservation, "cancelled", ["reserved", "confirmed"]); }
+  async refund(reservation: Reservation) { return this.update(reservation, "refunded", ["confirmed", "cancelled"]); }
+  private update(reservation: Reservation, status: Reservation["status"], allowed: Reservation["status"][]) {
     const current = this.reservations.get(reservation.reservationId);
     if (!current) throw new ProviderError("NOT_FOUND", "Reservation was not found", false, this.name);
+    if (!allowed.includes(current.status)) throw new ProviderError("INVALID_REQUEST", `Cannot ${status} a ${current.status} reservation`, false, this.name);
     const updated = { ...current, status };
     this.reservations.set(updated.reservationId, updated);
     return Promise.resolve(updated);

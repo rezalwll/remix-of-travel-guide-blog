@@ -35,6 +35,7 @@ export type ApiOrder = {
 };
 
 export type ApiCheckout = { id: string; serviceType: string; status: string; total: number; currency: 'TOMAN'; pricing?: Record<string, unknown>; expiresAt: string };
+export type ApiPaymentIntent = { provider: string; externalReference: string; redirectUrl: string; status: string };
 export type ApiWalletTransaction = { id: string; type: string; amount: number; balanceAfter: number; reference: string; createdAt: string };
 export type ApiWallet = { id: string; balance: number; currency: 'TOMAN'; updatedAt: string; transactions: ApiWalletTransaction[] };
 export type ApiPassenger = { id: string; firstName: string; lastName: string; nationalId?: string | null; passportNumber?: string | null; createdAt: string; updatedAt: string };
@@ -68,6 +69,8 @@ export const backend = {
   createCheckout: (payload: CheckoutPayload) => apiRequest<{ checkoutSession: ApiCheckout }>('/api/checkout/sessions', { method: 'POST', body: JSON.stringify(payload) }),
   checkout: (id: string) => apiRequest<{ checkoutSession: ApiCheckout }>(`/api/checkout/sessions/${id}`),
   pay: (checkoutSessionId: string, payload: { idempotencyKey: string; method: string; metadata?: Record<string, unknown> }) => apiRequest<{ payment: { reference?: string; walletAmount: number; onlineAmount: number }; order: ApiOrder }>(`/api/checkout/sessions/${checkoutSessionId}/payments`, { method: 'POST', body: JSON.stringify(payload) }),
+  createPaymentIntent: (checkoutSessionId: string, payload: { idempotencyKey: string; method: string }) => apiRequest<{ paymentIntent: ApiPaymentIntent }>(`/api/checkout/sessions/${checkoutSessionId}/payment-intents`, { method: 'POST', body: JSON.stringify(payload) }),
+  simulateMockPayment: (reference: string, status: 'succeeded' | 'failed' | 'cancelled') => apiRequest<{ order?: ApiOrder; verification?: { status: string } }>(`/api/payments/mock/${encodeURIComponent(reference)}/simulate`, { method: 'POST', body: JSON.stringify({ status }) }),
 
   orders: () => apiRequest<{ orders: ApiOrder[] }>('/api/account/orders'),
   order: (id: string) => apiRequest<{ order: ApiOrder }>(`/api/account/orders/${id}`),

@@ -7,7 +7,7 @@
 - وب: React 18، Vite، TypeScript، React Router، Tailwind و Radix UI
 - API: Node.js 20، Fastify، Zod، Pino و cookie session امن
 - داده: PostgreSQL 16، Prisma و migrationهای نسخه‌گذاری‌شده
-- پرداخت: mock provider با settlement تراکنشی؛ هیچ درگاه یا supplier واقعی وصل نیست
+- پرداخت و رزرو: لایهٔ provider با پیاده‌سازی mock؛ هیچ درگاه یا supplier واقعی وصل نیست
 - آزمون: Vitest، Testing Library، Playwright و تست integration با PostgreSQL
 
 ## اجرای محلی
@@ -28,7 +28,7 @@ npm run dev:web
 
 وب روی `http://localhost:8080` و API روی `http://localhost:8787` اجرا می‌شوند. API بدون اتصال PostgreSQL بالا نمی‌آید و هیچ fallback خاموشی به حافظه ندارد. مسیرهای `/health/live` و `/health/ready` به‌ترتیب زنده‌بودن process و دسترسی دیتابیس را گزارش می‌کنند.
 
-متغیرهای محیطی در `.env.example` هستند: `DATABASE_URL`، `DATABASE_URL_TEST`، `API_PORT`، `WEB_ORIGIN`، `VITE_API_URL`، `SESSION_TTL_HOURS` و `NODE_ENV`. فرانت تمام عملیات احراز هویت، حساب، checkout، پرداخت، سفارش، کیف پول، پیگیری، پشتیبانی، ویزا و استرداد را از API می‌خواند؛ `VITE_API_URL` در توسعه روی `http://localhost:8787` است.
+متغیرهای محیطی در `.env.example` هستند: `DATABASE_URL`، `DATABASE_URL_TEST`، `API_PORT`، `API_PUBLIC_URL`، `WEB_ORIGIN`، `VITE_API_URL`، `SESSION_TTL_HOURS` و `NODE_ENV`. فرانت تمام عملیات احراز هویت، حساب، checkout، پرداخت، سفارش، کیف پول، پیگیری، پشتیبانی، ویزا و استرداد را از API می‌خواند؛ `VITE_API_URL` در توسعه روی `http://localhost:8787` است.
 
 ## Runtime و امنیت
 
@@ -40,7 +40,7 @@ checkout فقط `CheckoutSession` می‌سازد. order پس از settlement م
 
 ## پول و پرداخت
 
-واحد canonical داخلی backend `TOMAN` است و amountهای API، دیتابیس، wallet و transaction بر حسب تومان صحیح هستند. بعضی catalogهای static قدیمی فرانت هنوز برای نمایش mock مقدار `IRR` دارند و تا cutover کامل catalog به‌عنوان دادهٔ غیر authoritative نگه داشته شده‌اند. مرز درگاه آینده در [money.ts](/home/mohamadreza-azizi/Downloads/kiashi/remix-of-travel-guide-blog/server/domain/money.ts) با `toGatewayRial` و `fromGatewayRial` جدا شده است.
+واحد canonical داخلی backend `TOMAN` است و amountهای API، دیتابیس، wallet و transaction بر حسب تومان صحیح هستند. بعضی catalogهای static قدیمی فرانت هنوز برای نمایش mock مقدار `IRR` دارند و تا cutover کامل catalog به‌عنوان دادهٔ غیر authoritative نگه داشته شده‌اند. مرز درگاه آینده در [money.ts](server/domain/money.ts) با `toGatewayRial` و `fromGatewayRial` جدا شده است.
 
 روش‌های domain فعلی: `online_mock`، `wallet`، `combined`، `installment_mock`، `organizational_credit_mock` و `voucher_mock`. هیچ‌کدام provider واقعی نیستند. idempotency با unique constraint دیتابیس روی `(checkoutSessionId, idempotencyKey)` و transaction ایزوله تضمین می‌شود. order number هم با `OrderCounter` به شکل concurrency-safe مثل `KIA-2026-000001` تولید می‌شود.
 
@@ -56,6 +56,17 @@ checkout فقط `CheckoutSession` می‌سازد. order پس از settlement م
 مسیرهای قدیمی order/wallet برای سازگاری نگه داشته شده‌اند. tracking فقط با mobile خریدار جواب می‌دهد و شمارهٔ موبایل را mask می‌کند. login با mobile منطبق، order مهمانِ همان mobile را claim می‌کند؛ order دارای مالک هرگز reassigned نمی‌شود.
 
 سرویس‌های فعال backend: `flight`, `hotel`, `tour`, `ziyarat`, `train`, `bus`, `insurance`, `cip`, `transfer`. eSIM، Fast Track و city-tour در این فاز request-only هستند و order قابل settlement ندارند.
+
+## معماری provider (فاز ۱۵)
+
+مسیر عملیات `API → Payment/Sms/BookingService → interface → mock adapter` است. رجیستری در `server/providers/registry.ts` از متغیرهای `SMS_PROVIDER=development`، `PAYMENT_PROVIDER=mock` و `FLIGHT/HOTEL/TRAIN/BUS/INSURANCE/CIP/TRANSFER/VISA_PROVIDER=mock` انتخاب می‌کند و مقدار ناشناخته را در شروع برنامه رد می‌کند. هنوز adapter واقعی وجود ندارد. `PROVIDER_TIMEOUT_MS` حد زمان هر عملیات است؛ خطاهای timeout و unavailable به کدهای پایدار API تبدیل می‌شوند. log ساختاریافته فقط `requestId`، نام provider، operation، مدت و status را ثبت می‌کند، نه OTP، token، مشخصات مسافر یا payload پرداخت.
+
+- SMS: `SmsProvider.send/checkStatus`، `DevelopmentSmsProvider` و `SmsService` وجود دارند. OTP از این interface ارسال می‌شود؛ تلاش ارسال پیش از فراخوانی ثبت و نتیجه/خطا در `SmsDeliveryAttempt` پیگیری می‌شود. retry پایه دو تلاش است. در production کد OTP تصادفی است، اما تا اتصال SMS واقعی دریافت آن روی موبایل ممکن نیست.
+- پرداخت: `PaymentGateway.createPayment/verifyPayment/refundPayment`، `PaymentIntent`، `PaymentCallback` و `PaymentVerification` وجود دارند. مسیر آمادهٔ اتصال `POST /api/checkout/sessions/:id/payment-intents → redirectUrl → POST /api/payments/callback/:provider → verify → finalize` است. callback به session کاربر وابسته نیست؛ امضای آن بررسی و مالکیت، روش و کلید idempotency از intent ذخیره‌شده استخراج می‌شود و پاسخ آن اطلاعات سفارش را افشا نمی‌کند. پردازش تکراری همان callback دوباره order یا debit نمی‌سازد. صفحهٔ درگاه mock با همان UX فعلی از `payment-intents` و مسیر احرازشدهٔ `/api/payments/mock/:reference/simulate` برای موفق/ناموفق/انصراف استفاده می‌کند؛ مسیر هم‌زمان قدیمی `/payments` برای سازگاری نگه داشته شده است. `API_PUBLIC_URL` باید نشانی عمومی API باشد، نه وب‌سایت. در production mock، `MOCK_PAYMENT_SECRET` خصوصی و حداقل ۳۲ کاراکتری الزامی است.
+- سفر: interfaceهای پرواز، هتل، قطار، اتوبوس، بیمه، CIP، ترانسفر و ویزا عملیات `search/validate/reserve/confirm/cancel/refund` دارند. mockها کاتالوگ‌های موجود فرانت را برای چهار سرویس اصلی و سرویس‌های مکمل مصرف می‌کنند؛ جست‌وجوی عمومی از `GET /api/providers/:kind/search` در دسترس است. ویزا فعلاً فقط آیتم نمایشی دارد. قبل از checkout آیتم انتخابی اعتبارسنجی می‌شود و پس از پرداخت، `BookingService` آن را reserve/confirm کرده، `BookingAttempt` می‌سازد و شناسهٔ بیرونی supplier را جدا از شناسهٔ داخلی سفارش ذخیره می‌کند. اگر supplier خطا دهد، پرداخت موفق باقی می‌ماند ولی رزرو با وضعیت `reservation_failed` مشخص می‌شود و نیاز به رسیدگی/استرداد دارد.
+- چرخهٔ رزرو با گذارهای مجاز `SEARCHED → SELECTED → PRICE_VALIDATED → RESERVED → CONFIRMED` (و مسیرهای cancel/refund) در `server/domain/booking.ts` تعریف و تست شده است. تور و زیارت هنوز supplier اختصاصی ندارند و با mock داخلی تأیید می‌شوند.
+
+این فاز زیرساخت اتصال را آماده می‌کند، نه اتصال واقعی، صدور بلیت، تسویهٔ درگاه، پردازش خودکار استرداد یا هماهنگی تراکنشی با provider خارجی. قیمت معتبر checkout همچنان از جدول قیمت داخلی backend می‌آید؛ قیمت‌های `IRR` کاتالوگ‌ها فقط نمایشی‌اند. پیش از فاز اتصال واقعی باید قیمت/ظرفیت را با supplier به‌صورت authoritative بازاعتبارسنجی کرد و recovery/compensation رزرو ناموفق پس از پرداخت را افزود.
 
 ## Migration و تست PostgreSQL
 
@@ -81,6 +92,6 @@ session با cookie امن `HttpOnly` بازیابی می‌شود و هیچ tok
 
 ## وضعیت و محدودیت‌ها
 
-داده‌های پیشنهاد، ظرفیت، پیامک، پرداخت، installment، organizational credit و همهٔ supplierها mock هستند. پنل ادمین، settlement واقعی، webhook و provider integration ساخته نشده‌اند. localStorage فقط برای searchهای اخیر، recently viewed، ترجیحات UI و cache غیرحساس فرم مجاز است؛ سفارش، پرداخت، wallet، auth و داده‌های حساب browser-owned نیستند.
+داده‌های پیشنهاد، ظرفیت، پیامک، پرداخت، installment، organizational credit و همهٔ supplierها mock هستند. پنل ادمین، settlement واقعی و اتصال provider خارجی ساخته نشده‌اند؛ endpoint callback فقط با mock امضاشده کار می‌کند. localStorage فقط برای searchهای اخیر، recently viewed، ترجیحات UI و cache غیرحساس فرم مجاز است؛ سفارش، پرداخت، wallet، auth و داده‌های حساب browser-owned نیستند.
 
-CI در [.github/workflows/ci.yml](/home/mohamadreza-azizi/Downloads/kiashi/remix-of-travel-guide-blog/.github/workflows/ci.yml) نصب، generate، migration، typecheck، build، lint، unit و PostgreSQL integration test را اجرا می‌کند.
+CI در [.github/workflows/ci.yml](.github/workflows/ci.yml) نصب، generate، migration، typecheck، build، lint، unit، PostgreSQL integration test و Playwright را اجرا می‌کند.

@@ -1,4 +1,4 @@
-import type { FlightResult, FlightSegmentResult } from '@/types/flight';
+import type { FlightResult, FlightSegmentResult } from '../types/flight.js';
 
 const airlines = [
   { name: 'هواپیمایی ماهان', code: 'W5', aircraft: 'Airbus A310' }, { name: 'ایران‌ایر', code: 'IR', aircraft: 'Airbus A320' }, { name: 'قشم‌ایر', code: 'QB', aircraft: 'Airbus A320' }, { name: 'ترکیش ایرلاینز', code: 'TK', aircraft: 'Airbus A321' }, { name: 'امارات', code: 'EK', aircraft: 'Boeing 777' }, { name: 'قطر ایرویز', code: 'QR', aircraft: 'Airbus A350' },

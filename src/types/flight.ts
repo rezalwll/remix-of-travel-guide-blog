@@ -1,4 +1,4 @@
-import type { Currency } from './travel';
+import type { Currency } from './travel.js';
 
 export type FlightStopCount = 0 | 1 | 2;
 export type FlightKind = 'سیستمی' | 'چارتری';

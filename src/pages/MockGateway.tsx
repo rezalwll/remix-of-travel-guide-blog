@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { ArrowRight, LockKeyhole, ShieldCheck } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
-import { payServerCheckout } from '@/services/payment';
+import { paymentMethodToApi } from '@/services/payment';
+import { backend } from '@/services/backend';
 import type { PaymentMethodKind } from '@/types/payment';
 import { formatPrice } from '@/utils/flight';
 
@@ -10,6 +11,7 @@ const MockGateway = () => {
   const navigate = useNavigate();
   const [query] = useSearchParams();
   const checkoutId = query.get('checkout') || '';
+  const reference = query.get('reference') || '';
   const method = (query.get('method') || 'online') as PaymentMethodKind;
   const idempotencyKey = query.get('key') || '';
   const amount = Number(query.get('amount') || 0);
@@ -17,14 +19,16 @@ const MockGateway = () => {
   const [card, setCard] = useState('6037 9999 0000 0001');
   const [error, setError] = useState('');
 
-  if (!checkoutId || !idempotencyKey) return <Layout><main className="container-page flex min-h-[65vh] items-center justify-center py-16"><div className="rounded-2xl border border-border bg-card p-8 text-center"><h1 className="text-xl font-extrabold">پرداخت آزمایشی پیدا نشد</h1><button type="button" onClick={() => navigate('/checkout/payment')} className="mt-5 rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white">بازگشت به پرداخت</button></div></main></Layout>;
+  if (!reference && (!checkoutId || !idempotencyKey)) return <Layout><main className="container-page flex min-h-[65vh] items-center justify-center py-16"><div className="rounded-2xl border border-border bg-card p-8 text-center"><h1 className="text-xl font-extrabold">پرداخت آزمایشی پیدا نشد</h1><button type="button" onClick={() => navigate('/checkout/payment')} className="mt-5 rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white">بازگشت به پرداخت</button></div></main></Layout>;
 
   const simulate = async (state: 'success' | 'failed' | 'cancelled') => {
-    if (state !== 'success') { navigate(`/checkout/result?state=${state}`); return; }
     setProcessing(true); setError('');
     try {
-      const { order } = await payServerCheckout(checkoutId, method, idempotencyKey);
-      navigate(`/checkout/result?order=${order.id}&state=success`, { replace: true });
+      const paymentReference = reference || (await backend.createPaymentIntent(checkoutId, { method: paymentMethodToApi(method), idempotencyKey })).paymentIntent.externalReference;
+      const outcome = await backend.simulateMockPayment(paymentReference, state === 'success' ? 'succeeded' : state);
+      if (state !== 'success') { navigate(`/checkout/result?state=${state}`, { replace: true }); return; }
+      if (!outcome.order) throw new Error('سفارش پس از پرداخت ثبت نشد.');
+      navigate(`/checkout/result?order=${outcome.order.id}&state=success`, { replace: true });
     } catch (err) { setError(err instanceof Error ? err.message : 'تسویه پرداخت انجام نشد.'); setProcessing(false); }
   };
 

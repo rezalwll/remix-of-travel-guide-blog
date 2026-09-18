@@ -1,4 +1,4 @@
-import type { Hotel } from '@/types/hotel';
+import type { Hotel } from '../types/hotel.js';
 
 const photos = {
   palace: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80',
