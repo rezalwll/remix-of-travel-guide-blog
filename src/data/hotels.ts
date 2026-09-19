@@ -1,11 +1,16 @@
 import type { Hotel } from '../types/hotel.js';
-import morocco from '../assets/morocco.jpg';
-import heroGreece from '../assets/hero-greece.jpg';
-import heroCamping from '../assets/hero-camping.jpg';
-import travelBooks from '../assets/travel-books.jpg';
-import hotelTehranPremium from '../assets/hotel-tehran-premium.png';
-import hotelIstanbulPremium from '../assets/hotel-istanbul-premium.png';
-import heroKishPremium from '../assets/hero-kish-premium.png';
+
+// `new URL(..., import.meta.url)` is transformed by Vite for the web build and
+// gets a stable public fallback when this shared catalog is loaded by the Node
+// API. Importing the binary files directly would make Node execute a JPG.
+const isNodeRuntime = typeof document === 'undefined';
+const morocco = isNodeRuntime ? '/morocco.jpg' : new URL('../assets/morocco.jpg', import.meta.url).href;
+const heroGreece = isNodeRuntime ? '/hero-greece.jpg' : new URL('../assets/hero-greece.jpg', import.meta.url).href;
+const heroCamping = isNodeRuntime ? '/hero-camping.jpg' : new URL('../assets/hero-camping.jpg', import.meta.url).href;
+const travelBooks = isNodeRuntime ? '/travel-books.jpg' : new URL('../assets/travel-books.jpg', import.meta.url).href;
+const hotelTehranPremium = isNodeRuntime ? '/world-map.jpg' : new URL('../assets/hotel-tehran-premium.png', import.meta.url).href;
+const hotelIstanbulPremium = isNodeRuntime ? '/hero-greece.jpg' : new URL('../assets/hotel-istanbul-premium.png', import.meta.url).href;
+const heroKishPremium = isNodeRuntime ? '/iceland.jpg' : new URL('../assets/hero-kish-premium.png', import.meta.url).href;
 
 const photos = {
   palace: hotelTehranPremium,

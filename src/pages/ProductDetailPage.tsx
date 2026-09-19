@@ -1,127 +1,33 @@
-import { useParams, Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ArrowLeft, Star, ShoppingCart, CheckCircle, BookOpen, FileText } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ChevronLeft, Download, FileText, ShieldCheck, Star } from "lucide-react";
+import { Link, useParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { getProductById, products } from "@/data/products";
+import { formatPrice } from "@/utils/flight";
 import NotFound from "./NotFound";
 
 const ProductDetailPage = () => {
   const { productId } = useParams<{ productId: string }>();
   const product = getProductById(productId || "");
-
   if (!product) return <NotFound />;
-
-  const otherProducts = products.filter(p => p.id !== product.id).slice(0, 3);
+  const related = products.filter((item) => item.id !== product.id).slice(0, 3);
 
   return (
     <Layout>
-      {/* Main content */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-20">
-        <Link to="/shop" className="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all mb-8">
-          <ArrowLeft className="w-4 h-4" /> Back to shop
-        </Link>
+      <main className="pb-20">
+        <section className="border-b border-border bg-muted/45 py-5"><div className="container-page"><nav aria-label="مسیر صفحه" className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"><Link to="/" className="hover:text-foreground">خانه</Link><ChevronLeft className="size-3.5" /><Link to="/shop" className="hover:text-foreground">فروشگاه</Link><ChevronLeft className="size-3.5" /><span className="text-foreground">{product.name}</span></nav></div></section>
 
-        <div className="grid md:grid-cols-2 gap-12 items-start">
-          {/* Image */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="rounded-2xl overflow-hidden shadow-lg"
-          >
-            <img src={product.image} alt={product.name} className="w-full aspect-[4/3] object-cover" />
-          </motion.div>
-
-          {/* Details */}
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-            <h1 className="font-display text-3xl md:text-4xl font-bold text-foreground mb-4">{product.name}</h1>
-            
-            <div className="flex items-center gap-2 mb-4">
-              {Array.from({ length: 5 }).map((_, j) => (
-                <Star
-                  key={j}
-                  className={`w-5 h-5 ${j < Math.floor(product.rating) ? "text-secondary fill-secondary" : "text-muted-foreground"}`}
-                />
-              ))}
-              <span className="text-muted-foreground ml-1">({product.rating} / 5)</span>
-            </div>
-
-            <p className="text-muted-foreground leading-relaxed mb-6">{product.description}</p>
-
-            <div className="flex items-center gap-4 mb-6 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1.5"><BookOpen className="w-4 h-4" /> {product.pages} pages</span>
-              <span className="flex items-center gap-1.5"><FileText className="w-4 h-4" /> {product.format}</span>
-            </div>
-
-            <div className="bg-muted p-6 rounded-xl mb-8">
-              <div className="flex items-end justify-between mb-4">
-                <span className="text-3xl font-bold text-foreground">€{product.price.toFixed(2)}</span>
-                <span className="text-sm text-muted-foreground">Instant digital download</span>
-              </div>
-              <button className="w-full bg-primary text-primary-foreground px-6 py-3.5 rounded-lg font-semibold hover:opacity-90 transition inline-flex items-center justify-center gap-2">
-                <ShoppingCart className="w-5 h-5" /> Add to cart
-              </button>
-            </div>
-
-            {/* Features */}
-            <h3 className="font-display text-lg font-bold text-foreground mb-4">What's included</h3>
-            <ul className="space-y-3">
-              {product.features.map((f, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                  <span className="text-muted-foreground">{f}</span>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Table of contents */}
-      <section className="bg-muted">
-        <div className="max-w-4xl mx-auto px-4 md:px-8 py-16">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">What's inside</h2>
-          <div className="space-y-6">
-            {product.contents.map((item, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.05 }}
-                className="bg-card p-6 rounded-xl"
-              >
-                <p className="text-foreground leading-relaxed">{item}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Other products */}
-      {otherProducts.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 md:px-8 py-16">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">You might also like</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {otherProducts.map(p => (
-              <Link key={p.id} to={`/shop/${p.id}`} className="group bg-card rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
-                <div className="overflow-hidden aspect-[4/3]">
-                  <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
-                </div>
-                <div className="p-6">
-                  <h3 className="font-display text-lg font-bold text-foreground mb-2">{p.name}</h3>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xl font-bold text-foreground">€{p.price.toFixed(2)}</span>
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 text-secondary fill-secondary" />
-                      <span className="text-sm text-muted-foreground">{p.rating}</span>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
+        <section className="container-page grid gap-8 py-10 lg:grid-cols-[.88fr_1.12fr] lg:items-start lg:py-16">
+          <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-xl"><img src={product.image} alt={product.name} className="aspect-[4/3] size-full object-cover" /><div className="grid grid-cols-3 gap-px bg-border"><div className="bg-card p-4 text-center"><FileText className="mx-auto size-5 text-secondary" /><p className="mt-2 text-xs font-extrabold">{product.pages.toLocaleString("fa-IR")} صفحه</p></div><div className="bg-card p-4 text-center"><Download className="mx-auto size-5 text-secondary" /><p className="mt-2 text-xs font-extrabold">دانلود دیجیتال</p></div><div className="bg-card p-4 text-center"><ShieldCheck className="mx-auto size-5 text-secondary" /><p className="mt-2 text-xs font-extrabold">پرداخت امن</p></div></div></div>
+          <div className="lg:pt-3"><span className="section-eyebrow">راهنمای دیجیتال سفر</span><h1 className="page-heading max-w-2xl">{product.name}</h1><div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground"><span className="inline-flex items-center gap-1 rounded-full bg-accent/20 px-3 py-1.5 font-extrabold text-foreground"><Star className="size-4 fill-accent text-accent" />{product.rating.toLocaleString("fa-IR")}</span><span>{product.format}</span><span>·</span><span>{product.pages.toLocaleString("fa-IR")} صفحه</span></div><p className="mt-6 max-w-2xl text-sm leading-8 text-muted-foreground sm:text-base">{product.description}</p>
+            <div className="mt-7 rounded-2xl border border-primary/15 bg-primary/5 p-5"><p className="text-xs text-muted-foreground">قیمت نسخهٔ دیجیتال</p><p className="mt-1 text-2xl font-black text-primary">{formatPrice(product.price)}</p><button type="button" className="primary-cta mt-4 w-full sm:w-auto"><Download className="size-4" /> افزودن به سبد خرید</button><p className="mt-3 text-[11px] leading-6 text-muted-foreground">این محصول در نسخهٔ نمایشی است؛ مبلغ پیش از پرداخت نهایی نمایش داده می‌شود.</p></div>
+            <div className="mt-8"><h2 className="text-lg font-black">این راهنما شامل چیست؟</h2><ul className="mt-4 grid gap-3 sm:grid-cols-2">{product.features.map((feature) => <li key={feature} className="flex items-start gap-2 text-sm leading-7 text-muted-foreground"><CheckCircle2 className="mt-1 size-4 shrink-0 text-secondary" />{feature}</li>)}</ul></div>
           </div>
         </section>
-      )}
+
+        <section className="border-y border-border bg-muted/45 py-14"><div className="container-page max-w-5xl"><div className="text-center"><span className="section-eyebrow">فهرست محتوا</span><h2 className="text-3xl font-black">داخل فایل چه می‌بینی؟</h2></div><div className="mt-8 space-y-3">{product.contents.map((item, index) => <article key={item} className="surface-card flex gap-4 p-5"><span className="grid size-9 shrink-0 place-items-center rounded-xl bg-secondary/10 text-sm font-black text-secondary">{(index + 1).toLocaleString("fa-IR")}</span><p className="pt-1 text-sm leading-7 text-muted-foreground">{item}</p></article>)}</div></div></section>
+
+        <section className="container-page pt-16"><div className="mb-7 flex items-end justify-between gap-4"><div><span className="section-eyebrow">پیشنهادهای دیگر</span><h2 className="text-2xl font-black">راهنماهای مکمل</h2></div><Link to="/shop" className="text-sm font-extrabold text-primary">همه راهنماها</Link></div><div className="grid gap-5 md:grid-cols-3">{related.map((item) => <Link key={item.id} to={`/shop/${item.id}`} className="image-card group"><img src={item.image} alt={item.name} className="aspect-[16/10] size-full object-cover" loading="lazy" /><div className="p-5"><h3 className="font-black leading-7">{item.name}</h3><div className="mt-4 flex items-center justify-between gap-3"><span className="text-sm font-extrabold text-primary">{formatPrice(item.price)}</span><ArrowLeft className="size-4 text-primary transition group-hover:-translate-x-1" /></div></div></Link>)}</div></section>
+      </main>
     </Layout>
   );
 };

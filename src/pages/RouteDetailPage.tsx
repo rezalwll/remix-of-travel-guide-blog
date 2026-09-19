@@ -1,149 +1,64 @@
-import { useParams, Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { ArrowLeft, MapPin, Clock, TrendingUp, DollarSign, Sun, CheckCircle, Lightbulb } from "lucide-react";
+import { ArrowLeft, CalendarDays, CheckCircle2, ChevronLeft, Clock3, Gauge, Lightbulb, Plane, Sun } from "lucide-react";
+import { Link, useParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
-import NewsletterSignup from "@/components/NewsletterSignup";
 import { getRouteById, travelRoutes } from "@/data/routes";
 import NotFound from "./NotFound";
 
 const RouteDetailPage = () => {
   const { routeId } = useParams<{ routeId: string }>();
   const route = getRouteById(routeId || "");
-
   if (!route) return <NotFound />;
-
-  const otherRoutes = travelRoutes.filter(r => r.id !== route.id).slice(0, 2);
+  const related = travelRoutes.filter((item) => item.id !== route.id).slice(0, 2);
 
   return (
     <Layout>
-      {/* Hero */}
-      <section className="relative h-80 md:h-[450px] overflow-hidden">
-        <img src={route.image} alt={route.title} className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <p className="text-primary text-sm uppercase tracking-widest font-semibold mb-2">{route.duration} itinerary</p>
-            <h1 className="font-display text-3xl md:text-5xl font-bold text-white mb-2">{route.title}</h1>
-            <p className="text-white/80 text-lg max-w-2xl">{route.subtitle}</p>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Quick info bar */}
-      <div className="bg-muted border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-6 flex flex-wrap gap-6 justify-center text-sm">
-          <span className="flex items-center gap-2 text-muted-foreground"><Clock className="w-4 h-4 text-primary" /> {route.duration}</span>
-          <span className="flex items-center gap-2 text-muted-foreground"><TrendingUp className="w-4 h-4 text-primary" /> {route.difficulty}</span>
-          <span className="flex items-center gap-2 text-muted-foreground"><Sun className="w-4 h-4 text-primary" /> {route.bestSeason}</span>
-          <span className="flex items-center gap-2 text-muted-foreground"><DollarSign className="w-4 h-4 text-primary" /> {route.budget}</span>
-        </div>
-      </div>
-
-      {/* Intro & Countries */}
-      <section className="max-w-4xl mx-auto px-4 md:px-8 py-12">
-        <p className="text-muted-foreground leading-relaxed text-lg mb-8">{route.description}</p>
-        <div className="flex flex-wrap gap-2">
-          {route.countries.map(c => (
-            <span key={c} className="flex items-center gap-1.5 bg-muted text-muted-foreground px-4 py-2 rounded-full text-sm font-medium">
-              <MapPin className="w-3.5 h-3.5" /> {c}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      {/* Highlights */}
-      <section className="bg-muted">
-        <div className="max-w-4xl mx-auto px-4 md:px-8 py-12">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-8">Trip Highlights</h2>
-          <div className="grid md:grid-cols-2 gap-4">
-            {route.highlights.map((h, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, x: -10 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.05 }}
-                className="flex items-start gap-3 bg-card p-4 rounded-xl"
-              >
-                <CheckCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                <span className="text-foreground">{h}</span>
-              </motion.div>
-            ))}
+      <main className="pb-20">
+        <section className="relative min-h-[500px] overflow-hidden text-white">
+          <img src={route.image} alt={route.title} className="absolute inset-0 size-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-l from-black/85 via-black/55 to-black/15" />
+          <div className="container-page relative flex min-h-[500px] flex-col justify-between py-8">
+            <nav aria-label="مسیر صفحه" className="flex items-center gap-2 text-xs text-white/65"><Link to="/" className="hover:text-white">خانه</Link><ChevronLeft className="size-3.5" /><Link to="/routes" className="hover:text-white">مسیرها</Link><ChevronLeft className="size-3.5" /><span className="text-white">{route.title}</span></nav>
+            <div className="max-w-3xl pb-10">
+              <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-bold backdrop-blur"><Clock3 className="size-4 text-accent" /> برنامهٔ {route.duration}</span>
+              <h1 className="text-4xl font-black leading-tight sm:text-6xl">{route.title}</h1>
+              <p className="mt-4 text-lg font-bold text-white/90">{route.subtitle}</p>
+              <p className="mt-4 max-w-2xl text-sm leading-8 text-white/72">{route.description}</p>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Itinerary */}
-      <section className="max-w-4xl mx-auto px-4 md:px-8 py-16">
-        <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-10">Day-by-Day Itinerary</h2>
-        <div className="space-y-0">
-          {route.itinerary.map((item, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.05 }}
-              className="relative pl-8 pb-10 border-l-2 border-border last:border-l-0 last:pb-0"
-            >
-              <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-primary" />
-              <span className="text-xs uppercase tracking-wide text-primary font-semibold">{item.day}</span>
-              <h3 className="font-display text-lg font-bold text-foreground mt-1 mb-2">{item.title}</h3>
-              <p className="text-muted-foreground leading-relaxed">{item.description}</p>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* Tips */}
-      <section className="bg-accent/30">
-        <div className="max-w-4xl mx-auto px-4 md:px-8 py-12">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-8 flex items-center gap-3">
-            <Lightbulb className="w-7 h-7 text-primary" /> Practical Tips
-          </h2>
-          <ul className="space-y-4">
-            {route.tips.map((tip, i) => (
-              <li key={i} className="flex items-start gap-3">
-                <span className="text-primary font-bold mt-0.5">{i + 1}.</span>
-                <span className="text-muted-foreground">{tip}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* Other routes */}
-      {otherRoutes.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 md:px-8 py-16">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-8 text-center">More travel routes</h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            {otherRoutes.map(r => (
-              <Link key={r.id} to={`/routes/${r.id}`} className="group bg-card rounded-xl shadow-md overflow-hidden hover:shadow-xl transition">
-                <div className="overflow-hidden aspect-video">
-                  <img src={r.image} alt={r.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
-                </div>
-                <div className="p-6">
-                  <span className="text-xs uppercase tracking-wide text-primary font-semibold">{r.duration}</span>
-                  <h3 className="font-display text-xl font-bold text-foreground mt-1 mb-2">{r.title}</h3>
-                  <p className="text-sm text-muted-foreground line-clamp-2">{r.description}</p>
-                </div>
-              </Link>
+        <section className="container-page -mt-9 relative z-10">
+          <div className="premium-panel grid gap-px overflow-hidden bg-border p-0 sm:grid-cols-2 lg:grid-cols-4">
+            {[{ icon: Clock3, label: "مدت", value: route.duration }, { icon: Gauge, label: "سطح سفر", value: route.difficulty }, { icon: Sun, label: "فصل مناسب", value: route.bestSeason }, { icon: CalendarDays, label: "برآورد بودجه", value: route.budget }].map(({ icon: Icon, label, value }) => (
+              <div key={label} className="flex items-center gap-3 bg-card p-5"><span className="grid size-10 place-items-center rounded-xl bg-secondary/10 text-secondary"><Icon className="size-5" /></span><div><p className="text-[11px] text-muted-foreground">{label}</p><p className="mt-0.5 text-sm font-extrabold">{value}</p></div></div>
             ))}
           </div>
         </section>
-      )}
 
-      {/* Back */}
-      <div className="max-w-4xl mx-auto px-4 md:px-8 pb-8">
-        <Link to="/routes" className="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all">
-          <ArrowLeft className="w-4 h-4" /> All travel routes
-        </Link>
-      </div>
+        <section className="container-page grid gap-8 py-16 lg:grid-cols-[1fr_22rem]">
+          <div>
+            <span className="section-eyebrow">برنامهٔ پیشنهادی</span><h2 className="page-heading">روزبه‌روز مسیر</h2>
+            <div className="mt-8 space-y-0">
+              {route.itinerary.map((step, index) => (
+                <article key={step.day} className="relative grid grid-cols-[2.75rem_1fr] gap-4 pb-8 last:pb-0">
+                  {index < route.itinerary.length - 1 ? <span className="absolute right-[1.35rem] top-11 h-[calc(100%-1.25rem)] w-px bg-border" /> : null}
+                  <span className="relative z-10 grid size-11 place-items-center rounded-2xl bg-secondary text-sm font-black text-white shadow-lg shadow-secondary/20">{(index + 1).toLocaleString("fa-IR")}</span>
+                  <div className="surface-card p-5"><p className="text-xs font-bold text-secondary">{step.day}</p><h3 className="mt-1 text-lg font-black">{step.title}</h3><p className="mt-3 text-sm leading-7 text-muted-foreground">{step.description}</p></div>
+                </article>
+              ))}
+            </div>
+          </div>
 
-      {/* Newsletter */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 py-16">
-        <NewsletterSignup />
-      </section>
+          <aside className="space-y-5 lg:sticky lg:top-24 lg:self-start">
+            <div className="premium-panel p-5"><h2 className="flex items-center gap-2 font-black"><CheckCircle2 className="size-5 text-secondary" /> تجربه‌های اصلی</h2><ul className="mt-4 space-y-3">{route.highlights.map((item) => <li key={item} className="flex items-start gap-2 text-sm leading-6 text-muted-foreground"><span className="mt-2 size-1.5 shrink-0 rounded-full bg-secondary" />{item}</li>)}</ul></div>
+            <div className="premium-panel bg-earth-dark p-5 text-white"><p className="text-xs font-bold text-accent">رزرو را از اینجا ادامه بده</p><h2 className="mt-2 text-xl font-black">تاریخ سفرت مشخص است؟</h2><p className="mt-3 text-sm leading-7 text-white/70">قیمت‌ها در این راهنما برآوردی‌اند؛ موجودی واقعی را در جست‌وجو بررسی کن.</p><Link to="/flights" className="primary-cta mt-5 w-full"><Plane className="size-4" /> جست‌وجوی پرواز</Link></div>
+          </aside>
+        </section>
+
+        <section className="border-y border-border bg-muted/45 py-14"><div className="container-page"><h2 className="flex items-center gap-2 text-xl font-black"><Lightbulb className="size-5 text-accent-foreground" /> نکته‌های مسیر</h2><div className="mt-6 grid gap-3 md:grid-cols-3">{route.tips.map((tip, index) => <div key={tip} className="rounded-2xl border border-border bg-card p-4"><span className="text-xs font-black text-primary">نکته {(index + 1).toLocaleString("fa-IR")}</span><p className="mt-2 text-sm leading-7 text-muted-foreground">{tip}</p></div>)}</div></div></section>
+
+        <section className="container-page pt-16"><div className="mb-7 flex items-end justify-between gap-4"><div><span className="section-eyebrow">مسیرهای دیگر</span><h2 className="text-2xl font-black">گزینه‌های مشابه</h2></div><Link to="/routes" className="text-sm font-extrabold text-primary">همه مسیرها</Link></div><div className="grid gap-5 md:grid-cols-2">{related.map((item) => <Link key={item.id} to={`/routes/${item.id}`} className="image-card group grid sm:grid-cols-[12rem_1fr]"><img src={item.image} alt={item.title} className="h-48 w-full object-cover sm:h-full" loading="lazy" /><div className="p-5"><p className="text-xs font-bold text-secondary">{item.duration}</p><h3 className="mt-2 text-xl font-black">{item.title}</h3><p className="mt-2 line-clamp-2 text-sm leading-7 text-muted-foreground">{item.description}</p><span className="mt-4 inline-flex items-center gap-2 text-sm font-extrabold text-primary">دیدن مسیر <ArrowLeft className="size-4" /></span></div></Link>)}</div></section>
+      </main>
     </Layout>
   );
 };

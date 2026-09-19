@@ -1,150 +1,83 @@
-import { useParams, Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { ArrowLeft, BookOpenText, CalendarRange, ChevronLeft, MapPin } from "lucide-react";
+import { Link, useParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
-import ArticleCard from "@/components/ArticleCard";
-import NewsletterSignup from "@/components/NewsletterSignup";
 import { getContinentBySlug } from "@/data/destinations";
-import { ArrowRight } from "lucide-react";
+import {
+  continentDescriptionsFa,
+  continentFa,
+  countryFa,
+} from "@/data/destinationLocale";
 import NotFound from "./NotFound";
 
-const countryFlags: Record<string, string> = {
-  "France": "🇫🇷", "Greece": "🇬🇷", "Iceland": "🇮🇸", "Italy": "🇮🇹",
-  "Netherlands": "🇳🇱", "Portugal": "🇵🇹", "Spain": "🇪🇸",
-  "Philippines": "🇵🇭", "Indonesia": "🇮🇩", "Japan": "🇯🇵", "China": "🇨🇳",
-  "Sri Lanka": "🇱🇰", "Thailand": "🇹🇭", "Vietnam": "🇻🇳",
-  "Botswana": "🇧🇼", "Kenya": "🇰🇪", "Morocco": "🇲🇦", "South Africa": "🇿🇦",
-  "Costa Rica": "🇨🇷", "Mexico": "🇲🇽",
-  "Peru": "🇵🇪", "Colombia": "🇨🇴",
-  "Australia": "🇦🇺", "New Zealand": "🇳🇿",
-  "United States": "🇺🇸", "Canada": "🇨🇦",
-};
-
 const ContinentPage = () => {
-  const { continent: continentSlug } = useParams<{ continent: string }>();
-  const continent = getContinentBySlug(continentSlug || "");
-
+  const { continent: slug } = useParams<{ continent: string }>();
+  const continent = getContinentBySlug(slug || "");
   if (!continent) return <NotFound />;
-
-  const allArticles = continent.countries.flatMap((c) => c.articles);
 
   return (
     <Layout>
-      {/* Dark mountain hero */}
-      <section className="relative h-[45vh] min-h-[320px] overflow-hidden bg-earth-dark">
-        <div className="absolute inset-0 flex items-end">
-          <svg viewBox="0 0 1440 320" className="w-full" preserveAspectRatio="none">
-            <path d="M0,320 L0,200 Q100,120 200,180 Q280,220 360,160 Q420,110 500,140 Q560,170 620,100 Q700,20 780,80 Q840,130 900,90 Q960,50 1040,100 Q1100,140 1160,80 Q1220,30 1300,100 Q1360,150 1440,120 L1440,320 Z" fill="hsl(30, 15%, 18%)" opacity="0.6" />
-            <path d="M0,320 L0,240 Q120,180 240,220 Q320,250 400,200 Q480,150 560,190 Q640,230 720,170 Q800,120 880,160 Q960,200 1040,150 Q1120,100 1200,150 Q1280,200 1360,170 L1440,180 L1440,320 Z" fill="hsl(30, 15%, 15%)" opacity="0.8" />
-          </svg>
-        </div>
-
-        {/* Breadcrumb */}
-        <div className="absolute top-6 left-6 md:left-16 z-10 flex items-center gap-2 text-xs">
-          <Link to="/" className="text-primary-foreground/40 hover:text-primary-foreground/70 transition">We Are Travellers</Link>
-          <span className="text-primary-foreground/20">›</span>
-          <Link to="/destinations" className="text-primary-foreground/40 hover:text-primary-foreground/70 transition">Destinations</Link>
-        </div>
-
-        <div className="relative h-full flex flex-col items-center justify-center text-center px-4">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <p className="text-primary-foreground/40 text-[10px] uppercase tracking-[0.4em] mb-3 font-medium">Welcome to</p>
-            <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-primary-foreground italic tracking-tight">
-              {continent.name}
-            </h1>
-          </motion.div>
-        </div>
-
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
-            <path d="M0 20C240 40 480 0 720 20C960 40 1200 0 1440 20V40H0V20Z" fill="hsl(40, 33%, 96%)" />
-          </svg>
-        </div>
-      </section>
-
-      {/* Intro */}
-      <section className="max-w-3xl mx-auto px-6 py-14 md:py-20 text-center">
-        <motion.p
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="text-sm text-muted-foreground leading-relaxed"
-        >
-          {continent.introduction}
-        </motion.p>
-      </section>
-
-      {/* Country flag pills */}
-      <section className="max-w-5xl mx-auto px-4 md:px-8 pb-14">
-        <div className="flex flex-wrap justify-center gap-2">
-          {continent.countries.map((country) => (
-            <Link
-              key={country.slug}
-              to={`/destinations/${continent.slug}/${country.slug}`}
-              className="inline-flex items-center gap-1.5 bg-card border border-border rounded-full px-3 py-1.5 text-xs text-foreground/70 hover:border-primary hover:text-foreground transition-all"
-            >
-              <span className="text-sm leading-none">{countryFlags[country.name] || "🌍"}</span>
-              {country.name}
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Articles */}
-      {allArticles.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 md:px-8 pb-20">
-          <div className="text-center mb-10">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground mb-2 font-medium">Latest stories</p>
-            <h2 className="font-display text-3xl md:text-4xl font-bold text-foreground italic">
-              Latest from {continent.name}
-            </h2>
+      <main className="pb-20">
+        <section className="relative min-h-[420px] overflow-hidden text-white">
+          <img src={continent.heroImage} alt={continentFa(continent.name)} className="absolute inset-0 size-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-l from-[hsl(213_27%_12%/0.92)] via-[hsl(213_27%_12%/0.65)] to-transparent" />
+          <div className="container-page relative flex min-h-[420px] flex-col justify-between py-8">
+            <nav aria-label="مسیر صفحه" className="flex flex-wrap items-center gap-2 text-xs text-white/65">
+              <Link to="/" className="hover:text-white">خانه</Link><ChevronLeft className="size-3.5" />
+              <Link to="/destinations" className="hover:text-white">مقصدها</Link><ChevronLeft className="size-3.5" />
+              <span className="text-white">{continentFa(continent.name)}</span>
+            </nav>
+            <div className="max-w-2xl pb-8">
+              <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-xs font-bold backdrop-blur">
+                <MapPin className="size-4 text-accent" /> {continent.countries.length.toLocaleString("fa-IR")} کشور برای کشف
+              </span>
+              <h1 className="text-4xl font-black sm:text-6xl">راهنمای سفر به {continentFa(continent.name)}</h1>
+              <p className="mt-5 max-w-xl text-sm leading-8 text-white/78 sm:text-base">{continentDescriptionsFa[continent.name]}</p>
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {allArticles.slice(0, 6).map((article, i) => (
-              <motion.div
-                key={article.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-              >
-                <ArticleCard article={article} />
-              </motion.div>
+        </section>
+
+        <section className="container-page -mt-8 relative z-10">
+          <div className="premium-panel grid gap-px overflow-hidden bg-border p-0 sm:grid-cols-3">
+            {[
+              { icon: MapPin, title: `${continent.countries.length.toLocaleString("fa-IR")} کشور`, text: "انتخاب‌های متنوع برای هر سبک سفر" },
+              { icon: BookOpenText, title: `${continent.countries.reduce((total, country) => total + country.articles.length, 0).toLocaleString("fa-IR")} راهنما`, text: "ایده‌ها و نکته‌های برنامه‌ریزی" },
+              { icon: CalendarRange, title: "فصل مناسب", text: "بررسی زمان پیشنهادی هر مقصد" },
+            ].map(({ icon: Icon, title, text }) => (
+              <div key={title} className="flex items-center gap-3 bg-card p-5">
+                <span className="grid size-10 place-items-center rounded-xl bg-secondary/10 text-secondary"><Icon className="size-5" /></span>
+                <div><p className="text-sm font-extrabold">{title}</p><p className="mt-0.5 text-xs text-muted-foreground">{text}</p></div>
+              </div>
             ))}
           </div>
         </section>
-      )}
 
-      {/* Per-country navigation */}
-      <section className="bg-earth-cream">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-16 md:py-20">
-          <div className="text-center mb-10">
-            <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground mb-2 font-medium">Explore by country</p>
+        <section className="container-page pt-16">
+          <div className="mb-8 max-w-2xl">
+            <span className="section-eyebrow">انتخاب کشور</span>
+            <h2 className="page-heading">مقصدها را کنار هم ببین</h2>
+            <p className="mt-3 text-sm leading-7 text-muted-foreground">اطلاعات هر کشور را مرور کن و از همان صفحه وارد مسیر رزرو خدمات سفر شو.</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {continent.countries.map((country) => (
-              <Link
-                key={country.slug}
-                to={`/destinations/${continent.slug}/${country.slug}`}
-                className="flex items-center justify-between bg-card border border-border rounded-lg px-5 py-4 hover:border-primary hover:shadow-sm transition-all group"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{countryFlags[country.name] || "🌍"}</span>
-                  <div>
-                    <span className="font-display text-lg font-bold text-foreground">{country.name}</span>
-                    <span className="block text-[10px] text-muted-foreground">{country.articles.length} articles</span>
-                  </div>
+              <Link key={country.slug} to={`/destinations/${continent.slug}/${country.slug}`} className="image-card group">
+                <div className="relative aspect-[16/10] overflow-hidden">
+                  <img src={country.heroImage} alt={countryFa(country.name)} className="size-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
+                  <span className="absolute end-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur">
+                    {country.articles.length.toLocaleString("fa-IR")} راهنما
+                  </span>
                 </div>
-                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition" />
+                <div className="p-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-xl font-black">{countryFa(country.name)}</h3>
+                    <ArrowLeft className="size-5 text-primary transition group-hover:-translate-x-1" />
+                  </div>
+                  <p className="mt-2 line-clamp-2 text-sm leading-7 text-muted-foreground">برای فصل مناسب، منطقه‌های پیشنهادی و ایده‌های سفر به {countryFa(country.name)} آماده شو.</p>
+                </div>
               </Link>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Newsletter */}
-      <section className="max-w-7xl mx-auto px-4 md:px-8 py-16">
-        <NewsletterSignup />
-      </section>
+        </section>
+      </main>
     </Layout>
   );
 };

@@ -40,7 +40,6 @@ const Index = () => (
           src={heroImage}
           alt="نمای ساحلی کیش برای معرفی خدمات سفر کی‌آشی"
           className="absolute inset-0 size-full object-cover object-[38%_center]"
-          fetchPriority="high"
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,hsl(213_33%_10%/0.2),hsl(213_33%_10%/0.42)_42%,hsl(213_33%_9%/0.9)_100%)]" />
         <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[hsl(213_30%_12%/0.7)] to-transparent" />
