@@ -4,6 +4,7 @@ import { buildApp } from "./app.js";
 import { PrismaRuntimeRepository } from "./repositories/prisma-runtime.js";
 import { createProviderRegistry } from "./providers/registry.js";
 import { MockPaymentGateway } from "./providers/payment.js";
+import { MockTravelSupplier } from "./providers/travel.js";
 import { mockFlights } from "../src/data/flights.js";
 import { vi } from "vitest";
 
@@ -123,6 +124,45 @@ integration("PostgreSQL runtime persistence", () => {
       expect(simulated.json().verification.status).toBe(status);
     }
     expect(await prisma.order.count({ where: { checkoutSessionId: checkout.id } })).toBe(0);
+    await app.close();
+  });
+
+  it("automatically compensates a deterministic supplier failure exactly once", async () => {
+    const mobile = `09${String(Date.now() + 4).slice(-9)}`;
+    const gateway = new MockPaymentGateway();
+    const providers = { ...createProviderRegistry(), payment: gateway, flight: new MockTravelSupplier("flight-mock", [{ id: "fail-after-pay", price: 8_900_000, mockBookingOutcome: "failed" }]) };
+    const app = await buildApp({ repository, env, providers });
+    const cookie = await login(app, mobile);
+    const user = await prisma.user.findUniqueOrThrow({ where: { mobile } });
+    await prisma.wallet.update({ where: { userId: user.id }, data: { balance: 2_000_000 } });
+    const created = await app.inject({ method: "POST", url: "/api/checkout/sessions", headers: { cookie }, payload: { serviceType: "flight", quantity: 1, service: { outbound: { id: "fail-after-pay", price: 8_900_000 } } } });
+    const checkout = created.json().checkoutSession;
+    const payment = await app.inject({ method: "POST", url: `/api/checkout/sessions/${checkout.id}/payments`, headers: { cookie }, payload: { idempotencyKey: "compensation-integration-1", method: "combined" } });
+    expect(payment.statusCode).toBe(200);
+    expect(payment.json().order.bookingStatus).toBe("refunded");
+    const orderId = payment.json().order.id;
+    expect(await prisma.refundRequest.count({ where: { orderId, status: "completed" } })).toBe(1);
+    expect(await prisma.notification.count({ where: { dedupeKey: `compensation:${orderId}` } })).toBe(1);
+    expect(await prisma.walletTransaction.count({ where: { reference: { startsWith: "COMP-WAL-" } } })).toBeGreaterThan(0);
+    expect((await prisma.wallet.findUniqueOrThrow({ where: { userId: user.id } })).balance).toBe(2_000_000);
+    const repeated = await app.inject({ method: "POST", url: `/api/checkout/sessions/${checkout.id}/payments`, headers: { cookie }, payload: { idempotencyKey: "compensation-integration-1", method: "combined" } });
+    expect(repeated.statusCode).toBe(200);
+    expect(await prisma.refundRequest.count({ where: { orderId } })).toBe(1);
+    expect(await prisma.notification.count({ where: { dedupeKey: `compensation:${orderId}` } })).toBe(1);
+    await app.close();
+  });
+
+  it("enforces ownership and immutable finalized snapshots", async () => {
+    const app = await buildApp({ repository, env });
+    const firstMobile = `09${String(Date.now() + 5).slice(-9)}`;
+    const secondMobile = `09${String(Date.now() + 6).slice(-9)}`;
+    const firstCookie = await login(app, firstMobile);
+    const secondCookie = await login(app, secondMobile);
+    const checkout = (await app.inject({ method: "POST", url: "/api/checkout/sessions", headers: { cookie: firstCookie }, payload: { serviceType: "tour", quantity: 1 } })).json().checkoutSession;
+    const paid = await app.inject({ method: "POST", url: `/api/checkout/sessions/${checkout.id}/payments`, headers: { cookie: firstCookie }, payload: { idempotencyKey: "ownership-payment-1", method: "online_mock" } });
+    const order = paid.json().order;
+    expect((await app.inject({ method: "GET", url: `/api/orders/${order.id}`, headers: { cookie: secondCookie } })).statusCode).toBe(403);
+    await expect(prisma.order.update({ where: { id: order.id }, data: { total: order.total + 1 } })).rejects.toThrow();
     await app.close();
   });
 });

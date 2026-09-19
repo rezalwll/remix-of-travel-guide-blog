@@ -10,7 +10,7 @@ import type { HotelFilters, HotelSearchParams, HotelSortMode } from '@/types/hot
 const cityNames: Record<string, string> = { THR: 'تهران', MHD: 'مشهد', KIH: 'کیش', SYZ: 'شیراز', IFN: 'اصفهان', IST: 'استانبول', DXB: 'دبی', NJF: 'نجف' };
 const initialFilters: HotelFilters = { minPrice: 0, maxPrice: 50000000, stars: [], minRating: 0, area: [], amenities: [], mealPlan: 'all', refundable: 'all', tags: [] };
 
-export const parseHotelSearch = (query: URLSearchParams): HotelSearchParams => {
+const parseHotelSearch = (query: URLSearchParams): HotelSearchParams => {
   const rawDestination = query.get('destination') || query.get('city') || '';
   return { destination: cityNames[rawDestination.toUpperCase()] || rawDestination, checkIn: query.get('checkin') || query.get('checkIn') || '', checkOut: query.get('checkout') || query.get('checkOut') || '', rooms: Number(query.get('rooms') || 1), adults: Number(query.get('adults') || query.get('guests') || 1), children: Number(query.get('children') || 0) };
 };

@@ -137,6 +137,7 @@ model Order {
 
   @@index([userId, createdAt])
   @@index([guestMobile, createdAt])
+  @@index([bookingStatus, updatedAt])
 }
 
 model PaymentAttempt {
@@ -259,6 +260,11 @@ model RefundRequest {
   reason      String
   destination String
   status      String   @default("requested")
+  compensationKey String? @unique
+  walletAmount Int     @default(0)
+  onlineAmount Int     @default(0)
+  providerReference String?
+  completedAt DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
@@ -286,6 +292,7 @@ model Notification {
   title     String
   body      String
   readAt    DateTime?
+  dedupeKey String?    @unique
   createdAt DateTime  @default(now())
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -349,6 +356,7 @@ model BookingAttempt {
   id                String   @id @default(uuid()) @db.Uuid
   orderId           String?  @db.Uuid
   provider          String
+  requestKey        String   @unique
   providerReference String?
   status            String
   requestSnapshot   Json?

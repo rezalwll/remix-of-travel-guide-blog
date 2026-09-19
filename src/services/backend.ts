@@ -1,4 +1,5 @@
 import { apiRequest } from './apiClient';
+import type { BookingStatus, PaymentStatus } from '@/types/order';
 
 export type ApiUser = {
   id: string;
@@ -27,8 +28,8 @@ export type ApiOrder = {
   paymentSnapshot: Record<string, unknown>;
   total: number;
   currency: 'TOMAN';
-  paymentStatus: string;
-  bookingStatus: string;
+  paymentStatus: PaymentStatus;
+  bookingStatus: BookingStatus;
   relevantDate?: string | null;
   createdAt: string;
   updatedAt?: string;

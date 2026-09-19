@@ -55,8 +55,8 @@ export class PaymentService {
     return this.handleCallback(this.gateway.createTestCallback(externalReference, "succeeded", input.metadata), input.requestId);
   }
 
-  refund(externalReference: string, amount: number, reason: string, requestId = "internal") {
-    return this.executor.run(requestId, this.gateway.name, "refund", () => this.gateway.refundPayment({ externalReference, amount, reason }));
+  refund(externalReference: string, amount: number, reason: string, idempotencyKey: string, requestId = "internal") {
+    return this.executor.run(requestId, this.gateway.name, "refund", () => this.gateway.refundPayment({ externalReference, amount, reason, idempotencyKey }));
   }
 
   async simulateMock(externalReference: string, userId: string, status: PaymentCallback["status"], requestId = "internal") {

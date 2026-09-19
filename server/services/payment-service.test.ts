@@ -77,10 +77,10 @@ describe("PaymentService", () => {
     const service = new PaymentService(gateway, fakeRepository().repository);
     const intent = await service.createIntent(input);
     await service.handleCallback(gateway.createTestCallback(intent.externalReference, "succeeded"));
-    const refunded = await service.refund(intent.externalReference, 1000, "test");
+    const refunded = await service.refund(intent.externalReference, 1000, "test", "refund-key-1");
     expect(refunded.status).toBe("refunded");
-    expect((await service.refund(intent.externalReference, 1000, "test")).providerReference).toBe(refunded.providerReference);
-    await expect(service.refund(intent.externalReference, 1001, "test")).rejects.toMatchObject({ code: "INVALID_REQUEST" });
+    expect((await service.refund(intent.externalReference, 1000, "test", "refund-key-1")).providerReference).toBe(refunded.providerReference);
+    await expect(service.refund(intent.externalReference, 1001, "test", "refund-key-2")).rejects.toMatchObject({ code: "INVALID_REQUEST" });
   });
 
   it("simulates failure and cancellation only for the intent owner", async () => {

@@ -1,4 +1,4 @@
-import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { ProviderError } from "./types.js";
 
 export type PaymentStatus = "created" | "pending" | "succeeded" | "failed" | "cancelled" | "refunded";
@@ -11,7 +11,7 @@ export interface PaymentGateway {
   readonly name: string;
   createPayment(input: CreatePaymentInput): Promise<CreatePaymentResult>;
   verifyPayment(input: { externalReference: string; callback?: PaymentCallback }): Promise<PaymentVerification>;
-  refundPayment(input: { externalReference: string; amount: number; reason?: string }): Promise<{ status: "refunded" | "pending"; providerReference: string }>;
+  refundPayment(input: { externalReference: string; amount: number; reason?: string; idempotencyKey: string }): Promise<{ status: "refunded" | "pending"; providerReference: string }>;
   verifyCallbackSignature(callback: PaymentCallback): boolean;
   createTestCallback?(externalReference: string, status: PaymentCallback["status"], payload?: Record<string, unknown>): PaymentCallback;
 }
@@ -55,13 +55,16 @@ export class MockPaymentGateway implements PaymentGateway {
     return { status, externalReference: input.externalReference, providerPayload: input.callback?.payload };
   }
 
-  async refundPayment(input: { externalReference: string; amount: number; reason?: string }) {
-    if (input.amount <= 0 || input.amount > (this.amounts.get(input.externalReference) ?? 0)) throw new ProviderError("INVALID_REQUEST", "Refund amount is invalid", false, this.name);
-    const previous = this.refunds.get(input.externalReference);
+  async refundPayment(input: { externalReference: string; amount: number; reason?: string; idempotencyKey: string }) {
+    const knownAmount = this.amounts.get(input.externalReference);
+    if (input.amount <= 0 || (knownAmount !== undefined && input.amount > knownAmount)) throw new ProviderError("INVALID_REQUEST", "Refund amount is invalid", false, this.name);
+    const refundKey = `${input.externalReference}:${input.idempotencyKey}`;
+    const previous = this.refunds.get(refundKey);
     if (previous) return { status: "refunded" as const, providerReference: previous };
-    if (this.payments.get(input.externalReference) !== "succeeded") throw new ProviderError("INVALID_REQUEST", "Payment is not settled", false, this.name);
-    const providerReference = `MOCK-REF-${randomUUID().slice(0, 12).toUpperCase()}`;
-    this.refunds.set(input.externalReference, providerReference);
+    const status = this.payments.get(input.externalReference);
+    if (status !== "succeeded" && !(status === undefined && input.externalReference.startsWith("MOCK-PAY-"))) throw new ProviderError("INVALID_REQUEST", "Payment is not settled", false, this.name);
+    const providerReference = `MOCK-REF-${createHash("sha256").update(refundKey).digest("hex").slice(0, 12).toUpperCase()}`;
+    this.refunds.set(refundKey, providerReference);
     this.payments.set(input.externalReference, "refunded");
     return { status: "refunded" as const, providerReference };
   }

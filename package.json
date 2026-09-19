@@ -20,7 +20,8 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "reconcile:bookings": "tsx server/scripts/reconcile-bookings.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.1.2",
