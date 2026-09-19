@@ -4,10 +4,11 @@ import heroDesert from '@/assets/hero-desert.jpg';
 import heroCamping from '@/assets/hero-camping.jpg';
 import morocco from '@/assets/morocco.jpg';
 import france from '@/assets/france.jpg';
-import iceland from '@/assets/iceland.jpg';
 import asiaTemple from '@/assets/asia-temple.jpg';
 import travelBooks from '@/assets/travel-books.jpg';
-import northernLights from '@/assets/northern-lights.jpg';
+import heroKishPremium from '@/assets/hero-kish-premium.png';
+import hotelTehranPremium from '@/assets/hotel-tehran-premium.png';
+import hotelIstanbulPremium from '@/assets/hotel-istanbul-premium.png';
 
 export interface TravelLocation { id: string; city: string; airport: string; code: string; country: string; }
 export interface Offer { id: string; title: string; description: string; image: string; accent: string; href: string; }
@@ -35,38 +36,36 @@ export const travelLocations: TravelLocation[] = [
 
 const tourImage = (image: string): Tour['imageUrl'] => image;
 export const featuredTours: Tour[] = [
-  { id: 'tour-istanbul', title: 'تور استانبول', destination: 'استانبول، ترکیه', durationDays: 7, imageUrl: tourImage(heroGreece), dates: [{ id: 't1', startDate: '۱۴۰۳/۰۸/۱۵', endDate: '۱۴۰۳/۰۸/۲۱', remainingCapacity: 8, price: 29800000, currency: 'IRR' }], services: [{ title: 'پرواز رفت و برگشت', included: true }, { title: 'هتل ۵ ستاره', included: true }] },
-  { id: 'tour-dubai', title: 'تور دبی', destination: 'دبی، امارات', durationDays: 5, imageUrl: tourImage(heroDesert), dates: [{ id: 't2', startDate: '۱۴۰۳/۰۹/۰۲', endDate: '۱۴۰۳/۰۹/۰۶', remainingCapacity: 5, price: 38900000, currency: 'IRR' }], services: [{ title: 'پرواز رفت و برگشت', included: true }, { title: 'ترانسفر فرودگاهی', included: true }] },
-  { id: 'tour-kish', title: 'تور کیش', destination: 'کیش، ایران', durationDays: 4, imageUrl: tourImage(northernLights), dates: [{ id: 't3', startDate: '۱۴۰۳/۰۸/۲۰', endDate: '۱۴۰۳/۰۸/۲۳', remainingCapacity: 12, price: 12500000, currency: 'IRR' }], services: [{ title: 'هتل ۵ ستاره', included: true }, { title: 'گشت جزیره', included: true }] },
-  { id: 'tour-antalya', title: 'تور آنتالیا', destination: 'آنتالیا، ترکیه', durationDays: 7, imageUrl: tourImage(morocco), dates: [{ id: 't4', startDate: '۱۴۰۳/۰۹/۱۰', endDate: '۱۴۰۳/۰۹/۱۶', remainingCapacity: 6, price: 42500000, currency: 'IRR' }], services: [{ title: 'هتل ساحلی', included: true }, { title: 'صبحانه کامل', included: true }] },
-  { id: 'tour-van', title: 'تور وان', destination: 'وان، ترکیه', durationDays: 4, imageUrl: tourImage(france), dates: [{ id: 't5', startDate: '۱۴۰۳/۰۸/۲۵', endDate: '۱۴۰۳/۰۸/۲۸', remainingCapacity: 10, price: 9800000, currency: 'IRR' }], services: [{ title: 'ترانسفر زمینی', included: true }, { title: 'هتل ۴ ستاره', included: true }] },
-  { id: 'tour-ziyarat', title: 'تور نجف و کربلا', destination: 'عراق', durationDays: 7, imageUrl: tourImage(asiaTemple), dates: [{ id: 't6', startDate: '۱۴۰۳/۰۹/۰۵', endDate: '۱۴۰۳/۰۹/۱۱', remainingCapacity: 15, price: 18500000, currency: 'IRR' }], services: [{ title: 'کاروانی', included: true }, { title: 'اقامت و زیارت', included: true }] },
+  { id: 'tour-istanbul', title: 'تور استانبول', destination: 'استانبول، ترکیه', durationDays: 7, imageUrl: tourImage(hotelIstanbulPremium), dates: [{ id: 't1', startDate: '۱۴۰۵/۰۷/۲۲', endDate: '۱۴۰۵/۰۷/۲۸', remainingCapacity: 8, price: 29800000, currency: 'IRR' }], services: [{ title: 'پرواز رفت و برگشت', included: true }, { title: 'هتل ۵ ستاره', included: true }, { title: 'گشت شهری', included: true }] },
+  { id: 'tour-dubai', title: 'تور دبی', destination: 'دبی، امارات', durationDays: 5, imageUrl: tourImage(heroDesert), dates: [{ id: 't2', startDate: '۱۴۰۵/۰۷/۲۸', endDate: '۱۴۰۵/۰۸/۰۲', remainingCapacity: 5, price: 38900000, currency: 'IRR' }], services: [{ title: 'پرواز رفت و برگشت', included: true }, { title: 'ترانسفر فرودگاهی', included: true }] },
+  { id: 'tour-kish', title: 'تور کیش', destination: 'کیش، ایران', durationDays: 4, imageUrl: tourImage(heroKishPremium), dates: [{ id: 't3', startDate: '۱۴۰۵/۰۸/۰۵', endDate: '۱۴۰۵/۰۸/۰۸', remainingCapacity: 12, price: 12500000, currency: 'IRR' }], services: [{ title: 'هتل ۵ ستاره', included: true }, { title: 'گشت جزیره', included: true }, { title: 'ترانسفر', included: true }] },
+  { id: 'tour-antalya', title: 'تور آنتالیا', destination: 'آنتالیا، ترکیه', durationDays: 7, imageUrl: tourImage(morocco), dates: [{ id: 't4', startDate: '۱۴۰۵/۰۸/۱۲', endDate: '۱۴۰۵/۰۸/۱۸', remainingCapacity: 6, price: 42500000, currency: 'IRR' }], services: [{ title: 'هتل ساحلی', included: true }, { title: 'صبحانه کامل', included: true }] },
+  { id: 'tour-van', title: 'تور وان', destination: 'وان، ترکیه', durationDays: 4, imageUrl: tourImage(france), dates: [{ id: 't5', startDate: '۱۴۰۵/۰۸/۲۰', endDate: '۱۴۰۵/۰۸/۲۳', remainingCapacity: 10, price: 9800000, currency: 'IRR' }], services: [{ title: 'ترانسفر زمینی', included: true }, { title: 'هتل ۴ ستاره', included: true }] },
+  { id: 'tour-ziyarat', title: 'تور نجف و کربلا', destination: 'عراق', durationDays: 7, imageUrl: tourImage(asiaTemple), dates: [{ id: 't6', startDate: '۱۴۰۵/۰۸/۱۵', endDate: '۱۴۰۵/۰۸/۲۱', remainingCapacity: 15, price: 18500000, currency: 'IRR' }], services: [{ title: 'کاروانی', included: true }, { title: 'اقامت و زیارت', included: true }] },
 ];
 
 export const featuredHotels: Hotel[] = [
-  { id: 'hotel-espinas', name: 'هتل اسپیناس پالاس', city: 'تهران', country: 'ایران', rating: 4.8, reviewCount: 342, imageUrl: bloggersImage(), amenities: [{ id: 'wifi', name: 'وای‌فای رایگان' }, { id: 'breakfast', name: 'صبحانه' }], rooms: [{ id: 'r1', title: 'اتاق دو تخته', capacity: 2, amenities: [], rates: [{ id: 'rr1', title: 'نرخ پایه', amount: 3800000, currency: 'IRR', mealPlan: 'صبحانه', refundable: true }] }] },
-  { id: 'hotel-darvishi', name: 'هتل درویشی', city: 'مشهد', country: 'ایران', rating: 4.7, reviewCount: 518, imageUrl: northernLights, amenities: [{ id: 'pool', name: 'استخر' }, { id: 'breakfast', name: 'صبحانه' }], rooms: [] },
-  { id: 'hotel-toranj', name: 'هتل ترنج', city: 'کیش', country: 'ایران', rating: 4.6, reviewCount: 289, imageUrl: heroCamping, amenities: [{ id: 'sea', name: 'نمای دریا' }, { id: 'wifi', name: 'وای‌فای' }], rooms: [] },
-  { id: 'hotel-shayan', name: 'هتل شایان', city: 'کیش', country: 'ایران', rating: 4.4, reviewCount: 176, imageUrl: heroDesert, amenities: [{ id: 'breakfast', name: 'صبحانه' }, { id: 'transfer', name: 'ترانسفر' }], rooms: [] },
-  { id: 'hotel-istanbul', name: 'هتل رادیسون استانبول', city: 'استانبول', country: 'ترکیه', rating: 4.5, reviewCount: 631, imageUrl: france, amenities: [{ id: 'gym', name: 'باشگاه' }, { id: 'wifi', name: 'وای‌فای' }], rooms: [] },
-  { id: 'hotel-dubai', name: 'هتل جمیرا بیچ', city: 'دبی', country: 'امارات', rating: 4.9, reviewCount: 804, imageUrl: morocco, amenities: [{ id: 'sea', name: 'ساحل اختصاصی' }, { id: 'pool', name: 'استخر' }], rooms: [] },
+  { id: 'hotel-espinas', name: 'هتل اسپیناس پالاس', city: 'تهران', country: 'ایران', rating: 4.8, reviewCount: 342, imageUrl: hotelTehranPremium, amenities: [{ id: 'wifi', name: 'وای‌فای رایگان' }, { id: 'breakfast', name: 'صبحانه' }, { id: 'pool', name: 'استخر' }], rooms: [{ id: 'r1', title: 'اتاق دو تخته پریمیوم', capacity: 2, amenities: [], rates: [{ id: 'rr1', title: 'نرخ منعطف با صبحانه', amount: 3800000, currency: 'IRR', mealPlan: 'صبحانه', refundable: true }] }] },
+  { id: 'hotel-darvishi', name: 'هتل مجلل درویشی', city: 'مشهد', country: 'ایران', rating: 4.7, reviewCount: 518, imageUrl: heroCamping, amenities: [{ id: 'pool', name: 'استخر' }, { id: 'breakfast', name: 'صبحانه' }, { id: 'shuttle', name: 'سرویس حرم' }], rooms: [] },
+  { id: 'hotel-toranj', name: 'هتل دریایی ترنج', city: 'کیش', country: 'ایران', rating: 4.6, reviewCount: 289, imageUrl: heroKishPremium, amenities: [{ id: 'sea', name: 'نمای دریا' }, { id: 'wifi', name: 'وای‌فای' }, { id: 'breakfast', name: 'صبحانه' }], rooms: [] },
+  { id: 'hotel-shayan', name: 'هتل شایان', city: 'کیش', country: 'ایران', rating: 4.4, reviewCount: 176, imageUrl: heroGreece, amenities: [{ id: 'breakfast', name: 'صبحانه' }, { id: 'transfer', name: 'ترانسفر' }, { id: 'beach', name: 'نزدیک ساحل' }], rooms: [] },
+  { id: 'hotel-istanbul', name: 'هتل بسفروس استانبول', city: 'استانبول', country: 'ترکیه', rating: 4.5, reviewCount: 631, imageUrl: hotelIstanbulPremium, amenities: [{ id: 'breakfast', name: 'صبحانه' }, { id: 'wifi', name: 'وای‌فای' }, { id: 'view', name: 'نمای بسفروس' }], rooms: [] },
+  { id: 'hotel-dubai', name: 'هتل ساحلی جمیرا', city: 'دبی', country: 'امارات', rating: 4.9, reviewCount: 804, imageUrl: morocco, amenities: [{ id: 'sea', name: 'ساحل اختصاصی' }, { id: 'pool', name: 'استخر' }, { id: 'breakfast', name: 'صبحانه' }], rooms: [] },
 ];
-
-function bloggersImage() { return travelBooks; }
 
 export const popularDestinations: Destination[] = [
   { id: 'istanbul', slug: 'istanbul', name: 'استانبول', country: 'ترکیه', description: 'شهر دو قاره و تجربه‌ای پر از رنگ', imageUrl: heroGreece },
   { id: 'dubai', slug: 'dubai', name: 'دبی', country: 'امارات', description: 'خرید، تفریح و آسمان‌خراش‌ها', imageUrl: heroDesert },
-  { id: 'kish', slug: 'kish', name: 'کیش', country: 'ایران', description: 'آرامش جزیره در خلیج فارس', imageUrl: heroCamping },
+  { id: 'kish', slug: 'kish', name: 'کیش', country: 'ایران', description: 'آرامش جزیره در خلیج فارس', imageUrl: heroKishPremium },
   { id: 'mashhad', slug: 'mashhad', name: 'مشهد', country: 'ایران', description: 'سفر زیارتی و تجربه‌ای ماندگار', imageUrl: asiaTemple },
   { id: 'shiraz', slug: 'shiraz', name: 'شیراز', country: 'ایران', description: 'شهر شعر، باغ و تاریخ', imageUrl: france },
-  { id: 'qeshm', slug: 'qeshm', name: 'قشم', country: 'ایران', description: 'طبیعت متفاوت جنوب', imageUrl: morocco },
+  { id: 'qeshm', slug: 'qeshm', name: 'قشم', country: 'ایران', description: 'طبیعت متفاوت جنوب', imageUrl: heroDesert },
 ];
 
 export const offers: Offer[] = [
-  { id: 'autumn', title: 'سفرهای پاییزی', description: 'مقصدهای خنک و رنگارنگ را کشف کن', image: iceland, accent: 'bg-secondary', href: '/tours' },
-  { id: 'kish', title: 'هتل‌های ویژه کیش', description: 'برای چند روز آرامش کنار دریا', image: heroCamping, accent: 'bg-primary', href: '/hotels' },
-  { id: 'international', title: 'پروازهای خارجی پیشنهادی', description: 'برای سفر بعدی‌ات آماده شو', image: heroDesert, accent: 'bg-warning', href: '/flights' },
+  { id: 'kish', title: 'چند روز آبی در کیش', description: 'پرواز و اقامت جزیره را برای یک سفر کوتاه کنار هم ببین', image: heroKishPremium, accent: 'bg-primary', href: '/hotels' },
+  { id: 'istanbul', title: 'استانبول و محله‌های دیدنی', description: 'تورهای شهری با اقامت در قلب شهر و دسترسی آسان', image: hotelIstanbulPremium, accent: 'bg-secondary', href: '/tours' },
+  { id: 'international', title: 'پروازهای خارجی پیشنهادی', description: 'مسیرهای منتخب برای سفر بعدی، با قیمت شروع نمایشی', image: heroDesert, accent: 'bg-warning', href: '/flights' },
 ];
 
 export const popularRoutes: RouteCard[] = [

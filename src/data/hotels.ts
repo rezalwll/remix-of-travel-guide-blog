@@ -1,12 +1,20 @@
 import type { Hotel } from '../types/hotel.js';
+import morocco from '../assets/morocco.jpg';
+import heroGreece from '../assets/hero-greece.jpg';
+import heroCamping from '../assets/hero-camping.jpg';
+import travelBooks from '../assets/travel-books.jpg';
+import hotelTehranPremium from '../assets/hotel-tehran-premium.png';
+import hotelIstanbulPremium from '../assets/hotel-istanbul-premium.png';
+import heroKishPremium from '../assets/hero-kish-premium.png';
 
 const photos = {
-  palace: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80',
-  lobby: 'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=1200&q=80',
-  room: 'https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1200&q=80',
-  sea: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80',
-  resort: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80',
-  pool: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1200&q=80',
+  palace: hotelTehranPremium,
+  lobby: hotelIstanbulPremium,
+  room: travelBooks,
+  sea: heroKishPremium,
+  resort: morocco,
+  pool: heroGreece,
+  nature: heroCamping,
 };
 
 const roomImages = [photos.room, photos.lobby, photos.sea];
