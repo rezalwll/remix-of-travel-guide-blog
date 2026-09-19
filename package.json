@@ -21,7 +21,11 @@
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
-    "reconcile:bookings": "tsx server/scripts/reconcile-bookings.ts"
+    "reconcile:bookings": "tsx server/scripts/reconcile-bookings.ts",
+    "reconcile:payments": "tsx server/scripts/reconcile-payments.ts",
+    "provider:status": "tsx server/scripts/provider-status.ts",
+    "provider:check": "tsx server/scripts/provider-check.ts",
+    "test:providers": "vitest run server/providers"
   },
   "dependencies": {
     "@fastify/cookie": "^11.1.2",

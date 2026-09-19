@@ -3,6 +3,7 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { DomainError, forbidden, notFound } from "../domain/errors.js";
 import { MONEY_CURRENCY } from "../domain/money.js";
 import { assertTransition, type BookingAttemptState, type OrderBookingState, type PaymentIntentState } from "../domain/states.js";
+import { sanitizeProviderPayload } from "../providers/redaction.js";
 
 const hash = (value: string) => createHash("sha256").update(value).digest("hex");
 const asJson = (value: unknown): Prisma.InputJsonValue => value as Prisma.InputJsonValue;
@@ -69,7 +70,7 @@ export class PrismaRuntimeRepository {
       const checkout = await tx.checkoutSession.findFirst({ where: { id: input.checkoutSessionId, userId: input.userId } });
       if (!checkout) throw forbidden();
       if (!["ready_for_payment", "payment_pending"].includes(checkout.status)) throw new DomainError("CHECKOUT_STATE_INVALID", "وضعیت checkout معتبر نیست", 409);
-      const intent = await tx.paymentIntent.create({ data: { checkoutSessionId: input.checkoutSessionId, provider: input.provider, method: input.method, amount: input.amount, currency: input.currency, idempotencyKey: input.idempotencyKey, externalReference: input.externalReference, redirectUrl: input.redirectUrl, metadata: asJson(input.metadata ?? {}) } });
+      const intent = await tx.paymentIntent.create({ data: { checkoutSessionId: input.checkoutSessionId, provider: input.provider, method: input.method, amount: input.amount, currency: input.currency, idempotencyKey: input.idempotencyKey, externalReference: input.externalReference, redirectUrl: input.redirectUrl, metadata: asJson(sanitizeProviderPayload(input.metadata ?? {})) } });
       if (checkout.status === "ready_for_payment") await tx.checkoutSession.update({ where: { id: checkout.id }, data: { status: "payment_pending" } });
       return intent;
     });
@@ -108,11 +109,20 @@ export class PrismaRuntimeRepository {
   async recordPaymentVerification(input: { paymentIntentReference: string; provider: string; status: string; providerPayload?: Record<string, unknown>; errorCode?: string }) {
     const intent = await this.prisma.paymentIntent.findUnique({ where: { externalReference: input.paymentIntentReference } });
     if (!intent) throw new DomainError("INVALID_CALLBACK", "مرجع پرداخت معتبر نیست", 400);
-    return this.prisma.paymentVerification.create({ data: { paymentIntentId: intent.id, provider: input.provider, externalReference: input.paymentIntentReference, status: input.status, response: asJson(input.providerPayload ?? {}), errorCode: input.errorCode } });
+    return this.prisma.paymentVerification.create({ data: { paymentIntentId: intent.id, provider: input.provider, externalReference: input.paymentIntentReference, status: input.status, response: asJson(sanitizeProviderPayload(input.providerPayload ?? {})), errorCode: input.errorCode } });
+  }
+  listUnresolvedPaymentIntents(limit = 50) {
+    return this.prisma.paymentIntent.findMany({ where: { status: { in: ["created", "pending"] } }, include: { checkoutSession: { select: { userId: true } } }, orderBy: { updatedAt: "asc" }, take: Math.min(limit, 100) }).then((items) => items.map((item) => ({ checkoutSessionId: item.checkoutSessionId, userId: item.checkoutSession.userId, provider: item.provider, method: item.method, idempotencyKey: item.idempotencyKey, status: item.status, externalReference: item.externalReference })));
+  }
+  async updatePaymentIntentStatus(externalReference: string, status: PaymentIntentState) {
+    const intent = await this.prisma.paymentIntent.findUniqueOrThrow({ where: { externalReference } });
+    assertTransition("paymentIntent", intent.status as PaymentIntentState, status);
+    await this.prisma.paymentIntent.update({ where: { id: intent.id }, data: { status } });
+    if (status === "failed" || status === "cancelled") await this.prisma.checkoutSession.update({ where: { id: intent.checkoutSessionId }, data: { status: "ready_for_payment" } });
   }
 
   createBookingAttempt(input: { orderId?: string; requestKey: string; provider: string; providerReference?: string; status: string; requestSnapshot?: unknown; responseSnapshot?: unknown; error?: string }) {
-    return this.prisma.bookingAttempt.upsert({ where: { requestKey: input.requestKey }, create: { orderId: input.orderId, requestKey: input.requestKey, provider: input.provider, providerReference: input.providerReference, status: input.status, requestSnapshot: input.requestSnapshot ? asJson(input.requestSnapshot) : undefined, responseSnapshot: input.responseSnapshot ? asJson(input.responseSnapshot) : undefined, error: input.error }, update: {} });
+    return this.prisma.bookingAttempt.upsert({ where: { requestKey: input.requestKey }, create: { orderId: input.orderId, requestKey: input.requestKey, provider: input.provider, providerReference: input.providerReference, status: input.status, requestSnapshot: input.requestSnapshot ? asJson(sanitizeProviderPayload(input.requestSnapshot)) : undefined, responseSnapshot: input.responseSnapshot ? asJson(sanitizeProviderPayload(input.responseSnapshot)) : undefined, error: input.error }, update: {} });
   }
   getBookingAttempt(orderId: string) {
     return this.prisma.bookingAttempt.findFirst({ where: { orderId }, orderBy: { createdAt: "desc" }, select: { id: true, requestKey: true, status: true, providerReference: true } });
@@ -120,12 +130,12 @@ export class PrismaRuntimeRepository {
   async updateBookingAttempt(id: string, input: { providerReference?: string; status: string; responseSnapshot?: unknown; error?: string }) {
     const current = await this.prisma.bookingAttempt.findUniqueOrThrow({ where: { id }, select: { status: true } });
     assertTransition("booking", current.status as BookingAttemptState, input.status);
-    return this.prisma.bookingAttempt.update({ where: { id }, data: { providerReference: input.providerReference, status: input.status, responseSnapshot: input.responseSnapshot ? asJson(input.responseSnapshot) : undefined, error: input.error } });
+    return this.prisma.bookingAttempt.update({ where: { id }, data: { providerReference: input.providerReference, status: input.status, responseSnapshot: input.responseSnapshot ? asJson(sanitizeProviderPayload(input.responseSnapshot)) : undefined, error: input.error } });
   }
   async updateOrderBooking(orderId: string, input: { bookingStatus: OrderBookingState; providerName?: string; externalReference?: string; providerPayload?: Record<string, unknown> }) {
     const current = await this.prisma.order.findUniqueOrThrow({ where: { id: orderId }, select: { bookingStatus: true } });
     assertTransition("order", current.bookingStatus as OrderBookingState, input.bookingStatus);
-    return this.prisma.order.update({ where: { id: orderId }, data: { bookingStatus: input.bookingStatus, providerName: input.providerName, externalReference: input.externalReference, providerPayload: input.providerPayload ? asJson(input.providerPayload) : undefined } });
+    return this.prisma.order.update({ where: { id: orderId }, data: { bookingStatus: input.bookingStatus, providerName: input.providerName, externalReference: input.externalReference, providerPayload: input.providerPayload ? asJson(sanitizeProviderPayload(input.providerPayload)) : undefined } });
   }
 
   listUnresolvedBookings(limit = 50) {

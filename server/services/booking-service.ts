@@ -53,7 +53,7 @@ export class BookingService {
     const result = await this.executor.run(requestId, supplier.name, "validate", () => supplier.revalidate(item));
     if (result.outcome === "VALID") return result;
     const code = result.outcome === "EXPIRED" ? "OFFER_EXPIRED" : result.outcome;
-    throw new ProviderError(code, result.outcome === "PRICE_CHANGED" ? "قیمت پیشنهاد تغییر کرده است؛ لطفاً نتیجهٔ جدید را بررسی کنید" : result.outcome === "SOLD_OUT" ? "ظرفیت این پیشنهاد تکمیل شده است" : result.outcome === "EXPIRED" ? "مهلت این پیشنهاد به پایان رسیده است" : "تأمین‌کننده موقتاً در دسترس نیست", result.outcome === "PROVIDER_UNAVAILABLE", supplier.name, { outcome: result.outcome, trustedPrice: result.trustedPrice, trustedItem: result.trustedItem });
+    throw new ProviderError(code, result.outcome === "PRICE_CHANGED" ? "قیمت پیشنهاد تغییر کرده است؛ لطفاً نتیجهٔ جدید را بررسی کنید" : result.outcome === "SOLD_OUT" ? "ظرفیت این پیشنهاد تکمیل شده است" : result.outcome === "EXPIRED" ? "مهلت این پیشنهاد به پایان رسیده است" : "تأمین‌کننده موقتاً در دسترس نیست", result.outcome === "PROVIDER_UNAVAILABLE", supplier.name, { outcome: result.outcome, trustedPrice: result.trustedPrice });
   }
 
   async confirmOrder<T extends BookingOrder>(order: T, requestId = "internal"): Promise<BookingOrder> {

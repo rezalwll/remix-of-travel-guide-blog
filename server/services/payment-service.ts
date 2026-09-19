@@ -1,6 +1,8 @@
 import type { PaymentGateway, PaymentCallback, PaymentVerification } from "../providers/payment.js";
 import { ProviderError } from "../providers/types.js";
 import { ProviderExecutor } from "../providers/execute.js";
+import { fingerprintSensitiveValue, sanitizeProviderPayload } from "../providers/redaction.js";
+import type { PaymentIntentState } from "../domain/states.js";
 
 export type PaymentRepository = {
   createPaymentIntent(input: { checkoutSessionId: string; userId: string; provider: string; method: string; amount: number; currency: string; idempotencyKey: string; externalReference: string; redirectUrl: string; metadata?: Record<string, unknown> }): Promise<unknown>;
@@ -9,6 +11,8 @@ export type PaymentRepository = {
   recordPaymentCallback(input: { paymentIntentReference: string; provider: string; status: string; payload?: Record<string, unknown>; signature?: string; callbackKey: string }): Promise<{ duplicate: boolean }>;
   recordPaymentVerification(input: { paymentIntentReference: string; provider: string; status: string; providerPayload?: Record<string, unknown>; errorCode?: string }): Promise<unknown>;
   finalizePayment(checkoutSessionId: string, userId: string, idempotencyKey: string, method: string, metadata?: Record<string, unknown>, providerData?: { provider: string; externalReference?: string; payload?: Record<string, unknown> }): Promise<unknown>;
+  listUnresolvedPaymentIntents?(limit?: number): Promise<Array<{ checkoutSessionId: string; userId: string | null; provider: string; method: string; idempotencyKey: string; status: string; externalReference: string }>>;
+  updatePaymentIntentStatus?(externalReference: string, status: PaymentIntentState): Promise<unknown>;
 };
 
 export class PaymentService {
@@ -19,7 +23,7 @@ export class PaymentService {
     if (existing) return existing;
     const created = await this.executor.run(input.requestId ?? "internal", this.gateway.name, "createPayment", () => this.gateway.createPayment({ ...input, idempotencyKey: `${input.checkoutSessionId}:${input.idempotencyKey}` }));
     try {
-      await this.repository.createPaymentIntent({ ...input, provider: created.provider, externalReference: created.externalReference, redirectUrl: created.redirectUrl });
+      await this.repository.createPaymentIntent({ ...input, metadata: sanitizeProviderPayload(input.metadata ?? {}), provider: created.provider, externalReference: created.externalReference, redirectUrl: created.redirectUrl });
     } catch (error) {
       const concurrent = await this.repository.getPaymentIntentByKey(input.checkoutSessionId, input.idempotencyKey);
       if (concurrent) return concurrent;
@@ -36,10 +40,16 @@ export class PaymentService {
       if (intent.status === callback.status) return { duplicate: true, verification: { status: callback.status, externalReference: callback.externalReference } };
       throw new ProviderError("INVALID_CALLBACK", "Payment intent is terminal", false, this.gateway.name);
     }
-    const verification: PaymentVerification = await this.executor.run(requestId, this.gateway.name, "verifyPayment", () => this.gateway.verifyPayment({ externalReference: callback.externalReference, callback }));
+    let verification: PaymentVerification;
+    try {
+      verification = await this.executor.run(requestId, this.gateway.name, "verifyPayment", () => this.gateway.verifyPayment({ externalReference: callback.externalReference, callback }));
+    } catch (error) {
+      await this.repository.recordPaymentVerification({ paymentIntentReference: callback.externalReference, provider: this.gateway.name, status: "unknown", errorCode: error instanceof ProviderError ? error.category : "UNKNOWN_RESULT" });
+      throw error;
+    }
     if (verification.externalReference !== callback.externalReference || verification.status !== callback.status) throw new ProviderError("INVALID_CALLBACK", "Payment verification does not match callback", false, this.gateway.name);
-    const callbackResult = await this.repository.recordPaymentCallback({ paymentIntentReference: callback.externalReference, provider: this.gateway.name, status: callback.status, payload: callback.payload, signature: callback.signature, callbackKey: `${this.gateway.name}:${callback.externalReference}` });
-    if (!callbackResult.duplicate) await this.repository.recordPaymentVerification({ paymentIntentReference: callback.externalReference, provider: this.gateway.name, status: verification.status, providerPayload: verification.providerPayload, errorCode: verification.errorCode });
+    const callbackResult = await this.repository.recordPaymentCallback({ paymentIntentReference: callback.externalReference, provider: this.gateway.name, status: callback.status, payload: sanitizeProviderPayload(callback.payload ?? {}), signature: fingerprintSensitiveValue(callback.signature), callbackKey: `${this.gateway.name}:${callback.externalReference}` });
+    if (!callbackResult.duplicate) await this.repository.recordPaymentVerification({ paymentIntentReference: callback.externalReference, provider: this.gateway.name, status: verification.status, providerPayload: sanitizeProviderPayload(verification.providerPayload ?? {}), errorCode: verification.errorCode });
     if (verification.status !== "succeeded") {
       if (allowFailure) return { duplicate: callbackResult.duplicate, verification };
       throw new ProviderError(verification.status === "failed" ? "PAYMENT_FAILED" : "INVALID_CALLBACK", "پرداخت تکمیل نشد", false, this.gateway.name);
@@ -64,5 +74,28 @@ export class PaymentService {
     const intent = await this.repository.getPaymentIntentByReference(externalReference);
     if (!intent || intent.userId !== userId || intent.provider !== this.gateway.name) throw new ProviderError("NOT_FOUND", "Payment intent was not found", false, this.gateway.name);
     return this.handleCallback(this.gateway.createTestCallback(externalReference, status), requestId, true);
+  }
+
+  async reconcile(limit = 50, requestId = "payment-reconcile") {
+    if (!this.repository.listUnresolvedPaymentIntents || !this.repository.updatePaymentIntentStatus) throw new ProviderError("INVALID_REQUEST", "Payment reconciliation repository is unavailable", false, this.gateway.name, undefined, "CONFIGURATION");
+    const intents = await this.repository.listUnresolvedPaymentIntents(limit);
+    const results: Array<{ externalReference: string; outcome: PaymentVerification["status"] }> = [];
+    for (const intent of intents) {
+      if (intent.provider !== this.gateway.name || !intent.userId) continue;
+      let verification: PaymentVerification;
+      try { verification = await this.executor.run(requestId, this.gateway.name, "checkStatus", () => this.gateway.verifyPayment({ externalReference: intent.externalReference })); }
+      catch (error) {
+        await this.repository.recordPaymentVerification({ paymentIntentReference: intent.externalReference, provider: this.gateway.name, status: "unknown", errorCode: error instanceof ProviderError ? error.category : "UNKNOWN_RESULT" });
+        results.push({ externalReference: intent.externalReference, outcome: "unknown" });
+        continue;
+      }
+      await this.repository.recordPaymentVerification({ paymentIntentReference: intent.externalReference, provider: this.gateway.name, status: verification.status, providerPayload: sanitizeProviderPayload(verification.providerPayload ?? {}), errorCode: verification.errorCode });
+      if (verification.status === "succeeded") {
+        await this.repository.updatePaymentIntentStatus(intent.externalReference, "succeeded");
+        await this.repository.finalizePayment(intent.checkoutSessionId, intent.userId, intent.idempotencyKey, intent.method, undefined, { provider: this.gateway.name, externalReference: intent.externalReference, payload: sanitizeProviderPayload(verification.providerPayload ?? {}) });
+      } else if (verification.status === "failed" || verification.status === "cancelled") await this.repository.updatePaymentIntentStatus(intent.externalReference, verification.status);
+      results.push({ externalReference: intent.externalReference, outcome: verification.status });
+    }
+    return results;
   }
 }

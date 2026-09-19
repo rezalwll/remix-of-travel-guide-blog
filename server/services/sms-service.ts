@@ -1,4 +1,4 @@
-import { sendSmsWithRetry, type SmsProvider, type SmsSendResult } from "../providers/sms.js";
+import { sendSmsWithRetry, type SmsProvider, type SmsSendResult, type SmsTemplate } from "../providers/sms.js";
 import { ProviderExecutor } from "../providers/execute.js";
 import { ProviderError } from "../providers/types.js";
 
@@ -10,7 +10,7 @@ export type SmsAttemptRecorder = {
 export class SmsService {
   constructor(private readonly provider: SmsProvider, private readonly recorder?: SmsAttemptRecorder, private readonly executor = new ProviderExecutor()) {}
 
-  async send(input: { mobile: string; template: string; variables?: Record<string, string>; idempotencyKey?: string }, requestId = "internal"): Promise<SmsSendResult> {
+  async send(input: { mobile: string; template: SmsTemplate; variables?: Record<string, string>; idempotencyKey?: string }, requestId = "internal"): Promise<SmsSendResult> {
     const attempt = await this.recorder?.createSmsDeliveryAttempt({ mobile: input.mobile, template: input.template, provider: this.provider.name, status: "queued" });
     try {
       const result = await this.executor.run(requestId, this.provider.name, "send", async () => {

@@ -12,7 +12,8 @@ import { PrismaRuntimeRepository, type CheckoutInput, type PaymentMethod } from 
 import { createProviderRegistry, type ProviderRegistry } from "./providers/registry.js";
 import { SmsService } from "./services/sms-service.js";
 import { PaymentService } from "./services/payment-service.js";
-import { ProviderError } from "./providers/types.js";
+import { ProviderError, providerErrorStatus } from "./providers/types.js";
+import { sanitizeProviderPayload } from "./providers/redaction.js";
 import { BookingService, type BookingOrder } from "./services/booking-service.js";
 import { ProviderExecutor } from "./providers/execute.js";
 import { CompensationService } from "./services/compensation-service.js";
@@ -42,7 +43,7 @@ export async function buildApp(options: AppOptions = {}) {
 
   app.setErrorHandler((error, request, reply) => {
     if (error instanceof DomainError) return errorResponse(reply, error.statusCode, error.code, error.message);
-    if (error instanceof ProviderError) return errorResponse(reply, error.code === "PROVIDER_TIMEOUT" ? 504 : error.code === "PROVIDER_UNAVAILABLE" ? 503 : error.code === "PAYMENT_FAILED" ? 402 : error.code === "NOT_FOUND" ? 404 : 400, error.code, error.message, error.details);
+    if (error instanceof ProviderError) return errorResponse(reply, providerErrorStatus(error), error.code, error.message, error.details ? sanitizeProviderPayload(error.details, { maxBytes: 2_048 }) : undefined);
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2002") return errorResponse(reply, 409, "CONFLICT", "این رکورد قبلاً ثبت شده است");
       if (error.code === "P2025") return errorResponse(reply, 404, "NOT_FOUND", "موردی پیدا نشد");
@@ -87,6 +88,11 @@ export async function buildApp(options: AppOptions = {}) {
   app.get("/health", async () => ({ ok: true, service: "kiashi-api" }));
   app.get("/health/live", async () => ({ ok: true }));
   app.get("/health/ready", async (_request, reply) => { try { await repository.ready(); return { ok: true, database: "ready" }; } catch { return errorResponse(reply, 503, "DATABASE_UNAVAILABLE", "پایگاه داده آماده نیست"); } });
+  app.get("/api/health/providers", async () => {
+    const providerStatuses = await providers.status();
+    const requiredUnhealthy = providerStatuses.some((entry) => !entry.optional && entry.enabled && !entry.healthy);
+    return { ok: !requiredUnhealthy, providers: providerStatuses.map(({ key, adapter, mode, lifecycle, enabled, optional, healthy, checkedAt, reason }) => ({ key, adapter, mode, lifecycle, enabled, optional, healthy, checkedAt, ...(reason ? { reason } : {}) })) };
+  });
 
   app.get<{ Params: { kind: string } }>("/api/providers/:kind/search", async (request, reply) => {
     const kind = supplierKindSchema.safeParse(request.params.kind);
@@ -100,7 +106,7 @@ export async function buildApp(options: AppOptions = {}) {
     if (!parsed.success) return errorResponse(reply, 400, "VALIDATION_ERROR", "شماره موبایل معتبر نیست");
     const demoCode = env.NODE_ENV === "production" ? String(randomInt(0, 100_000)).padStart(5, "0") : "12345";
     const challenge = await repository.requestOtp(parsed.data.mobile, demoCode);
-    await smsService.send({ mobile: parsed.data.mobile, template: "login_otp", variables: { code: demoCode }, idempotencyKey: challenge.id }, request.id);
+    await smsService.send({ mobile: parsed.data.mobile, template: "OTP_LOGIN", variables: { code: demoCode }, idempotencyKey: challenge.id }, request.id);
     return reply.code(202).send({ challengeId: challenge.id, expiresIn: 120, ...(env.NODE_ENV === "production" ? {} : { demoCode }) });
   });
   app.post("/api/auth/verify-otp", async (request, reply) => {
@@ -165,7 +171,7 @@ export async function buildApp(options: AppOptions = {}) {
     const intent = await paymentService.createIntent({ checkoutSessionId: checkout.id, userId: user.id, method: parsed.data.method, amount: split.onlineAmount, currency: checkout.currency, idempotencyKey: parsed.data.idempotencyKey, callbackUrl: `${env.API_PUBLIC_URL}/api/payments/callback/${providers.payment.name}`, metadata: parsed.data.metadata, requestId: request.id });
     return reply.code(201).send({ paymentIntent: intent });
   });
-  app.post<{ Params: { reference: string } }>("/api/payments/mock/:reference/simulate", async (request, reply) => {
+  if (env.NODE_ENV !== "production") app.post<{ Params: { reference: string } }>("/api/payments/mock/:reference/simulate", async (request, reply) => {
     const user = await requireUser(request, reply); if (!user) return;
     const parsed = z.object({ status: z.enum(["succeeded", "failed", "cancelled"]) }).safeParse(request.body);
     if (!parsed.success) return errorResponse(reply, 400, "VALIDATION_ERROR", "وضعیت پرداخت آزمایشی معتبر نیست");

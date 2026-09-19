@@ -5,7 +5,7 @@ export type PaymentStatus = "created" | "pending" | "succeeded" | "failed" | "ca
 export type CreatePaymentInput = { amount: number; currency: string; idempotencyKey: string; callbackUrl: string; metadata?: Record<string, unknown> };
 export type CreatePaymentResult = { provider: string; externalReference: string; redirectUrl: string; status: PaymentStatus; payload: Record<string, unknown> };
 export type PaymentCallback = { externalReference: string; status: "succeeded" | "failed" | "cancelled"; signature?: string; payload?: Record<string, unknown> };
-export type PaymentVerification = { status: "succeeded" | "failed" | "cancelled"; externalReference: string; providerPayload?: Record<string, unknown>; errorCode?: string };
+export type PaymentVerification = { status: "pending" | "unknown" | "succeeded" | "failed" | "cancelled"; externalReference: string; providerPayload?: Record<string, unknown>; errorCode?: string };
 
 export interface PaymentGateway {
   readonly name: string;
@@ -49,7 +49,7 @@ export class MockPaymentGateway implements PaymentGateway {
     if (!current) throw new ProviderError("NOT_FOUND", "Payment reference was not found", false, this.name);
     if (current === "refunded") throw new ProviderError("INVALID_REQUEST", "Payment was already refunded", false, this.name);
     if ((current === "failed" || current === "cancelled") && input.callback?.status !== current) throw new ProviderError("INVALID_CALLBACK", "Payment status is terminal", false, this.name);
-    const status = input.callback?.status ?? (current === "pending" ? "succeeded" : current === "succeeded" ? "succeeded" : "failed");
+    const status = input.callback?.status ?? (current === "pending" || current === "created" ? "pending" : current === "succeeded" ? "succeeded" : current === "cancelled" ? "cancelled" : "failed");
     const next: PaymentStatus = status;
     this.payments.set(input.externalReference, next);
     return { status, externalReference: input.externalReference, providerPayload: input.callback?.payload };

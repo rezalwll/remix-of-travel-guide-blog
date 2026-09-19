@@ -2,7 +2,8 @@ import { randomUUID } from "node:crypto";
 import { ProviderError } from "./types.js";
 
 export type SmsStatus = "queued" | "sent" | "failed" | "expired";
-export type SmsSendInput = { mobile: string; template: string; variables?: Record<string, string>; idempotencyKey?: string };
+export type SmsTemplate = "OTP_LOGIN" | "BOOKING_CONFIRMED" | "PAYMENT_RECEIPT" | "BOOKING_STATUS" | "login_otp" | "otp";
+export type SmsSendInput = { mobile: string; template: SmsTemplate; variables?: Record<string, string>; idempotencyKey?: string };
 export type SmsSendResult = { status: SmsStatus; providerReference?: string; errorCode?: string };
 
 export interface SmsProvider {
@@ -39,6 +40,7 @@ export class DevelopmentSmsProvider implements SmsProvider {
 }
 
 export async function sendSmsWithRetry(provider: SmsProvider, input: SmsSendInput, attempts = 2): Promise<SmsSendResult> {
+  if (!input.idempotencyKey) attempts = 1;
   let lastError: unknown;
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     try {

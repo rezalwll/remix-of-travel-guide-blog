@@ -21,6 +21,8 @@ function fakeRepository() {
     },
     recordPaymentVerification: async (input) => { verifications.push(input.status); },
     finalizePayment: async (checkoutSessionId) => { finalized += 1; return { order: { id: checkoutSessionId, bookingStatus: "confirmed" } }; },
+    listUnresolvedPaymentIntents: async () => [...intents.values()].filter((item) => item.status === "pending"),
+    updatePaymentIntentStatus: async (externalReference, status) => { intents.get(externalReference)!.status = status; },
   };
   return { repository, intents, callbacks, verifications, get finalized() { return finalized; } };
 }
@@ -94,5 +96,18 @@ describe("PaymentService", () => {
     expect(state.finalized).toBe(0);
     const repeated = await service.simulateMock(intent.externalReference, input.userId, "failed");
     expect(repeated.duplicate).toBe(true);
+  });
+
+  it("keeps an unconfirmed status pending and reconciles only a confirmed provider result", async () => {
+    const gateway = new MockPaymentGateway();
+    const state = fakeRepository();
+    const service = new PaymentService(gateway, state.repository);
+    const intent = await service.createIntent(input);
+    expect((await gateway.verifyPayment({ externalReference: intent.externalReference })).status).toBe("pending");
+    expect((await service.reconcile())[0].outcome).toBe("pending");
+    expect(state.finalized).toBe(0);
+    await gateway.verifyPayment({ externalReference: intent.externalReference, callback: gateway.createTestCallback(intent.externalReference, "succeeded") });
+    expect((await service.reconcile())[0].outcome).toBe("succeeded");
+    expect(state.finalized).toBe(1);
   });
 });

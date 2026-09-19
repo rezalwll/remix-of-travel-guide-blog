@@ -20,7 +20,7 @@ describe("SMS provider", () => {
   it("retries failures through the interface", async () => {
     const send = vi.fn().mockResolvedValueOnce({ status: "failed" }).mockResolvedValueOnce({ status: "sent" });
     const provider: SmsProvider = { name: "test", send, checkStatus: async () => "sent" };
-    expect((await sendSmsWithRetry(provider, { mobile: "09121234567", template: "otp" })).status).toBe("sent");
+    expect((await sendSmsWithRetry(provider, { mobile: "09121234567", template: "otp", idempotencyKey: "sms-test-1" })).status).toBe("sent");
     expect(send).toHaveBeenCalledTimes(2);
     const failed = new DevelopmentSmsProvider({ fail: true });
     expect((await sendSmsWithRetry(failed, { mobile: "09121234567", template: "otp" })).status).toBe("failed");

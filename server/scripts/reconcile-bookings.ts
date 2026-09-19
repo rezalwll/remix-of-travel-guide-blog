@@ -13,9 +13,15 @@ const reconciliation = new ReconciliationService(new BookingService(providers, r
 
 try {
   await repository.connect();
-  const result = await reconciliation.run(Number(process.argv[2] ?? 50));
-  process.stdout.write(`${JSON.stringify({ inspected: result.length, outcomes: result.map((entry) => entry.outcome) })}\n`);
+  const limitArgument = process.argv.find((value) => /^\d+$/.test(value));
+  const limit = Math.min(Number(limitArgument ?? 50), 100);
+  if (process.argv.includes("--dry-run")) {
+    const unresolved = await repository.listUnresolvedBookings(limit);
+    process.stdout.write(`${JSON.stringify({ dryRun: true, inspected: unresolved.length, orders: unresolved.map((entry) => entry.id) })}\n`);
+  } else {
+    const result = await reconciliation.run(limit);
+    process.stdout.write(`${JSON.stringify({ dryRun: false, inspected: result.length, outcomes: result.map((entry) => entry.outcome) })}\n`);
+  }
 } finally {
   await repository.disconnect();
 }
-
