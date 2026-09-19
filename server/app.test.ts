@@ -161,7 +161,8 @@ integration("PostgreSQL runtime persistence", () => {
     const checkout = (await app.inject({ method: "POST", url: "/api/checkout/sessions", headers: { cookie: firstCookie }, payload: { serviceType: "tour", quantity: 1 } })).json().checkoutSession;
     const paid = await app.inject({ method: "POST", url: `/api/checkout/sessions/${checkout.id}/payments`, headers: { cookie: firstCookie }, payload: { idempotencyKey: "ownership-payment-1", method: "online_mock" } });
     const order = paid.json().order;
-    expect((await app.inject({ method: "GET", url: `/api/orders/${order.id}`, headers: { cookie: secondCookie } })).statusCode).toBe(403);
+    // Hide the existence of another user's order instead of disclosing it with 403.
+    expect((await app.inject({ method: "GET", url: `/api/orders/${order.id}`, headers: { cookie: secondCookie } })).statusCode).toBe(404);
     await expect(prisma.order.update({ where: { id: order.id }, data: { total: order.total + 1 } })).rejects.toThrow();
     await app.close();
   });
