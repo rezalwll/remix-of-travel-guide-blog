@@ -120,7 +120,7 @@ integration("PostgreSQL runtime persistence", () => {
     const providers = { ...createProviderRegistry(), payment: gateway, sms: { name: "probe", send, checkStatus: async () => "sent" as const } };
     const app = await buildApp({ repository, env, providers });
     const cookie = await login(app, mobile);
-    expect(send).toHaveBeenCalledWith(expect.objectContaining({ mobile, template: "login_otp" }));
+    expect(send).toHaveBeenCalledWith(expect.objectContaining({ mobile, template: "OTP_LOGIN" }));
     const checkoutResponse = await app.inject({ method: "POST", url: "/api/checkout/sessions", headers: { cookie }, payload: { serviceType: "flight", quantity: 1, service: { outbound: mockFlights[0] } } });
     expect(checkoutResponse.statusCode).toBe(201);
     const checkoutId = checkoutResponse.json().checkoutSession.id;
