@@ -24,15 +24,23 @@ const run = (command, args, options = {}) => {
 };
 
 let created = false;
+const startedAt = Date.now();
 try {
   run("pg_restore", ["--list", file]);
   run("psql", [adminUrl, "-v", "ON_ERROR_STOP=1", "-c", `CREATE DATABASE \"${databaseName}\"`]);
   created = true;
   run("pg_restore", ["--exit-on-error", "--no-owner", "--dbname", target.toString(), file]);
-  const check = run("psql", [target.toString(), "-v", "ON_ERROR_STOP=1", "-tAc", "SELECT count(*) FROM information_schema.tables WHERE table_schema='public';"], { encoding: "utf8", stdio: ["ignore", "pipe", "inherit"] });
-  const tableCount = Number.parseInt(check.stdout?.trim() || "0", 10);
-  if (tableCount < 1) throw new Error("restore contains no public tables");
-  console.log(`Restore verified in isolated database (${tableCount} public tables).`);
+  const integritySql = `SELECT json_build_object(
+    'tables', (SELECT count(*) FROM information_schema.tables WHERE table_schema='public'),
+    'orders', (SELECT count(*) FROM "Order"),
+    'walletEntries', (SELECT count(*) FROM "WalletTransaction"),
+    'sampleOrder', (SELECT "orderNumber" FROM "Order" ORDER BY "createdAt" LIMIT 1),
+    'walletMismatches', (SELECT count(*) FROM "Wallet" w WHERE w.balance <> COALESCE((SELECT wt."balanceAfter" FROM "WalletTransaction" wt WHERE wt."walletId"=w.id ORDER BY wt."createdAt" DESC, wt.id DESC LIMIT 1), w.balance))
+  );`;
+  const check = run("psql", [target.toString(), "-v", "ON_ERROR_STOP=1", "-tAc", integritySql], { encoding: "utf8", stdio: ["ignore", "pipe", "inherit"] });
+  const result = JSON.parse(check.stdout?.trim() || "{}");
+  if (result.tables < 1 || result.orders < 1 || result.walletEntries < 1 || !result.sampleOrder || result.walletMismatches !== 0) throw new Error("restored data integrity verification failed");
+  console.log(`Restore verified in isolated database (${result.tables} tables, ${result.orders} orders, ${result.walletEntries} wallet entries, ${Date.now() - startedAt} ms).`);
 } catch (error) {
   console.error(error instanceof Error ? error.message : "Restore verification failed");
   process.exitCode = 1;

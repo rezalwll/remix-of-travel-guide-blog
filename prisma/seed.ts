@@ -1,5 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
+if (process.env.NODE_ENV === "production") throw new Error("Demo seed is disabled in production");
+
 const prisma = new PrismaClient();
 const at = (value: string) => new Date(value);
 
