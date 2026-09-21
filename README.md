@@ -26,7 +26,7 @@ npm run dev:api
 npm run dev:web
 ```
 
-وب روی `http://localhost:8080` و API روی `http://localhost:8787` اجرا می‌شوند. API بدون اتصال PostgreSQL بالا نمی‌آید و هیچ fallback خاموشی به حافظه ندارد. مسیرهای `/health/live` و `/health/ready` به‌ترتیب زنده‌بودن process و دسترسی دیتابیس را گزارش می‌کنند.
+وب روی `http://localhost:8080` و API روی `http://localhost:8787` اجرا می‌شوند. API بدون PostgreSQL fallback خاموشی به حافظه ندارد؛ process می‌تواند برای liveness بالا بماند اما `/health/ready` تا دسترسی واقعی دیتابیس پاسخ 503 می‌دهد. مسیرهای `/health/live` و `/health/ready` به‌ترتیب زنده‌بودن process و دسترسی دیتابیس را گزارش می‌کنند.
 
 متغیرهای محیطی در `.env.example` هستند: `DATABASE_URL`، `DATABASE_URL_TEST`، `API_PORT`، `API_PUBLIC_URL`، `WEB_ORIGIN`، `VITE_API_URL`، `SESSION_TTL_HOURS`، `TRUST_PROXY` و `NODE_ENV`. `TRUST_PROXY` فقط پشت reverse proxy مورد اعتماد فعال می‌شود. فرانت تمام عملیات احراز هویت، حساب، checkout، پرداخت، سفارش، کیف پول، پیگیری، پشتیبانی، ویزا و استرداد را از API می‌خواند؛ Vite در توسعه `/api` را به API محلی proxy می‌کند.
 
@@ -69,6 +69,8 @@ checkout فقط `CheckoutSession` می‌سازد. order پس از settlement م
 
 `npm run reconcile:bookings` سفارش‌های حل‌نشده را از provider استعلام می‌کند: نتیجهٔ موفق تأیید، نتیجهٔ قطعی ناموفق جبران، و نتیجهٔ نامشخص بدون تغییر مالی باقی می‌ماند. retryهای transaction سریال‌شونده‌اند و unique keyهای booking/refund/ledger/notification باعث همگرایی پس از crash می‌شوند؛ ادعای exactly-once شبکه‌ای وجود ندارد.
 
+برای استقرار و عملیات production، [راهنمای deployment](docs/deployment.md)، [چک‌لیست انتشار](docs/production-checklist.md)، [ماتریس آمادگی](docs/production-readiness.md)، [سیاست نگهداری داده](docs/data-retention.md) و [گزارش audit dependency](docs/dependency-audit.md) را ببینید. target API با `docker build --target api -t kiashi-api .` و target frontend/proxy با `docker build --target proxy -t kiashi-proxy .` ساخته می‌شود؛ compose نمونه هر دو را می‌سازد و secret واقعی نباید در فایل‌های نمونه قرار بگیرد.
+
 ## Migration و تست PostgreSQL
 
 Migration در `prisma/migrations/` commit شده است؛ برای محیط واقعی از `npm run db:migrate:deploy` استفاده کنید، نه `db push`. CI یک PostgreSQL service جدا بالا می‌آورد، migration را اعمال می‌کند و `npm run test:api` را با `DATABASE_URL_TEST` اجرا می‌کند. تست integration شامل session بعد از restart app، persistence checkout/order/wallet، idempotency، ownership و tracking با mobile اشتباه است.
@@ -85,7 +87,11 @@ npm run test:e2e
 npm run db:generate
 npm run db:migrate:deploy
 npm run db:seed
+npm run release:check
+npm run db:backup
 ```
+
+`db:seed` فقط برای dev/test/staging و به‌صورت دستی است؛ production startup هرگز seed خودکار اجرا نمی‌کند. `npm run db:restore:verify` با `RESTORE_ADMIN_DATABASE_URL` یک دیتابیس تصادفی و ایزوله می‌سازد، restore را می‌سنجد و آن را حذف می‌کند؛ روی دیتابیس فعال restore نمی‌کند. `npm run ops:health` وضعیت live/ready/version/provider را بدون چاپ secret بررسی می‌کند.
 
 ## مالکیت داده در فرانت
 

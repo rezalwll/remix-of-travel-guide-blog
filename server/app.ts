@@ -31,7 +31,8 @@ export async function buildApp(options: AppOptions = {}) {
   const repository = options.repository ?? new PrismaRuntimeRepository(getPrismaClient());
   const env = { ...config, ...options.env };
   const providers = options.providers ?? createProviderRegistry(env);
-  const app = Fastify({ logger: env.NODE_ENV === "test" ? false : { level: "info" }, requestIdHeader: false, genReqId: () => randomUUID(), bodyLimit: 1_048_576, trustProxy: env.TRUST_PROXY });
+  const app = Fastify({ logger: env.NODE_ENV === "test" ? false : { level: env.LOG_LEVEL, redact: { paths: ["req.headers.authorization", "req.headers.cookie", "res.headers['set-cookie']", "password", "otp", "token", "secret", "signature", "passport", "nationalId", "cardNumber", "cvv"], censor: "[REDACTED]" }, serializers: { req: (request: { id?: string; method?: string; url?: string }) => ({ id: request.id, method: request.method, path: request.url?.split("?", 1)[0] }) } }, requestIdHeader: false, genReqId: () => randomUUID(), bodyLimit: 1_048_576, trustProxy: env.TRUST_PROXY });
+  const requestStarted = new WeakMap<FastifyRequest, bigint>();
   const executor = new ProviderExecutor(env.PROVIDER_TIMEOUT_MS, (entry) => app.log.info(entry, "provider operation"));
   const smsService = new SmsService(providers.sms, repository, executor);
   const paymentService = new PaymentService(providers.payment, repository, executor);
@@ -39,7 +40,19 @@ export async function buildApp(options: AppOptions = {}) {
   const compensationService = new CompensationService(providers.payment, repository, executor);
   await app.register(cookie);
   await app.register(cors, { origin: env.WEB_ORIGIN, credentials: true });
-  await app.register(helmet, { contentSecurityPolicy: false });
+  await app.register(helmet, {
+    contentSecurityPolicy: env.NODE_ENV === "production" ? { directives: { defaultSrc: ["'none'"], frameAncestors: ["'none'"], baseUri: ["'none'"], formAction: ["'none'"] } } : false,
+    hsts: env.NODE_ENV === "production" ? { maxAge: 31_536_000, includeSubDomains: true, preload: true } : false,
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+    frameguard: { action: "deny" },
+    noSniff: true,
+  });
+  app.addHook("onRequest", async (request) => { requestStarted.set(request, process.hrtime.bigint()); });
+  app.addHook("onResponse", async (request, reply) => {
+    const started = requestStarted.get(request);
+    const durationMs = started ? Number(process.hrtime.bigint() - started) / 1_000_000 : undefined;
+    request.log.info({ requestId: request.id, method: request.method, route: request.routeOptions.url, status: reply.statusCode, durationMs: durationMs === undefined ? undefined : Math.round(durationMs * 100) / 100 }, "request completed");
+  });
 
   app.setErrorHandler((error, request, reply) => {
     if (error instanceof DomainError) return errorResponse(reply, error.statusCode, error.code, error.message);
@@ -87,6 +100,7 @@ export async function buildApp(options: AppOptions = {}) {
 
   app.get("/health", async () => ({ ok: true, service: "kiashi-api" }));
   app.get("/health/live", async () => ({ ok: true }));
+  app.get("/health/version", async () => ({ ok: true, version: env.APP_VERSION, gitSha: env.GIT_SHA, buildTime: env.BUILD_TIME }));
   app.get("/health/ready", async (_request, reply) => { try { await repository.ready(); return { ok: true, database: "ready" }; } catch { return errorResponse(reply, 503, "DATABASE_UNAVAILABLE", "پایگاه داده آماده نیست"); } });
   app.get("/api/health/providers", async () => {
     const providerStatuses = await providers.status();

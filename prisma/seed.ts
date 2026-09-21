@@ -154,8 +154,8 @@ async function main() {
   });
   await prisma.bookingAttempt.upsert({
     where: { requestKey: "demo-booking-manual-review" },
-    update: { status: "manual_review_required" },
-    create: { id: "90000000-0000-4000-8000-000000000001", orderId: "30000000-0000-4000-8000-000000000011", provider: "mock-hotel", requestKey: "demo-booking-manual-review", providerReference: "DEMO-MANUAL-11", status: "manual_review_required", requestSnapshot: { inventoryMode: "demo" }, responseSnapshot: { message: "پاسخ تأمین‌کننده قطعی نیست" }, createdAt: at("2026-09-16T13:36:00.000Z") },
+    update: { status: "UNKNOWN" },
+    create: { id: "90000000-0000-4000-8000-000000000001", orderId: "30000000-0000-4000-8000-000000000011", provider: "mock-hotel", requestKey: "demo-booking-manual-review", providerReference: "DEMO-MANUAL-11", status: "UNKNOWN", requestSnapshot: { inventoryMode: "demo" }, responseSnapshot: { message: "پاسخ تأمین‌کننده قطعی نیست" }, createdAt: at("2026-09-16T13:36:00.000Z") },
   });
 
   console.log(`Seeded ${user.mobile}: ${orderFixtures.length} orders, ${walletEntries.length} wallet entries, ${tickets.length} support threads, balance ${wallet.balance} TOMAN`);

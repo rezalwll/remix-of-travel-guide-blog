@@ -5,7 +5,7 @@ export type StubScenario = "success" | "timeout" | "rate-limit" | "malformed" | 
 
 export function buildProviderStubServer(nodeEnv = process.env.NODE_ENV) {
   if (nodeEnv === "production") throw new Error("Provider stub server is disabled in production");
-  const app = Fastify({ logger: false });
+  const app = Fastify({ logger: false, forceCloseConnections: true });
   const scenario = (headers: Record<string, unknown>) => String(headers["x-stub-scenario"] ?? "success") as StubScenario;
   const simulate = async (request: { headers: Record<string, unknown> }, reply: { code(code: number): unknown; header(name: string, value: string): unknown; send(value: unknown): unknown }, success: unknown) => {
     const selected = scenario(request.headers);

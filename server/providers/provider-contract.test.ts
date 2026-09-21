@@ -18,7 +18,7 @@ describe("provider HTTP boundary", () => {
   const stub = buildProviderStubServer("test");
   let baseUrl = "";
   beforeAll(async () => { baseUrl = await stub.listen({ port: 0, host: "127.0.0.1" }); });
-  afterAll(() => stub.close());
+  afterAll(async () => { await stub.close(); });
   it("parses success and rejects malformed payloads", async () => {
     const client = new ProviderHttpClient({ provider: "stub", baseUrl, timeoutMs: 100, maxAttempts: 1 });
     await expect(client.request<{ status: string }>({ path: "/sms/send", method: "POST", requestId: "contract-http", operation: "send", body: {} })).resolves.toMatchObject({ status: "queued" });

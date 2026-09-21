@@ -44,7 +44,39 @@ jobs:
       - run: npm test -- --run
       - run: npm run test:api -- --run
       - run: npm run build:web
+      - run: npm run release:check
+        env:
+          RELEASE_CHECK_DATABASE: "true"
+      - run: docker build --target api --tag kiashi:${{ github.sha }} .
+      - name: Smoke production API container
+        shell: bash
+        run: |
+          IMAGE="kiashi:${{ github.sha }}"
+          test "$(docker run --rm --entrypoint id "$IMAGE" -u)" != "0"
+          docker run --detach --name kiashi-smoke --network host \
+            --env NODE_ENV=production \
+            --env DATABASE_URL="$DATABASE_URL" \
+            --env WEB_ORIGIN=https://example.test \
+            --env API_PUBLIC_URL=https://api.example.test \
+            --env TRUST_PROXY=127.0.0.1 \
+            --env MOCK_PAYMENT_SECRET=ci-only-secret-with-more-than-32-characters \
+            --env APP_VERSION=ci-smoke \
+            --env GIT_SHA=${{ github.sha }} \
+            --env BUILD_TIME=2026-01-01T00:00:00.000Z \
+            "$IMAGE"
+          trap 'docker logs kiashi-smoke; docker rm --force kiashi-smoke >/dev/null 2>&1 || true' EXIT
+          for attempt in {1..30}; do
+            curl --fail --silent http://127.0.0.1:8787/health/ready && break
+            if [ "$attempt" -eq 30 ]; then exit 1; fi
+            sleep 2
+          done
+          curl --fail --silent http://127.0.0.1:8787/health/version | grep -q 'ci-smoke'
+          docker stop --time 15 kiashi-smoke
+          test "$(docker inspect kiashi-smoke --format '{{.State.ExitCode}}')" = "0"
+          docker rm kiashi-smoke
+          trap - EXIT
       - run: npx playwright install --with-deps chromium
+      - run: npm run db:seed
       - run: npx playwright test
       - run: npm audit --audit-level=high
         continue-on-error: true # advisory visibility; upgrades that require breaking majors are tracked manually

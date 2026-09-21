@@ -14,6 +14,43 @@ const env = { NODE_ENV: "test" as const, API_PORT: 8787, DATABASE_URL: databaseU
 const prisma = new PrismaClient({ datasources: databaseUrl ? { db: { url: databaseUrl } } : undefined });
 let repository: PrismaRuntimeRepository;
 
+describe("production operational surface", () => {
+  it("keeps liveness independent and returns safe readiness/version responses", async () => {
+    const unavailableRepository = { ready: vi.fn().mockRejectedValue(new Error("postgresql://secret@db/internal")) } as unknown as PrismaRuntimeRepository;
+    const app = await buildApp({
+      repository: unavailableRepository,
+      env: { NODE_ENV: "production", WEB_ORIGIN: "https://example.test", API_PUBLIC_URL: "https://api.example.test", TRUST_PROXY: ["127.0.0.1"], MOCK_PAYMENT_SECRET: "x".repeat(32), APP_VERSION: "1.2.3", GIT_SHA: "abc123", BUILD_TIME: "2026-09-21T12:00:00.000Z" },
+    });
+    expect((await app.inject({ method: "GET", url: "/health/live" })).statusCode).toBe(200);
+    const readiness = await app.inject({ method: "GET", url: "/health/ready" });
+    expect(readiness.statusCode).toBe(503);
+    expect(readiness.body).not.toContain("secret");
+    const version = await app.inject({ method: "GET", url: "/health/version" });
+    expect(version.json()).toMatchObject({ version: "1.2.3", gitSha: "abc123" });
+    expect(version.headers["strict-transport-security"]).toContain("max-age=31536000");
+    expect(version.headers["content-security-policy"]).toContain("default-src 'none'");
+    await app.close();
+  });
+
+  it("marks the production session cookie secure and HttpOnly", async () => {
+    const authRepository = {
+      ready: vi.fn().mockResolvedValue(undefined),
+      requestOtp: vi.fn().mockResolvedValue({ id: "10000000-0000-4000-8000-000000000000" }),
+      verifyOtp: vi.fn().mockResolvedValue({ token: "session-token", user: { id: "user-1", mobile: "09121234567" } }),
+    } as unknown as PrismaRuntimeRepository;
+    const app = await buildApp({
+      repository: authRepository,
+      env: { NODE_ENV: "production", WEB_ORIGIN: "https://example.test", API_PUBLIC_URL: "https://api.example.test", TRUST_PROXY: ["127.0.0.1"], MOCK_PAYMENT_SECRET: "x".repeat(32), APP_VERSION: "1.2.3", GIT_SHA: "abc123", BUILD_TIME: "2026-09-21T12:00:00.000Z", SMS_PROVIDER_MODE: "disabled" },
+    });
+    const response = await app.inject({ method: "POST", url: "/api/auth/verify-otp", payload: { challengeId: "10000000-0000-4000-8000-000000000000", code: "12345" } });
+    expect(response.statusCode).toBe(200);
+    expect(response.headers["set-cookie"]).toContain("HttpOnly");
+    expect(response.headers["set-cookie"]).toContain("Secure");
+    expect(response.headers["set-cookie"]).toContain("SameSite=Lax");
+    await app.close();
+  });
+});
+
 async function login(app: Awaited<ReturnType<typeof buildApp>>, mobile: string) {
   const requested = await app.inject({ method: "POST", url: "/api/auth/request-otp", payload: { mobile } });
   const challengeId = requested.json().challengeId;
