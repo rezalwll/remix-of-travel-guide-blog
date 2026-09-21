@@ -1,5 +1,5 @@
 import { Check, Edit3, Hotel as HotelIcon, Plane } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router';
 import type { BookingDraft, HotelBookingDraft } from '@/types/checkout';
 import { calculateAnyDraftPrice } from '@/services/checkout';
 import { calculateNights } from '@/services/hotelService';

@@ -10,7 +10,7 @@ const nodeMajor = Number.parseInt(process.versions.node.split(".")[0] ?? "0", 10
 const npmMajor = Number.parseInt(process.env.npm_config_user_agent?.match(/npm\/(\d+)/)?.[1] ?? "0", 10);
 if (nodeMajor !== 20) failures.push(`Node 20 is required for release builds (current: ${process.versions.node})`);
 if (npmMajor && npmMajor !== 10) failures.push(`npm 10 is required for release builds (current major: ${npmMajor})`);
-if (!existsSync("dist") || !existsSync("dist-server")) failures.push("production web/API artifacts are missing; run build:web and build:api");
+if (!existsSync(".next/standalone/server.js") || !existsSync("dist-server")) failures.push("production Next/API artifacts are missing; run build:web and build:api");
 if (!existsSync("prisma/migrations")) failures.push("prisma migrations directory is missing");
 if (config.NODE_ENV === "production") {
   if (!process.env.DATABASE_URL) failures.push("DATABASE_URL must be explicitly set in production");
@@ -18,7 +18,8 @@ if (config.NODE_ENV === "production") {
   if (!process.env.API_PUBLIC_URL?.startsWith("https://")) failures.push("API_PUBLIC_URL must use HTTPS");
   if (config.PAYMENT_PROVIDER === "mock" && !config.MOCK_PAYMENT_SECRET) failures.push("MOCK_PAYMENT_SECRET is missing");
   if (process.env.ENABLE_DEMO_SEED === "true") failures.push("demo seed must not be enabled in production");
-  if (process.env.VITE_API_URL && !process.env.VITE_API_URL.startsWith("https://")) failures.push("VITE_API_URL must use HTTPS in production");
+  if (!process.env.SITE_URL?.startsWith("https://")) failures.push("SITE_URL must use HTTPS in production");
+  if (process.env.NEXT_PUBLIC_API_INTERNAL_URL || process.env.NEXT_PUBLIC_DATABASE_URL) failures.push("server-only configuration must not use NEXT_PUBLIC_ variables");
 }
 if (config.RATE_LIMIT_STORE !== "memory") failures.push("unsupported rate limit store");
 try { createProviderRegistry(config); } catch (error) { failures.push(error instanceof Error ? error.message : "provider configuration is invalid"); }

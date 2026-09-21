@@ -1,5 +1,5 @@
 import { Bell, FileText, Heart, LogOut, Plane, RotateCcw, Ticket, UserRound, Users, WalletCards, Headphones } from 'lucide-react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from '@/lib/router';
 import { useAuth } from '@/context/AuthContext';
 import { cn } from '@/lib/utils';
 const links = [{ to: '/account', label: 'داشبورد', icon: Plane }, { to: '/account/orders', label: 'سفارش‌ها', icon: Ticket }, { to: '/account/trips', label: 'سفرهای من', icon: Plane }, { to: '/account/visa', label: 'درخواست ویزا', icon: FileText }, { to: '/account/passengers', label: 'مسافران من', icon: Users }, { to: '/account/wallet', label: 'کیف پول', icon: WalletCards }, { to: '/account/refunds', label: 'درخواست استرداد', icon: RotateCcw }, { to: '/account/favorites', label: 'علاقه‌مندی‌ها', icon: Heart }, { to: '/account/notifications', label: 'اعلان‌ها', icon: Bell }, { to: '/account/support', label: 'پشتیبانی', icon: Headphones }, { to: '/account/profile', label: 'پروفایل', icon: UserRound }];

@@ -1,5 +1,8 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink } from "@/lib/router";
+import { usePathname } from "next/navigation";
 import {
   ChevronDown,
   Headphones,
@@ -37,7 +40,7 @@ const Header = () => {
   const [open, setOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const { pathname } = useLocation();
+  const pathname = usePathname();
   const { user, logout } = useAuth();
 
   useEffect(() => {

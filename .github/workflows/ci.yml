@@ -28,6 +28,8 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -35,7 +37,7 @@ jobs:
       - run: npm ci
       - run: npm run db:generate
       - run: npm run db:migrate:deploy
-      - run: npx tsc -p tsconfig.app.json --noEmit
+      - run: npm run typecheck:web
       - run: npm run build:api
       - run: npm run lint
       - run: npm run provider:status -- --json
@@ -48,6 +50,8 @@ jobs:
         env:
           RELEASE_CHECK_DATABASE: "true"
       - run: docker build --target api --tag kiashi:${{ github.sha }} .
+      - run: docker build --target web --tag kiashi-web:${{ github.sha }} .
+      - run: docker build --target proxy --tag kiashi-proxy:${{ github.sha }} .
       - name: Smoke production API container
         shell: bash
         run: |
@@ -71,12 +75,96 @@ jobs:
             sleep 2
           done
           curl --fail --silent http://127.0.0.1:8787/health/version | grep -q 'ci-smoke'
+          API_URL=http://127.0.0.1:8787 LOAD_COUNT=100 npm run ops:load
           docker stop --time 15 kiashi-smoke
           test "$(docker inspect kiashi-smoke --format '{{.State.ExitCode}}')" = "0"
           docker rm kiashi-smoke
           trap - EXIT
+      - name: Rollback smoke previous API image
+        shell: bash
+        run: |
+          PREVIOUS_DIR="$RUNNER_TEMP/kiashi-previous"
+          git worktree add --detach "$PREVIOUS_DIR" HEAD^
+          docker build --target api --tag kiashi:previous "$PREVIOUS_DIR"
+          docker run --detach --name kiashi-rollback --network host \
+            --env NODE_ENV=production \
+            --env DATABASE_URL="$DATABASE_URL" \
+            --env WEB_ORIGIN=https://example.test \
+            --env API_PUBLIC_URL=https://api.example.test \
+            --env TRUST_PROXY=127.0.0.1 \
+            --env MOCK_PAYMENT_SECRET=ci-only-secret-with-more-than-32-characters \
+            --env APP_VERSION=previous-rollback \
+            --env GIT_SHA=$(git rev-parse HEAD^) \
+            --env BUILD_TIME=2026-01-01T00:00:00.000Z \
+            kiashi:previous
+          trap 'docker logs kiashi-rollback; docker rm --force kiashi-rollback >/dev/null 2>&1 || true; git worktree remove --force "$PREVIOUS_DIR" >/dev/null 2>&1 || true' EXIT
+          for attempt in {1..30}; do
+            curl --fail --silent http://127.0.0.1:8787/health/ready && break
+            if [ "$attempt" -eq 30 ]; then exit 1; fi
+            sleep 2
+          done
+          curl --fail --silent http://127.0.0.1:8787/health/version | grep -q 'previous-rollback'
+          docker stop --time 15 kiashi-rollback
+          test "$(docker inspect kiashi-rollback --format '{{.State.ExitCode}}')" = "0"
+          docker rm kiashi-rollback
+          git worktree remove --force "$PREVIOUS_DIR"
+          trap - EXIT
       - run: npx playwright install --with-deps chromium
       - run: npm run db:seed
-      - run: npx playwright test
+      - name: Backup and isolated restore drill
+        shell: bash
+        run: |
+          BACKUP_DIR="$RUNNER_TEMP/backups" npm run db:backup
+          BACKUP_FILE=$(find "$RUNNER_TEMP/backups" -name '*.dump' -print -quit)
+          BACKUP_FILE="$BACKUP_FILE" RESTORE_ADMIN_DATABASE_URL=postgresql://kiashi:kiashi@localhost:5432/postgres npm run db:restore:verify
+          if env -u DATABASE_URL npm run db:backup; then exit 1; fi
+      - name: Production topology, SEO and Playwright certification
+        shell: bash
+        run: |
+          CERT_DIR="$RUNNER_TEMP/kiashi-certs"
+          mkdir -p "$CERT_DIR"
+          openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
+            -keyout "$CERT_DIR/privkey.pem" -out "$CERT_DIR/fullchain.pem" \
+            -subj "/CN=127.0.0.1" >/dev/null 2>&1
+          test "$(docker run --rm --entrypoint id kiashi-web:${{ github.sha }} -u)" != "0"
+          docker run --detach --name kiashi-e2e-api --network host \
+            --env NODE_ENV=production \
+            --env DATABASE_URL="$DATABASE_URL" \
+            --env WEB_ORIGIN=https://127.0.0.1 \
+            --env API_PUBLIC_URL=https://127.0.0.1 \
+            --env TRUST_PROXY=127.0.0.1 \
+            --env MOCK_PAYMENT_SECRET=ci-only-secret-with-more-than-32-characters \
+            --env APP_VERSION=ci-e2e \
+            --env GIT_SHA=${{ github.sha }} \
+            --env BUILD_TIME=2026-01-01T00:00:00.000Z \
+            kiashi:${{ github.sha }}
+          docker run --detach --name kiashi-e2e-web --network host \
+            --tmpfs /app/.next/cache:rw,mode=1777 \
+            --env NODE_ENV=production \
+            --env PORT=3000 \
+            --env HOSTNAME=0.0.0.0 \
+            --env API_INTERNAL_URL=http://127.0.0.1:8787 \
+            --env SITE_URL=https://example.com \
+            --env APP_VERSION=ci-e2e \
+            kiashi-web:${{ github.sha }}
+          docker run --detach --name kiashi-e2e-proxy --network host \
+            --add-host app:127.0.0.1 --add-host web:127.0.0.1 \
+            --volume "$CERT_DIR:/etc/nginx/certs:ro" \
+            kiashi-proxy:${{ github.sha }}
+          trap 'docker logs kiashi-e2e-api || true; docker logs kiashi-e2e-web || true; docker logs kiashi-e2e-proxy || true; docker rm --force kiashi-e2e-proxy kiashi-e2e-web kiashi-e2e-api >/dev/null 2>&1 || true' EXIT
+          for attempt in {1..45}; do
+            curl --fail --silent http://127.0.0.1:8787/health/ready >/dev/null && \
+              curl --fail --silent http://127.0.0.1:3000/healthz >/dev/null && \
+              curl --fail --silent --insecure https://127.0.0.1/ >/dev/null && break
+            if [ "$attempt" -eq 45 ]; then exit 1; fi
+            sleep 2
+          done
+          SEO_BASE_URL=http://127.0.0.1:3000 npm run seo:check
+          E2E_EXTERNAL=true PLAYWRIGHT_BASE_URL=https://127.0.0.1 npx playwright test
+          docker stop --time 15 kiashi-e2e-proxy kiashi-e2e-web kiashi-e2e-api
+          test "$(docker inspect kiashi-e2e-web --format '{{.State.ExitCode}}')" = "0"
+          test "$(docker inspect kiashi-e2e-api --format '{{.State.ExitCode}}')" = "0"
+          docker rm kiashi-e2e-proxy kiashi-e2e-web kiashi-e2e-api
+          trap - EXIT
       - run: npm audit --audit-level=high
         continue-on-error: true # advisory visibility; upgrades that require breaking majors are tracked manually

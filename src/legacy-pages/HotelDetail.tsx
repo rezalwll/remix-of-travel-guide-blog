@@ -1,0 +1,582 @@
+import { useEffect, useMemo, useState } from "react";
+import {
+  BedDouble,
+  Check,
+  ChevronDown,
+  Dumbbell,
+  Heart,
+  Images,
+  MapPin,
+  ParkingCircle,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  Utensils,
+  Waves,
+  Wifi,
+} from "lucide-react";
+import {
+  Link,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "@/lib/router";
+import Layout from "@/components/layout/Layout";
+import { useAuth } from "@/context/AuthContext";
+import { useFavorite } from "@/services/account";
+import { calculateNights, hotelService } from "@/services/hotelService";
+import { writeBookingDraft } from "@/store/booking";
+import type { HotelBookingDraft } from "@/types/checkout";
+import type { HotelRatePlan, HotelSearchParams } from "@/types/hotel";
+import { formatPrice } from "@/utils/flight";
+import { recordRecentlyViewed } from "@/services/recentlyViewed";
+
+const cityNames: Record<string, string> = {
+  THR: "تهران",
+  MHD: "مشهد",
+  KIH: "کیش",
+  SYZ: "شیراز",
+  IFN: "اصفهان",
+  IST: "استانبول",
+  DXB: "دبی",
+  NJF: "نجف",
+};
+const icons: Record<string, React.ComponentType<{ className?: string }>> = {
+  وای‌فای: Wifi,
+  پارکینگ: ParkingCircle,
+  استخر: Waves,
+  صبحانه: Utensils,
+  باشگاه: Dumbbell,
+  اسپا: Sparkles,
+};
+
+const parseStay = (
+  query: URLSearchParams,
+  fallbackCity: string,
+): HotelSearchParams => {
+  const raw = query.get("destination") || fallbackCity;
+  return {
+    destination: cityNames[raw.toUpperCase()] || raw,
+    checkIn: query.get("checkin") || query.get("checkIn") || "2026-10-12",
+    checkOut: query.get("checkout") || query.get("checkOut") || "2026-10-16",
+    rooms: Math.max(1, Number(query.get("rooms") || 1)),
+    adults: Math.max(
+      1,
+      Number(query.get("adults") || query.get("guests") || 2),
+    ),
+    children: Math.max(0, Number(query.get("children") || 0)),
+  };
+};
+
+const HotelDetail = () => {
+  const { id = "" } = useParams();
+  const [query] = useSearchParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const hotel = hotelService.getHotelById(id);
+  const stay = useMemo(
+    () => parseStay(query, hotel?.city || ""),
+    [query, hotel?.city],
+  );
+  const nights = calculateNights(stay.checkIn, stay.checkOut);
+  const [selected, setSelected] = useState<{
+    roomId: string;
+    rate: HotelRatePlan;
+  } | null>(null);
+  const [gallery, setGallery] = useState(false);
+  const [showMore, setShowMore] = useState(false);
+  const favoriteState = useFavorite(
+    !!user && !!hotel,
+    "hotel",
+    hotel?.id ?? "",
+  );
+  const favorite = favoriteState.favorite;
+  useEffect(() => {
+    document.title = hotel
+      ? `${hotel.name}، ${hotel.city} | کی‌آشی`
+      : "هتل پیدا نشد | کی‌آشی";
+    if (hotel) recordRecentlyViewed("hotel", hotel.id);
+  }, [hotel]);
+  if (!hotel)
+    return (
+      <Layout>
+        <main className="container-page flex min-h-[65vh] items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-extrabold">هتل پیدا نشد</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              شناسه این اقامتگاه در داده‌های نمونه وجود ندارد.
+            </p>
+            <Link
+              to="/"
+              className="mt-5 inline-flex rounded-lg bg-primary px-4 py-3 text-sm font-bold text-white"
+            >
+              بازگشت به جستجو
+            </Link>
+          </div>
+        </main>
+      </Layout>
+    );
+  const rooms = hotelService.getRooms(hotel.id, stay);
+  const queryString = new URLSearchParams({
+    destination: stay.destination,
+    checkin: stay.checkIn,
+    checkout: stay.checkOut,
+    rooms: String(stay.rooms),
+    adults: String(stay.adults),
+    children: String(stay.children),
+  }).toString();
+  const choose = () => {
+    if (!selected) return;
+    const room = rooms.find((item) => item.id === selected.roomId);
+    if (!room) return;
+    const draft: HotelBookingDraft = {
+      serviceType: "hotel",
+      searchUrl: `/hotels/${hotel.slug}?${queryString}`,
+      searchParams: Object.fromEntries(new URLSearchParams(queryString)),
+      outbound: null,
+      inbound: null,
+      buyer: {
+        firstName: user?.firstName || "",
+        lastName: user?.lastName || "",
+        mobile: user?.mobile || "",
+        email: user?.email || "",
+      },
+      passengers: [],
+      ancillaries: [],
+      coupon: null,
+      termsAccepted: false,
+      hotel,
+      hotelSearch: stay,
+      hotelRoom: room,
+      hotelRatePlan: selected.rate,
+      roomCount: stay.rooms,
+      hotelGuests: Array.from(
+        { length: stay.adults + stay.children },
+        (_, index) => ({
+          id: `guest-${index + 1}`,
+          roomIndex: index % stay.rooms,
+          firstName: "",
+          lastName: "",
+          ageCategory: index < stay.adults ? "adult" : "child",
+        }),
+      ),
+      hotelAddOns: [],
+    };
+    writeBookingDraft(draft);
+    navigate("/checkout/hotel-guests");
+  };
+  const toggle = () => {
+    if (!user) {
+      navigate(
+        `/auth/login?returnTo=${encodeURIComponent(location.pathname + location.search)}`,
+      );
+      return;
+    }
+    favoriteState.toggle();
+  };
+  return (
+    <Layout>
+      <main className="bg-[hsl(35_35%_97%)] pb-24">
+        <div className="container-page py-5">
+          <div className="relative grid h-[330px] gap-2 overflow-hidden rounded-2xl sm:grid-cols-4 sm:grid-rows-2 lg:h-[430px]">
+            <button
+              type="button"
+              onClick={() => setGallery(true)}
+              className="relative sm:col-span-2 sm:row-span-2"
+            >
+              <img
+                src={hotel.images[0]}
+                alt={`نمای اصلی ${hotel.name}`}
+                className="size-full object-cover"
+              />
+            </button>
+            {hotel.images.slice(1, 4).map((image, index) => (
+              <button
+                key={image}
+                type="button"
+                onClick={() => setGallery(true)}
+                className="hidden sm:block"
+              >
+                <img
+                  src={image}
+                  alt={`تصویر ${index + 2} از ${hotel.name}`}
+                  className="size-full object-cover"
+                />
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => setGallery(true)}
+              className="absolute bottom-4 end-4 inline-flex items-center gap-2 rounded-lg bg-white px-3 py-2 text-xs font-bold shadow"
+            >
+              <Images className="size-4" /> مشاهده همه تصاویر
+            </button>
+          </div>
+          <section className="mt-5 rounded-2xl border border-border bg-card p-5">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="text-2xl font-extrabold sm:text-3xl">
+                    {hotel.name}
+                  </h1>
+                  <span className="flex text-amber-500">
+                    {Array.from({ length: hotel.stars }).map((_, index) => (
+                      <Star key={index} className="size-4 fill-current" />
+                    ))}
+                  </span>
+                </div>
+                <p className="mt-3 flex items-center gap-1 text-sm text-muted-foreground">
+                  <MapPin className="size-4 text-secondary" /> {hotel.address} ·{" "}
+                  {hotel.distanceFromCenter} کیلومتر تا مرکز
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={toggle}
+                  aria-pressed={favorite}
+                  className={`grid size-11 place-items-center rounded-xl border ${favorite ? "border-primary bg-primary/10 text-primary" : "border-border"}`}
+                >
+                  <Heart
+                    className={`size-5 ${favorite ? "fill-current" : ""}`}
+                  />
+                </button>
+                <div className="rounded-xl bg-secondary px-4 py-2 text-center text-white">
+                  <strong className="text-xl">
+                    {hotel.rating.toLocaleString("fa-IR")}
+                  </strong>
+                  <p className="text-[10px]">
+                    {hotel.reviewCount.toLocaleString("fa-IR")} نظر نمونه
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="mt-5 flex flex-wrap gap-3">
+              {hotel.amenities.map((amenity) => {
+                const Icon = icons[amenity] || Check;
+                return (
+                  <span
+                    key={amenity}
+                    className="inline-flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-xs"
+                  >
+                    <Icon className="size-4 text-secondary" />
+                    {amenity}
+                  </span>
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                document
+                  .getElementById("rooms")
+                  ?.scrollIntoView({ behavior: "smooth" })
+              }
+              className="mt-5 rounded-lg bg-primary px-5 py-3 text-sm font-bold text-white"
+            >
+              مشاهده اتاق‌ها
+            </button>
+          </section>
+          <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_320px]">
+            <div className="space-y-5">
+              <section className="rounded-2xl border border-border bg-card p-5">
+                <h2 className="text-xl font-extrabold">درباره هتل</h2>
+                <p
+                  className={`mt-3 text-sm leading-8 text-muted-foreground ${showMore ? "" : "line-clamp-2"}`}
+                >
+                  {hotel.description} اطلاعات، ظرفیت و قیمت این صفحه برای نمایش
+                  تجربه رزرو ساخته شده‌اند و موجودی واقعی هتل را نشان نمی‌دهند.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowMore((value) => !value)}
+                  className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-secondary"
+                >
+                  {showMore ? "نمایش کمتر" : "نمایش بیشتر"}{" "}
+                  <ChevronDown
+                    className={`size-3 ${showMore ? "rotate-180" : ""}`}
+                  />
+                </button>
+              </section>
+              <section
+                id="rooms"
+                className="rounded-2xl border border-border bg-card p-4 sm:p-5"
+              >
+                <div>
+                  <p className="text-xs font-bold text-primary">
+                    اتاق‌های موجود نمونه
+                  </p>
+                  <h2 className="mt-1 text-xl font-extrabold">
+                    انتخاب اتاق و نرخ
+                  </h2>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {stay.checkIn} تا {stay.checkOut} ·{" "}
+                    {nights.toLocaleString("fa-IR")} شب ·{" "}
+                    {stay.rooms.toLocaleString("fa-IR")} اتاق
+                  </p>
+                </div>
+                <div className="mt-5 space-y-5">
+                  {rooms.length ? (
+                    rooms.map((room) => (
+                      <article
+                        key={room.id}
+                        className="overflow-hidden rounded-xl border border-border"
+                      >
+                        <div className="grid sm:grid-cols-[180px_1fr]">
+                          <img
+                            src={room.images[0]}
+                            alt={room.name}
+                            className="h-44 size-full object-cover sm:h-full"
+                          />
+                          <div className="p-4">
+                            <h3 className="font-extrabold">{room.name}</h3>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              {room.capacity.toLocaleString("fa-IR")} نفر ·{" "}
+                              {room.bedType}{" "}
+                              {room.size
+                                ? `· ${room.size.toLocaleString("fa-IR")} متر`
+                                : ""}
+                            </p>
+                            <p className="mt-2 text-xs leading-6 text-muted-foreground">
+                              {room.description}
+                            </p>
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {room.amenities.map((item) => (
+                                <span
+                                  key={item}
+                                  className="rounded-full bg-muted px-2 py-1 text-[10px]"
+                                >
+                                  {item}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="divide-y divide-border border-t border-border">
+                          {room.ratePlans.map((rate) => {
+                            const total =
+                              rate.nightlyPrice * nights * stay.rooms;
+                            const checked = selected?.rate.id === rate.id;
+                            return (
+                              <label
+                                key={rate.id}
+                                className={`grid cursor-pointer gap-3 p-4 sm:grid-cols-[1fr_auto] ${checked ? "bg-secondary/5" : ""}`}
+                              >
+                                <div className="flex items-start gap-3">
+                                  <input
+                                    type="radio"
+                                    name="hotel-rate"
+                                    checked={checked}
+                                    onChange={() =>
+                                      setSelected({ roomId: room.id, rate })
+                                    }
+                                    className="mt-1 accent-primary"
+                                  />
+                                  <div>
+                                    <p className="text-sm font-bold">
+                                      {rate.title} · {rate.mealPlan}
+                                    </p>
+                                    <p
+                                      className={`mt-1 text-xs font-semibold ${rate.refundable ? "text-secondary" : "text-warning"}`}
+                                    >
+                                      {rate.cancellationSummary}
+                                    </p>
+                                    <p className="mt-1 text-[11px] text-muted-foreground">
+                                      {rate.taxesIncluded
+                                        ? "مالیات در قیمت لحاظ شده"
+                                        : "مالیات جداگانه"}
+                                      {rate.remainingRooms &&
+                                      rate.remainingRooms <= 2
+                                        ? ` · ${rate.remainingRooms.toLocaleString("fa-IR")} اتاق نمونه باقی مانده`
+                                        : ""}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="text-end">
+                                  <p className="text-xs text-muted-foreground">
+                                    هر شب
+                                  </p>
+                                  <p className="font-extrabold text-primary">
+                                    {formatPrice(rate.nightlyPrice)}
+                                  </p>
+                                  <p className="mt-1 text-xs font-bold">
+                                    مجموع: {formatPrice(total)}
+                                  </p>
+                                </div>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </article>
+                    ))
+                  ) : (
+                    <div className="py-10 text-center">
+                      <BedDouble className="mx-auto size-10 text-muted-foreground" />
+                      <p className="mt-3 font-bold">
+                        برای این تاریخ اتاق آزمایشی موجود نیست
+                      </p>
+                      <Link
+                        to="/#booking"
+                        className="mt-4 inline-flex text-sm font-bold text-primary"
+                      >
+                        ویرایش تاریخ‌ها
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </section>
+              <section className="rounded-2xl border border-border bg-card p-5">
+                <h2 className="text-xl font-extrabold">قوانین اقامت</h2>
+                {hotel.policies.map((policy) => (
+                  <div
+                    key={policy.title}
+                    className="mt-4 border-b border-border pb-4 last:border-0"
+                  >
+                    <h3 className="text-sm font-bold">{policy.title}</h3>
+                    <p className="mt-1 text-xs leading-6 text-muted-foreground">
+                      {policy.description}
+                    </p>
+                  </div>
+                ))}
+                <p className="mt-3 rounded-lg bg-warning/10 p-3 text-xs text-warning">
+                  قوانین این صفحه نمونه هستند و تعهد واقعی برای هتل ایجاد
+                  نمی‌کنند.
+                </p>
+              </section>
+              <section className="rounded-2xl border border-border bg-card p-5">
+                <h2 className="text-xl font-extrabold">موقعیت هتل</h2>
+                <div className="mt-4 grid min-h-48 place-items-center rounded-xl bg-[radial-gradient(circle_at_30%_30%,hsl(var(--secondary)/.18),transparent_45%),linear-gradient(135deg,hsl(var(--muted)),hsl(var(--background)))]">
+                  <div className="text-center">
+                    <MapPin className="mx-auto size-8 text-primary" />
+                    <p className="mt-2 text-sm font-bold">
+                      {hotel.neighborhood}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      نقشه نمایشی · بدون سرویس نقشه واقعی
+                    </p>
+                  </div>
+                </div>
+              </section>
+              <section className="rounded-2xl border border-border bg-card p-5">
+                <h2 className="text-xl font-extrabold">نظر مهمانان نمونه</h2>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {[
+                    ["پاکیزگی", 4.8],
+                    ["موقعیت", 4.6],
+                    ["کارکنان", 4.7],
+                    ["ارزش خرید", 4.4],
+                  ].map(([label, score]) => (
+                    <div
+                      key={String(label)}
+                      className="flex justify-between rounded-lg bg-muted p-3 text-sm"
+                    >
+                      <span>{label}</span>
+                      <strong>{Number(score).toLocaleString("fa-IR")}</strong>
+                    </div>
+                  ))}
+                </div>
+                <blockquote className="mt-4 rounded-xl border border-border p-4 text-sm leading-7 text-muted-foreground">
+                  «فضای آرام و دسترسی مناسب بود. این دیدگاه صرفاً برای نمایش
+                  رابط کاربری نوشته شده است.»
+                </blockquote>
+              </section>
+            </div>
+            <aside className="hidden h-fit rounded-2xl border border-border bg-card p-5 lg:sticky lg:top-24 lg:block">
+              <h2 className="font-extrabold">خلاصه اقامت</h2>
+              <p className="mt-3 text-sm">
+                {stay.checkIn} تا {stay.checkOut}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {nights.toLocaleString("fa-IR")} شب ·{" "}
+                {stay.rooms.toLocaleString("fa-IR")} اتاق ·{" "}
+                {(stay.adults + stay.children).toLocaleString("fa-IR")} مهمان
+              </p>
+              {selected ? (
+                <>
+                  <p className="mt-4 text-sm font-bold">
+                    {rooms.find((room) => room.id === selected.roomId)?.name}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {selected.rate.title}
+                  </p>
+                  <p className="mt-4 text-xl font-extrabold text-primary">
+                    {formatPrice(
+                      selected.rate.nightlyPrice * nights * stay.rooms,
+                    )}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={choose}
+                    className="mt-4 w-full rounded-lg bg-primary py-3 text-sm font-bold text-white"
+                  >
+                    ادامه رزرو
+                  </button>
+                </>
+              ) : (
+                <p className="mt-5 rounded-lg bg-muted p-3 text-xs text-muted-foreground">
+                  ابتدا یکی از نرخ‌های اتاق را انتخاب کنید.
+                </p>
+              )}
+              <div className="mt-4 flex items-start gap-2 text-[11px] leading-5 text-muted-foreground">
+                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-secondary" />
+                پرداخت در مرحله بعد و کاملاً آزمایشی انجام می‌شود.
+              </div>
+            </aside>
+          </div>
+        </div>
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card p-3 lg:hidden">
+          <div className="container-page flex items-center justify-between gap-3">
+            <div>
+              {selected ? (
+                <>
+                  <p className="text-[11px] text-muted-foreground">
+                    مجموع اقامت
+                  </p>
+                  <p className="font-extrabold text-primary">
+                    {formatPrice(
+                      selected.rate.nightlyPrice * nights * stay.rooms,
+                    )}
+                  </p>
+                </>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  یک نرخ انتخاب کنید
+                </p>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={choose}
+              disabled={!selected}
+              className="rounded-lg bg-primary px-5 py-3 text-sm font-bold text-white disabled:opacity-40"
+            >
+              ادامه رزرو
+            </button>
+          </div>
+        </div>
+        {gallery && (
+          <div className="fixed inset-0 z-50 grid place-items-center bg-black/85 p-4">
+            <button
+              type="button"
+              onClick={() => setGallery(false)}
+              className="absolute end-5 top-5 rounded-full bg-white px-4 py-2 text-xs font-bold"
+            >
+              بستن
+            </button>
+            <div className="grid max-h-[85vh] w-full max-w-5xl gap-3 overflow-y-auto sm:grid-cols-2">
+              {hotel.images.map((image, index) => (
+                <img
+                  key={image}
+                  src={image}
+                  alt={`تصویر ${index + 1} ${hotel.name}`}
+                  className="w-full rounded-xl object-cover"
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </main>
+    </Layout>
+  );
+};
+export default HotelDetail;

@@ -4,7 +4,7 @@
 
 ## پشتهٔ فنی
 
-- وب: React 18، Vite، TypeScript، React Router، Tailwind و Radix UI
+- وب: Next.js 16 App Router، React 19، TypeScript، Tailwind و Radix UI
 - API: Node.js 20، Fastify، Zod، Pino و cookie session امن
 - داده: PostgreSQL 16، Prisma و migrationهای نسخه‌گذاری‌شده
 - پرداخت و رزرو: لایهٔ provider با پیاده‌سازی mock؛ هیچ درگاه یا supplier واقعی وصل نیست
@@ -26,9 +26,9 @@ npm run dev:api
 npm run dev:web
 ```
 
-وب روی `http://localhost:8080` و API روی `http://localhost:8787` اجرا می‌شوند. API بدون PostgreSQL fallback خاموشی به حافظه ندارد؛ process می‌تواند برای liveness بالا بماند اما `/health/ready` تا دسترسی واقعی دیتابیس پاسخ 503 می‌دهد. مسیرهای `/health/live` و `/health/ready` به‌ترتیب زنده‌بودن process و دسترسی دیتابیس را گزارش می‌کنند.
+وب Next روی `http://localhost:8080` و API روی `http://localhost:8787` اجرا می‌شوند. دستور `npm run dev` هر دو را هم‌زمان اجرا می‌کند. API بدون PostgreSQL fallback خاموشی به حافظه ندارد؛ process می‌تواند برای liveness بالا بماند اما `/health/ready` تا دسترسی واقعی دیتابیس پاسخ 503 می‌دهد. مسیرهای `/health/live` و `/health/ready` به‌ترتیب زنده‌بودن process و دسترسی دیتابیس را گزارش می‌کنند.
 
-متغیرهای محیطی در `.env.example` هستند: `DATABASE_URL`، `DATABASE_URL_TEST`، `API_PORT`، `API_PUBLIC_URL`، `WEB_ORIGIN`، `VITE_API_URL`، `SESSION_TTL_HOURS`، `TRUST_PROXY` و `NODE_ENV`. `TRUST_PROXY` فقط پشت reverse proxy مورد اعتماد فعال می‌شود. فرانت تمام عملیات احراز هویت، حساب، checkout، پرداخت، سفارش، کیف پول، پیگیری، پشتیبانی، ویزا و استرداد را از API می‌خواند؛ Vite در توسعه `/api` را به API محلی proxy می‌کند.
+متغیرهای محیطی در `.env.example` هستند: `DATABASE_URL`، `DATABASE_URL_TEST`، `API_PORT`، `API_PUBLIC_URL`، `WEB_ORIGIN`، `SITE_URL`، `API_INTERNAL_URL`، `SESSION_TTL_HOURS`، `TRUST_PROXY` و `NODE_ENV`. `API_INTERNAL_URL` فقط server-side است؛ مرورگر همهٔ عملیات را از `/api` same-origin می‌خواند و هیچ secret یا URL داخلی با `NEXT_PUBLIC_*` منتشر نمی‌شود. `TRUST_PROXY` فقط پشت reverse proxy مورد اعتماد فعال می‌شود.
 
 ## Runtime و امنیت
 
@@ -69,7 +69,7 @@ checkout فقط `CheckoutSession` می‌سازد. order پس از settlement م
 
 `npm run reconcile:bookings` سفارش‌های حل‌نشده را از provider استعلام می‌کند: نتیجهٔ موفق تأیید، نتیجهٔ قطعی ناموفق جبران، و نتیجهٔ نامشخص بدون تغییر مالی باقی می‌ماند. retryهای transaction سریال‌شونده‌اند و unique keyهای booking/refund/ledger/notification باعث همگرایی پس از crash می‌شوند؛ ادعای exactly-once شبکه‌ای وجود ندارد.
 
-برای استقرار و عملیات production، [راهنمای deployment](docs/deployment.md)، [چک‌لیست انتشار](docs/production-checklist.md)، [ماتریس آمادگی](docs/production-readiness.md)، [سیاست نگهداری داده](docs/data-retention.md) و [گزارش audit dependency](docs/dependency-audit.md) را ببینید. target API با `docker build --target api -t kiashi-api .` و target frontend/proxy با `docker build --target proxy -t kiashi-proxy .` ساخته می‌شود؛ compose نمونه هر دو را می‌سازد و secret واقعی نباید در فایل‌های نمونه قرار بگیرد.
+برای استقرار و عملیات production، [معماری فرانت](docs/frontend-architecture.md)، [معماری SEO](docs/seo-architecture.md)، [نقشهٔ مسیرها](docs/next-route-migration.md)، [راهنمای deployment](docs/deployment.md)، [چک‌لیست انتشار](docs/production-checklist.md) و [گزارش امنیت dependency](docs/dependency-security-audit.md) را ببینید. topology تولید `Nginx + Next standalone + Fastify + PostgreSQL` است. targetها با `docker build --target web`، `--target api` و `--target proxy` ساخته می‌شوند؛ secret واقعی نباید در image یا فایل نمونه قرار بگیرد.
 
 ## Migration و تست PostgreSQL
 

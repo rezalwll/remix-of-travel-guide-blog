@@ -1,5 +1,5 @@
 import { Coffee, MapPin, Star, Wifi } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from '@/lib/router';
 import type { Hotel, HotelSearchParams } from '@/types/hotel';
 import { getHotelStartingPrice } from '@/services/hotelService';
 import { formatPrice } from '@/utils/flight';

@@ -2,7 +2,9 @@ export class ApiError extends Error {
   constructor(public status: number, public code: string, message: string, public fieldErrors?: Record<string, string[]>, public requestId?: string, public details?: Record<string, unknown>) { super(message); this.name = "ApiError"; }
 }
 
-const apiBase = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, "") ?? "";
+// Browser traffic stays same-origin. Nginx proxies `/api` to Fastify in production,
+// while Next rewrites it to API_INTERNAL_URL in local/container development.
+const apiBase = "";
 
 export async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
   let response: Response;

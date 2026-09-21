@@ -1,6 +1,0 @@
-import { CreditCard, LockKeyhole } from 'lucide-react';
-import Layout from '@/components/layout/Layout';
-import { Link } from 'react-router-dom';
-
-const PaymentPlaceholder = () => <Layout><main className="container-page flex min-h-[65vh] items-center justify-center py-16"><div className="max-w-lg rounded-2xl border border-border bg-card p-8 text-center shadow-sm"><span className="mx-auto grid size-14 place-items-center rounded-2xl bg-secondary/10 text-secondary"><CreditCard className="size-7" /></span><h1 className="mt-5 text-2xl font-extrabold">اطلاعات سفارش آماده است</h1><p className="mt-3 text-sm leading-7 text-muted-foreground">روش‌های پرداخت در مرحلهٔ بعد اضافه می‌شوند. در این نسخه پرداخت واقعی یا شبیه‌سازی‌شده انجام نمی‌شود.</p><div className="mt-5 inline-flex items-center gap-2 rounded-lg bg-muted px-3 py-2 text-xs text-muted-foreground"><LockKeyhole className="size-4" /> اطلاعات پرداخت ذخیره نمی‌شود</div><div className="mt-7 flex justify-center gap-2"><Link to="/checkout/review" className="rounded-lg border border-border px-4 py-3 text-sm font-bold">بازگشت به بررسی</Link><Link to="/" className="rounded-lg bg-primary px-4 py-3 text-sm font-bold text-primary-foreground">صفحه اصلی</Link></div></div></main></Layout>;
-export default PaymentPlaceholder;

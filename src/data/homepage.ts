@@ -1,14 +1,25 @@
 import type { Destination, Hotel, Tour } from '@/types/travel';
-import heroGreece from '@/assets/hero-greece.jpg';
-import heroDesert from '@/assets/hero-desert.jpg';
-import heroCamping from '@/assets/hero-camping.jpg';
-import morocco from '@/assets/morocco.jpg';
-import france from '@/assets/france.jpg';
-import asiaTemple from '@/assets/asia-temple.jpg';
-import travelBooks from '@/assets/travel-books.jpg';
-import heroKishPremium from '@/assets/hero-kish-premium.png';
-import hotelTehranPremium from '@/assets/hotel-tehran-premium.png';
-import hotelIstanbulPremium from '@/assets/hotel-istanbul-premium.png';
+import heroGreeceAsset from '@/assets/hero-greece.jpg';
+import heroDesertAsset from '@/assets/hero-desert.jpg';
+import heroCampingAsset from '@/assets/hero-camping.jpg';
+import moroccoAsset from '@/assets/morocco.jpg';
+import franceAsset from '@/assets/france.jpg';
+import asiaTempleAsset from '@/assets/asia-temple.jpg';
+import travelBooksAsset from '@/assets/travel-books.jpg';
+import heroKishPremiumAsset from '@/assets/hero-kish-premium.png';
+import hotelTehranPremiumAsset from '@/assets/hotel-tehran-premium.png';
+import hotelIstanbulPremiumAsset from '@/assets/hotel-istanbul-premium.png';
+
+const heroGreece = heroGreeceAsset.src;
+const heroDesert = heroDesertAsset.src;
+const heroCamping = heroCampingAsset.src;
+const morocco = moroccoAsset.src;
+const france = franceAsset.src;
+const asiaTemple = asiaTempleAsset.src;
+const travelBooks = travelBooksAsset.src;
+const heroKishPremium = heroKishPremiumAsset.src;
+const hotelTehranPremium = hotelTehranPremiumAsset.src;
+const hotelIstanbulPremium = hotelIstanbulPremiumAsset.src;
 
 export interface TravelLocation { id: string; city: string; airport: string; code: string; country: string; }
 export interface Offer { id: string; title: string; description: string; image: string; accent: string; href: string; }
