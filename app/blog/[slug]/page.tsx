@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import JsonLd from "@/components/seo/JsonLd";
-import SeoShell from "@/components/seo/SeoShell";
+import TravelHero from "@/components/media/TravelHero";
+import MediaFrame from "@/components/media/MediaFrame";
+import { ImageCard, PromoBanner, SectionHeader } from "@/components/media/Cards";
 import { continents, featuredArticles, type Article } from "@/data/destinations";
 import { getSeoArticle, seoArticles } from "@/seo/content";
 import { absoluteUrl, createMetadata } from "@/seo/metadata";
+import { destinationAsset, editorialMedia, legacyAsset, serviceAsset } from "@/media/library";
 
 type NormalizedArticle = { slug: string; title: string; description: string; image: string; author: string; publishedAt: string; updatedAt: string; body: string[]; relatedDestination?: string; indexable: boolean };
 const legacyArticles = [...featuredArticles, ...continents.flatMap((continent) => continent.countries.flatMap((country) => country.articles))];
@@ -30,5 +32,33 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const article = findArticle(slug);
   if (!article) notFound();
   const canonical = `/blog/${article.slug}`;
-  return <SeoShell><Breadcrumbs items={[{ label: "خانه", href: "/" }, { label: "مجله سفر", href: "/blog" }, { label: article.title, href: canonical }]} /><article className="mx-auto max-w-4xl"><header><p className="text-xs font-bold text-secondary">{article.author} · <time dateTime={article.updatedAt}>{new Date(article.updatedAt).toLocaleDateString("fa-IR")}</time></p><h1 className="mt-3 text-3xl font-black leading-tight sm:text-5xl">{article.title}</h1><p className="mt-5 text-base leading-8 text-muted-foreground">{article.description}</p><div className="relative mt-7 aspect-[16/8] overflow-hidden rounded-3xl"><Image src={article.image} alt={article.title} fill priority sizes="(max-width: 1024px) 100vw, 896px" className="object-cover" /></div></header><div className="mt-8 space-y-6 text-base leading-9">{article.body.map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div>{article.relatedDestination && <aside className="mt-9 rounded-2xl border bg-card p-6"><h2 className="font-black">برنامه‌ریزی مقصد</h2><p className="mt-2 text-sm text-muted-foreground">راهنمای مقصد و پیوندهای پرواز و اقامت را در صفحه مرتبط ببینید.</p><Link href={article.relatedDestination} className="secondary-cta mt-4">مشاهده راهنمای مقصد</Link></aside>}</article><JsonLd data={{ "@context": "https://schema.org", "@type": "BlogPosting", headline: article.title, description: article.description, image: absoluteUrl(article.image), author: { "@type": "Organization", name: article.author }, publisher: { "@type": "Organization", name: "کی‌آشی" }, datePublished: article.publishedAt, dateModified: article.updatedAt, mainEntityOfPage: absoluteUrl(canonical), inLanguage: "fa-IR" }} /></SeoShell>;
+  const cover = legacyAsset(article.image, article.title, article.slug);
+  const destinationSlug = article.relatedDestination?.split("/").at(-1);
+  const related = [...seoArticles, ...legacyArticles.map(normalizeLegacy)].filter((item) => item.slug !== article.slug).slice(0, 3);
+
+  return (
+    <main id="main-content" className="min-h-[70vh] bg-muted/35">
+      <TravelHero asset={cover} size="compact" eyebrow={`${article.author} · ${new Date(article.updatedAt).toLocaleDateString("fa-IR")}`} title={article.title} description={article.description} />
+
+      <div className="container-page pt-7"><Breadcrumbs items={[{ label: "خانه", href: "/" }, { label: "مجله سفر", href: "/blog" }, { label: article.title, href: canonical }]} /></div>
+
+      <article className="container-page pb-12 pt-5">
+        <div className="mx-auto max-w-3xl space-y-7 text-base leading-9">
+          {article.body.map((paragraph, index) => (
+            <div key={paragraph}>
+              <p>{paragraph}</p>
+              {index === 0 && article.body.length > 1 && <MediaFrame asset={destinationSlug ? destinationAsset(destinationSlug, `تصویر مرتبط با ${article.title}`) : editorialMedia.map} ratio="16/9" sizes="(max-width: 768px) 100vw, 768px" className="mt-7 rounded-2xl" />}
+            </div>
+          ))}
+        </div>
+        {article.relatedDestination && <aside className="mx-auto mt-10 max-w-3xl"><PromoBanner href={article.relatedDestination} asset={destinationSlug ? destinationAsset(destinationSlug, `تصویر مقصد مرتبط با ${article.title}`) : editorialMedia.travellers} eyebrow="ادامهٔ برنامه‌ریزی" title="راهنمای مقصد را هم ببین" description="زمان سفر، رفت‌وآمد و پیوندهای پرواز و اقامت در صفحهٔ مقصد جمع شده است." cta="مشاهدهٔ مقصد" /></aside>}
+      </article>
+
+      <section className="media-section-tinted"><div className="container-page"><SectionHeader eyebrow="مطالب بعدی" title="از مجلهٔ سفر" action={{ href: "/blog", label: "همهٔ مقاله‌ها" }} /><div className="media-grid sm:grid-cols-2 lg:grid-cols-3">{related.map((item, index) => <ImageCard key={item.slug} href={`/blog/${item.slug}`} asset={legacyAsset(item.image, item.title, item.slug)} title={item.title} description={item.description} meta={index === 0 ? "پیشنهاد تحریریه" : undefined} cta="خواندن مقاله" />)}</div></div></section>
+
+      <section className="pb-14 pt-10 sm:pb-20"><div className="container-page"><PromoBanner href="/travel-preparation" asset={serviceAsset("routes", "تصویر برنامه‌ریزی پیش از سفر")} eyebrow="پیش از حرکت" title="چک‌لیست سفر را مرور کن" description="مدارک، بیمه، اینترنت و زمان‌بندی رفت‌وآمد را یک‌جا بررسی کن." cta="آمادگی سفر" align="center" /></div></section>
+
+      <JsonLd data={{ "@context": "https://schema.org", "@type": "BlogPosting", headline: article.title, description: article.description, image: absoluteUrl(article.image), author: { "@type": "Organization", name: article.author }, publisher: { "@type": "Organization", name: "کی‌آشی" }, datePublished: article.publishedAt, dateModified: article.updatedAt, mainEntityOfPage: absoluteUrl(canonical), inLanguage: "fa-IR" }} />
+    </main>
+  );
 }

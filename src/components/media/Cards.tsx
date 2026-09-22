@@ -313,3 +313,29 @@ export function CategoryBubble({ href, asset, label }: { href: string; asset: Me
     </Link>
   );
 }
+
+/**
+ * Responsive, stable detail-page gallery. It deliberately renders every image in the
+ * document instead of hiding slides in client JavaScript, which keeps the media useful
+ * for keyboard users, crawlers and no-script visitors.
+ */
+export function ImageMosaic({
+  assets,
+  label,
+}: {
+  assets: readonly [MediaAsset, MediaAsset, MediaAsset];
+  label: string;
+}) {
+  return (
+    <figure aria-label={label} className="grid gap-2 overflow-hidden rounded-[1.5rem] sm:grid-cols-2 sm:grid-rows-2">
+      <MediaFrame
+        asset={assets[0]}
+        ratio="4/3"
+        sizes="(max-width: 640px) 100vw, 66vw"
+        className="sm:row-span-2 sm:size-full sm:min-h-[28rem]"
+      />
+      <MediaFrame asset={assets[1]} ratio="16/9" sizes="(max-width: 640px) 100vw, 34vw" className="sm:size-full" />
+      <MediaFrame asset={assets[2]} ratio="16/9" sizes="(max-width: 640px) 100vw, 34vw" className="sm:size-full" />
+    </figure>
+  );
+}
