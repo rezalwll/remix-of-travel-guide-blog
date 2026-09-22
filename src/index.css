@@ -73,6 +73,11 @@
   .secondary-cta { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 text-sm font-bold transition duration-200 hover:border-secondary/50 hover:bg-secondary/5 hover:text-secondary; }
   .image-card { @apply overflow-hidden rounded-[1.25rem] border border-border/70 bg-card transition duration-300 hover:-translate-y-1 hover:border-secondary/30; box-shadow: var(--shadow-xs); }
   .image-card:hover { box-shadow: var(--shadow-card); }
+  .media-section { @apply py-12 sm:py-16 lg:py-20; }
+  .media-section-tinted { @apply bg-muted/45 py-12 sm:py-16 lg:py-20; }
+  .media-section-dark { @apply bg-[hsl(var(--earth-dark))] py-12 text-white sm:py-16 lg:py-20; }
+  .media-grid { @apply mt-7 grid gap-4 sm:gap-5; }
+  .demo-note { @apply rounded-xl border border-dashed border-border bg-muted/50 p-4 text-xs leading-6 text-muted-foreground; }
   .ltr-value { direction: ltr; unicode-bidi: isolate; }
   .scrollbar-none { scrollbar-width: none; }
   .scrollbar-none::-webkit-scrollbar { display: none; }
