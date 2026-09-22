@@ -8,9 +8,9 @@ const morocco = isNodeRuntime ? '/morocco.jpg' : new URL('../assets/morocco.jpg'
 const heroGreece = isNodeRuntime ? '/hero-greece.jpg' : new URL('../assets/hero-greece.jpg', import.meta.url).href;
 const heroCamping = isNodeRuntime ? '/hero-camping.jpg' : new URL('../assets/hero-camping.jpg', import.meta.url).href;
 const travelBooks = isNodeRuntime ? '/travel-books.jpg' : new URL('../assets/travel-books.jpg', import.meta.url).href;
-const hotelTehranPremium = isNodeRuntime ? '/world-map.jpg' : new URL('../assets/hotel-tehran-premium.png', import.meta.url).href;
-const hotelIstanbulPremium = isNodeRuntime ? '/hero-greece.jpg' : new URL('../assets/hotel-istanbul-premium.png', import.meta.url).href;
-const heroKishPremium = isNodeRuntime ? '/iceland.jpg' : new URL('../assets/hero-kish-premium.png', import.meta.url).href;
+const hotelTehranPremium = isNodeRuntime ? '/hotel-tehran-premium.webp' : new URL('../assets/hotel-tehran-premium.webp', import.meta.url).href;
+const hotelIstanbulPremium = isNodeRuntime ? '/hotel-istanbul-premium.webp' : new URL('../assets/hotel-istanbul-premium.webp', import.meta.url).href;
+const heroKishPremium = isNodeRuntime ? '/hero-kish-premium.webp' : new URL('../assets/hero-kish-premium.webp', import.meta.url).href;
 
 const photos = {
   palace: hotelTehranPremium,

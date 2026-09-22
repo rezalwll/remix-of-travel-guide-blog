@@ -6,9 +6,9 @@ import moroccoAsset from '@/assets/morocco.jpg';
 import franceAsset from '@/assets/france.jpg';
 import asiaTempleAsset from '@/assets/asia-temple.jpg';
 import travelBooksAsset from '@/assets/travel-books.jpg';
-import heroKishPremiumAsset from '@/assets/hero-kish-premium.png';
-import hotelTehranPremiumAsset from '@/assets/hotel-tehran-premium.png';
-import hotelIstanbulPremiumAsset from '@/assets/hotel-istanbul-premium.png';
+import heroKishPremiumAsset from '@/assets/hero-kish-premium.webp';
+import hotelTehranPremiumAsset from '@/assets/hotel-tehran-premium.webp';
+import hotelIstanbulPremiumAsset from '@/assets/hotel-istanbul-premium.webp';
 
 const heroGreece = heroGreeceAsset.src;
 const heroDesert = heroDesertAsset.src;

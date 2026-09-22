@@ -4,7 +4,7 @@ import { ArrowLeft, BadgeCheck, Compass, Headphones, ShieldCheck } from "lucide-
 import BookingSearch from "@/components/home/BookingSearch";
 import { createMetadata } from "@/seo/metadata";
 import { seoArticles, seoDestinations, seoHotelLandings, seoRoutes } from "@/seo/content";
-import heroImage from "@/assets/hero-kish-premium.png";
+import heroImage from "@/assets/hero-kish-premium.webp";
 
 export const metadata = createMetadata({
   title: "پرواز، هتل و راهنمای سفر",

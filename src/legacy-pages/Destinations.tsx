@@ -39,7 +39,7 @@ const Destinations = () => {
       <main className="pb-20">
         <section className="relative isolate overflow-hidden bg-earth-dark py-16 text-white sm:py-24">
           <img
-            src="/world-map.jpg"
+            src="/world-map.webp"
             alt="نقشه جهان برای انتخاب مقصد سفر"
             className="absolute inset-0 -z-20 size-full object-cover opacity-25"
           />
