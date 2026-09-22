@@ -27,7 +27,8 @@ test('tracking and help provide useful invalid and search states', async ({ page
   const helpSearch = page.getByRole('textbox', { name: 'جست‌وجوی راهنما' });
   await expect(helpSearch).toHaveCount(1);
   await helpSearch.fill('پرداخت');
-  await expect(page.getByText('اگر پرداخت ناموفق شود چه کار کنم؟')).toBeVisible();
+  const faqRegion = page.getByRole('region', { name: 'پرسش‌های متداول' }).first();
+  await expect(faqRegion.getByText('اگر پرداخت ناموفق شود چه کار کنم؟')).toBeVisible();
 });
 
 test('mobile navigation and complementary service pages are reachable', async ({ page, isMobile }) => {
