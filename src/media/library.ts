@@ -44,13 +44,16 @@ const photo = (
   licenseNote: "asset shipped with the repository; no third-party stock licence required",
 });
 
-const scene = (id: string, sceneKind: SceneKind, palette: PaletteName, alt: string, usage: MediaUsage = "card"): SceneAsset => ({
-  kind: "scene",
-  id,
-  scene: sceneKind,
-  palette,
+const pexelsPhoto = (id: string, file: string, width: number, height: number, alt: string, usage: MediaUsage = "card"): PhotoAsset => ({
+  kind: "photo",
+  id: `pexels-${id}`,
+  src: `/media/${file}`,
+  width,
+  height,
   alt,
   usage,
+  credit: `Pexels photo ${id}`,
+  licenseNote: `Pexels License; source https://www.pexels.com/photo/${id}/`,
 });
 
 /** Photography that ships with the repository. Each entry is used deliberately, not as filler. */
@@ -70,6 +73,22 @@ export const photoLibrary = {
   books: photo("books", "/travel-books.jpg", 1920, 1280, "کتاب‌ها و ابزار برنامه‌ریزی سفر", "editorial"),
   bloggers: photo("bloggers", "/bloggers.jpg", 1245, 1280, "دو مسافر در حال برنامه‌ریزی سفر", "editorial"),
   worldMap: photo("world-map", "/world-map.webp", 1600, 1067, "نقشه جهان برای انتخاب مقصد", "editorial"),
+  aircraft: pexelsPhoto("358319", "plane.webp", 1200, 533, "هواپیمای مسافربری در حال فرود", "hero"),
+  resortPool: pexelsPhoto("261102", "resort.webp", 1200, 801, "استخر و نمای یک هتل شهری", "hero"),
+  hotelRoom: pexelsPhoto("271624", "hotel-room.webp", 1200, 801, "اتاق روشن هتل با تخت و فضای نشیمن"),
+  tropicalBeach: pexelsPhoto("1450353", "hotel-pool.webp", 1200, 797, "ساحل گرمسیری با آب شفاف"),
+  metro: pexelsPhoto("302428", "train-a.webp", 1200, 798, "فضای داخلی قطار شهری"),
+  highland: pexelsPhoto("2884864", "train-b.webp", 1200, 800, "چشم‌انداز سبز کوهستانی در سفر"),
+  forestRoad: pexelsPhoto("1173777", "bus.webp", 1200, 2133, "جادهٔ پیچان میان جنگل", "hero"),
+  airportTraveller: pexelsPhoto("1008155", "road.webp", 1200, 798, "مسافر با چمدان در ترمینال فرودگاه", "hero"),
+  mapAndPlane: pexelsPhoto("3769138", "phone.webp", 1200, 786, "نقشهٔ جهان و هواپیمای کوچک برای برنامه‌ریزی سفر"),
+  forestMist: pexelsPhoto("723589", "passport.webp", 1200, 675, "جنگل مه‌آلود در سفر طبیعت", "hero"),
+  travelTeam: pexelsPhoto("3183150", "support.webp", 1200, 801, "تیم برنامه‌ریزی سفر پشت میز", "editorial"),
+  mountainLake: pexelsPhoto("417074", "mountain.webp", 1200, 808, "دریاچهٔ کوهستانی و قله‌های بلند", "hero"),
+  cityBridge: pexelsPhoto("450597", "city.webp", 1200, 848, "پل شهری و خط آسمان در سفر", "hero"),
+  globeInHand: pexelsPhoto("346885", "lake.webp", 1200, 800, "کرهٔ زمین در دست مسافر", "editorial"),
+  roadTrip: pexelsPhoto("386009", "beach.webp", 1200, 800, "مینی‌بوس سفر و چمدان روی سقف"),
+  scenicOverlook: pexelsPhoto("2574010", "airport.webp", 1200, 900, "چشم‌انداز کوهستان از سکوی تماشا", "hero"),
 } satisfies Record<string, PhotoAsset>;
 
 /**
@@ -78,43 +97,43 @@ export const photoLibrary = {
  */
 export const destinationMedia: Record<string, MediaAsset> = {
   kish: photoLibrary.kishShore,
-  qeshm: scene("qeshm", "coast", "qeshm", "تصویرسازی ساحل و صخره‌های قشم"),
-  mashhad: scene("mashhad", "heritage", "mashhad", "تصویرسازی گنبد و گلدسته در مشهد"),
-  tehran: scene("tehran", "city", "tehran", "تصویرسازی خط آسمان تهران"),
-  shiraz: scene("shiraz", "heritage", "shiraz", "تصویرسازی بناهای تاریخی شیراز"),
-  isfahan: scene("isfahan", "heritage", "isfahan", "تصویرسازی میدان و گنبد فیروزه‌ای اصفهان"),
-  yazd: scene("yazd", "desert", "yazd", "تصویرسازی کویر و بادگیرهای یزد"),
-  tabriz: scene("tabriz", "market", "isfahan", "تصویرسازی بازار سنتی تبریز"),
-  rasht: scene("rasht", "forest", "caspian", "تصویرسازی جنگل و مه گیلان"),
-  mazandaran: scene("mazandaran", "forest", "caspian", "تصویرسازی جنگل‌های مازندران"),
-  alborz: scene("alborz", "mountain", "alborz", "تصویرسازی رشته‌کوه البرز"),
+  qeshm: photoLibrary.tropicalBeach,
+  mashhad: photoLibrary.temple,
+  tehran: photoLibrary.tehranHotel,
+  shiraz: photoLibrary.morocco,
+  isfahan: photoLibrary.temple,
+  yazd: photoLibrary.desert,
+  tabriz: photoLibrary.cityBridge,
+  rasht: photoLibrary.forestMist,
+  mazandaran: photoLibrary.highland,
+  alborz: photoLibrary.mountainLake,
   istanbul: photoLibrary.greece,
-  dubai: scene("dubai", "city", "dubai", "تصویرسازی آسمان‌خراش‌های دبی"),
-  antalya: scene("antalya", "coast", "sea", "تصویرسازی سواحل آنتالیا"),
-  van: scene("van", "mountain", "alborz", "تصویرسازی دریاچه و کوه‌های وان"),
-  najaf: scene("najaf", "heritage", "najaf", "تصویرسازی حرم و معماری نجف"),
-  karbala: scene("karbala", "heritage", "najaf", "تصویرسازی فضای زیارتی کربلا"),
+  dubai: photoLibrary.resortPool,
+  antalya: photoLibrary.tropicalBeach,
+  van: photoLibrary.mountainLake,
+  najaf: photoLibrary.temple,
+  karbala: photoLibrary.temple,
   tbilisi: photoLibrary.france,
-  yerevan: scene("yerevan", "mountain", "alborz", "تصویرسازی کوهستان و شهر ایروان"),
+  yerevan: photoLibrary.scenicOverlook,
 };
 
 /** Service landings. Each service has its own visual identity so pages never look interchangeable. */
 export const serviceMedia: Record<string, MediaAsset> = {
-  flights: scene("svc-flights", "air", "sea", "تصویرسازی پرواز میان ابرها", "hero"),
+  flights: photoLibrary.aircraft,
   hotels: photoLibrary.tehranHotel,
-  routes: scene("svc-routes", "mountain", "alborz", "تصویرسازی مسیر سفر کوهستانی", "hero"),
-  tours: scene("svc-tours", "market", "sunrise", "تصویرسازی بازار و تجربه‌های مقصد", "hero"),
-  ziyarat: scene("svc-ziyarat", "heritage", "najaf", "تصویرسازی آرام از فضای زیارتی", "hero"),
-  trains: scene("svc-trains", "rail", "caspian", "تصویرسازی سفر ریلی", "hero"),
-  buses: scene("svc-buses", "road", "alborz", "تصویرسازی سفر جاده‌ای با اتوبوس", "hero"),
-  insurance: scene("svc-insurance", "shield", "trust", "تصویرسازی پوشش و ایمنی سفر", "hero"),
-  cip: scene("svc-cip", "lounge", "lounge", "تصویرسازی سالن تشریفات فرودگاه", "hero"),
-  transfer: scene("svc-transfer", "road", "tehran", "تصویرسازی ترانسفر فرودگاهی", "hero"),
-  "fast-track": scene("svc-fast-track", "lounge", "trust", "تصویرسازی مسیر سریع فرودگاهی", "hero"),
-  esim: scene("svc-esim", "connect", "isfahan", "تصویرسازی ارتباط و اینترنت سفر", "hero"),
-  visa: scene("svc-visa", "document", "brand", "تصویرسازی مدارک سفر و ویزا", "hero"),
-  "city-tours": scene("svc-city-tours", "market", "shiraz", "تصویرسازی گشت شهری و تجربه محلی", "hero"),
-  support: scene("svc-support", "shield", "trust", "تصویرسازی پشتیبانی سفر", "hero"),
+  routes: photoLibrary.forestRoad,
+  tours: photoLibrary.cityBridge,
+  ziyarat: photoLibrary.temple,
+  trains: photoLibrary.metro,
+  buses: photoLibrary.forestRoad,
+  insurance: photoLibrary.globeInHand,
+  cip: photoLibrary.airportTraveller,
+  transfer: photoLibrary.roadTrip,
+  "fast-track": photoLibrary.airportTraveller,
+  esim: photoLibrary.travelTeam,
+  visa: photoLibrary.mapAndPlane,
+  "city-tours": photoLibrary.cityBridge,
+  support: photoLibrary.travelTeam,
 };
 
 /** Stay categories used by hotel discovery blocks. */
@@ -124,24 +143,24 @@ export const stayMedia: Record<string, MediaAsset> = {
   boutique: photoLibrary.istanbulHotel,
   traditional: photoLibrary.morocco,
   nature: photoLibrary.camping,
-  seaView: scene("stay-sea-view", "coast", "kish", "تصویرسازی اتاق با نمای دریا"),
-  lobby: scene("stay-lobby", "lounge", "lounge", "تصویرسازی لابی هتل"),
-  breakfast: scene("stay-breakfast", "market", "sunrise", "تصویرسازی صبحانه و رستوران هتل"),
+  seaView: photoLibrary.tropicalBeach,
+  lobby: photoLibrary.resortPool,
+  breakfast: photoLibrary.hotelRoom,
 };
 
 /** Experience/category strip used on discovery pages. */
 export const experienceMedia: Record<string, MediaAsset> = {
-  beach: scene("exp-beach", "coast", "kish", "تصویرسازی تجربه ساحلی"),
+  beach: photoLibrary.tropicalBeach,
   desert: photoLibrary.desert,
-  city: scene("exp-city", "city", "istanbul", "تصویرسازی گشت شهری"),
-  heritage: scene("exp-heritage", "heritage", "isfahan", "تصویرسازی بازدید تاریخی"),
-  nature: scene("exp-nature", "forest", "caspian", "تصویرسازی طبیعت‌گردی"),
-  shopping: scene("exp-shopping", "market", "dubai", "تصویرسازی خرید و بازار"),
-  food: scene("exp-food", "market", "shiraz", "تصویرسازی تجربه غذایی سفر"),
+  city: photoLibrary.cityBridge,
+  heritage: photoLibrary.temple,
+  nature: photoLibrary.forestMist,
+  shopping: photoLibrary.resortPool,
+  food: photoLibrary.morocco,
   adventure: photoLibrary.iceland,
   luxury: photoLibrary.istanbulHotel,
-  budget: scene("exp-budget", "road", "alborz", "تصویرسازی سفر اقتصادی"),
-  pilgrimage: scene("exp-pilgrimage", "heritage", "najaf", "تصویرسازی سفر زیارتی"),
+  budget: photoLibrary.roadTrip,
+  pilgrimage: photoLibrary.temple,
 };
 
 /** Editorial covers for magazine surfaces. */
@@ -153,12 +172,11 @@ export const editorialMedia: Record<string, MediaAsset> = {
   wildlife: photoLibrary.lion,
 };
 
-const brandedFallback = (seed: string): SceneAsset => {
-  const palettes: PaletteName[] = ["sea", "kish", "isfahan", "sunrise", "alborz", "caspian", "shiraz", "istanbul"];
-  const kinds: SceneKind[] = ["coast", "city", "heritage", "mountain", "forest", "market"];
+const brandedFallback = (seed: string): PhotoAsset => {
+  const fallbacks = [photoLibrary.scenicOverlook, photoLibrary.cityBridge, photoLibrary.mountainLake, photoLibrary.forestMist, photoLibrary.roadTrip];
   let hash = 0;
   for (const char of seed) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
-  return scene(`fallback-${seed}`, kinds[hash % kinds.length], palettes[hash % palettes.length], "تصویرسازی پیش‌فرض سفر کی‌آشی");
+  return { ...fallbacks[hash % fallbacks.length], id: `fallback-${seed}`, alt: "عکس واقعی نمایشی برای سفر" };
 };
 
 /** Never returns undefined: unknown slugs get a deterministic branded scene instead of a broken image. */
