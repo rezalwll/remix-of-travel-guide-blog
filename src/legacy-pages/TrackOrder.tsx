@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { Link } from "@/lib/router";
 import Layout from "@/components/layout/Layout";
+import MediaFrame from "@/components/media/MediaFrame";
+import { serviceAsset } from "@/media/library";
 import { findPublicOrder } from "@/services/orderTracking";
 import { serviceLabel } from "@/services/orderView";
 import type { ApiTracking } from "@/services/backend";
@@ -39,18 +41,12 @@ export default function TrackOrder() {
       <main className="bg-muted/40 py-8 sm:py-12">
         <div className="container-page max-w-3xl">
           <section className="rounded-2xl border border-border bg-card p-6 sm:p-9">
-            <div className="flex items-start gap-3">
-              <span className="grid size-11 place-items-center rounded-xl bg-primary/10 text-primary">
-                <Search className="size-6" />
-              </span>
-              <div>
-                <p className="text-xs font-bold text-primary">خدمات مشتریان</p>
-                <h1 className="mt-1 text-2xl font-extrabold">پیگیری خرید</h1>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  شماره سفارش، کد پیگیری رزرو یا مرجع پرداخت را به همراه موبایل
-                  خریدار وارد کنید.
-                </p>
+            <div className="grid gap-5 sm:grid-cols-[1fr_13rem] sm:items-stretch">
+              <div className="flex items-start gap-3 py-2">
+                <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><Search className="size-6" /></span>
+                <div><p className="text-xs font-bold text-primary">خدمات مشتریان</p><h1 className="mt-1 text-2xl font-extrabold">پیگیری خرید</h1><p className="mt-2 text-sm leading-6 text-muted-foreground">شماره سفارش، کد پیگیری رزرو یا مرجع پرداخت را به همراه موبایل خریدار وارد کنید.</p></div>
               </div>
+              <MediaFrame asset={serviceAsset("routes", "تصویرسازی مسیر پیگیری سفارش")} ratio="16/9" sizes="208px" decorative className="rounded-xl sm:size-full" />
             </div>
             <div className="mt-7 grid gap-3 sm:grid-cols-2">
               <label className="text-sm font-bold">

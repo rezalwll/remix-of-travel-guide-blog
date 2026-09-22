@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { ArrowLeft, LockKeyhole, ShieldCheck } from 'lucide-react';
 import { Link, useNavigate, useSearchParams } from '@/lib/router';
 import Layout from '@/components/layout/Layout';
+import MediaFrame from '@/components/media/MediaFrame';
+import { photoLibrary } from '@/media/library';
 import { demoOtp, requestOtp } from '@/services/auth';
 import { useAuth } from '@/context/AuthContext';
 
@@ -12,7 +14,7 @@ const pending = {
   returnTo: 'kiashi.pending.returnTo',
 };
 
-const AuthCard = ({ children, title, subtitle }: { children: React.ReactNode; title: string; subtitle: string }) => <Layout><main className="flex min-h-[75vh] items-center justify-center bg-muted/40 px-4 py-10"><div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8"><div className="mb-7 text-center"><span className="mx-auto grid size-12 place-items-center rounded-2xl bg-primary text-xl font-extrabold text-white">ک</span><h1 className="mt-4 text-2xl font-extrabold">{title}</h1><p className="mt-2 text-sm leading-6 text-muted-foreground">{subtitle}</p></div>{children}</div></main></Layout>;
+const AuthCard = ({ children, title, subtitle }: { children: React.ReactNode; title: string; subtitle: string }) => <Layout><main className="flex min-h-[78vh] items-center justify-center bg-muted/40 px-4 py-10"><section className="grid w-full max-w-5xl overflow-hidden rounded-[1.5rem] border border-border bg-card shadow-[var(--shadow-card)] lg:grid-cols-[1fr_1.05fr]"><div className="p-6 sm:p-9 lg:p-12"><div className="mb-7"><span className="grid size-12 place-items-center rounded-2xl bg-primary text-xl font-extrabold text-white">ک</span><h1 className="mt-5 text-2xl font-extrabold sm:text-3xl">{title}</h1><p className="mt-2 text-sm leading-7 text-muted-foreground">{subtitle}</p></div>{children}</div><div className="relative hidden min-h-[38rem] lg:block"><MediaFrame asset={photoLibrary.bloggers} ratio="4/5" sizes="50vw" overlay="strong" decorative className="absolute inset-0 size-full"><div className="absolute inset-x-0 bottom-0 z-10 p-10 text-white"><p className="text-xs font-bold text-accent">حساب سفر کی‌آشی</p><h2 className="mt-3 text-3xl font-black leading-tight">برنامه، سفارش و همراهان سفر در یک جای امن</h2><p className="mt-3 text-sm leading-7 text-white/80">ورود با کد یک‌بارمصرف انجام می‌شود؛ اطلاعات حساس بانکی در حساب ذخیره نمی‌شود.</p></div></MediaFrame></div></section></main></Layout>;
 const MobileField = ({ value, onChange }: { value: string; onChange: (value: string) => void }) => <label className="block"><span className="mb-1.5 block text-xs font-bold">شماره موبایل</span><input value={value} onChange={(e) => onChange(e.target.value)} inputMode="tel" dir="ltr" placeholder="09121234567" className="min-h-12 w-full rounded-lg border border-border bg-background px-3 text-left text-sm outline-none focus:ring-2 focus:ring-ring" /></label>;
 
 const beginOtp = async (mobile: string, returnTo: string, registration?: Record<string, string>) => {
