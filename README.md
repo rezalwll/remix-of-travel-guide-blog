@@ -69,7 +69,7 @@ checkout فقط `CheckoutSession` می‌سازد. order پس از settlement م
 
 `npm run reconcile:bookings` سفارش‌های حل‌نشده را از provider استعلام می‌کند: نتیجهٔ موفق تأیید، نتیجهٔ قطعی ناموفق جبران، و نتیجهٔ نامشخص بدون تغییر مالی باقی می‌ماند. retryهای transaction سریال‌شونده‌اند و unique keyهای booking/refund/ledger/notification باعث همگرایی پس از crash می‌شوند؛ ادعای exactly-once شبکه‌ای وجود ندارد.
 
-برای استقرار و عملیات production، [معماری فرانت](docs/frontend-architecture.md)، [معماری SEO](docs/seo-architecture.md)، [نقشهٔ مسیرها](docs/next-route-migration.md)، [راهنمای deployment](docs/deployment.md)، [چک‌لیست انتشار](docs/production-checklist.md) و [گزارش امنیت dependency](docs/dependency-security-audit.md) را ببینید. topology تولید `Nginx + Next standalone + Fastify + PostgreSQL` است. targetها با `docker build --target web`، `--target api` و `--target proxy` ساخته می‌شوند؛ secret واقعی نباید در image یا فایل نمونه قرار بگیرد.
+برای استقرار و عملیات production، [معماری فرانت](docs/frontend-architecture.md)، [معماری SEO](docs/seo-architecture.md)، [نقشهٔ مسیرها](docs/next-route-migration.md)، [راهنمای deployment](docs/deployment.md)، [چک‌لیست انتشار](docs/production-checklist.md) و [گزارش امنیت dependency](docs/dependency-security-audit.md) را ببینید. topology تولید `Nginx + Next standalone + Fastify + PostgreSQL` است. targetهای `web` و `api` با `docker build --build-arg SITE_URL=https://your-domain.example --target ...` ساخته می‌شوند تا canonical در زمان build صریح باشد؛ secret واقعی نباید در image یا فایل نمونه قرار بگیرد.
 
 ## Migration و تست PostgreSQL
 

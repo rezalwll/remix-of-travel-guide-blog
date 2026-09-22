@@ -12,6 +12,9 @@ import { privateMetadata } from "@/seo/metadata";
 
 export const revalidate = 43_200;
 export const dynamicParams = false;
+const hotelDetailSlugs = new Set(hotels.map((item) => item.slug));
+const landingCollisions = seoHotelLandings.filter((item) => hotelDetailSlugs.has(item.slug));
+if (landingCollisions.length) throw new Error(`Hotel landing/detail slug collision: ${landingCollisions.map((item) => item.slug).join(", ")}`);
 export function generateStaticParams() { return [...seoHotelLandings.filter((item) => isIndexableContent(item, 3)).map((item) => ({ slug: item.slug })), ...hotels.map((item) => ({ slug: item.slug }))]; }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {

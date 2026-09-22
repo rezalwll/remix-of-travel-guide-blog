@@ -1,3 +1,5 @@
+import { seoAuditManifest } from "../src/seo/audit-manifest";
+
 const baseUrl = (process.env.SEO_BASE_URL || "http://127.0.0.1:3000").replace(/\/$/, "");
 
 const failures: string[] = [];
@@ -7,15 +9,7 @@ const fetchPage = async (path: string) => {
   return { response, html: await response.text() };
 };
 
-const indexable = [
-  ["/", "سفر را انتخاب کن", false],
-  ["/destinations/iran/kish", "راهنمای سفر به کیش", false],
-  ["/flights/tehran-to-mashhad", "بلیط هواپیما تهران به مشهد", true],
-  ["/hotels/kish", "هتل‌های کیش", false],
-  ["/blog/best-time-to-visit-istanbul", "بهترین زمان سفر به استانبول", true],
-] as const;
-
-for (const [path, h1, jsonLd] of indexable) {
+for (const { path, h1, jsonLd } of seoAuditManifest.indexable) {
   const { response, html } = await fetchPage(path);
   expect(response.status === 200, `${path} should return 200 (got ${response.status})`);
   expect(/<title>[^<]{8,}<\/title>/i.test(html), `${path} is missing a meaningful title`);
@@ -26,28 +20,36 @@ for (const [path, h1, jsonLd] of indexable) {
   if (jsonLd) expect(html.includes("application/ld+json"), `${path} is missing JSON-LD`);
 }
 
-for (const path of ["/auth/login", "/checkout/review", "/track-order", "/flights/search?from=THR&to=MHD", "/account"]) {
+for (const path of seoAuditManifest.noindex) {
   const { response, html } = await fetchPage(path);
   expect(response.status === 200, `${path} should render with 200 before client auth handling`);
   expect(/name="robots"[^>]+content="[^"]*noindex/i.test(html) || /content="[^"]*noindex[^"]*"[^>]+name="robots"/i.test(html), `${path} should emit noindex`);
+  expect(!/<link[^>]+rel="canonical"/i.test(html), `${path} must not canonicalize to a public page`);
+  expect(response.headers.get("cache-control")?.includes("no-store"), `${path} should send a private no-store cache policy`);
 }
 
-const missing = await fetchPage("/this-route-must-not-exist");
-expect(missing.response.status === 404, `unknown route should return 404 (got ${missing.response.status})`);
+for (const [source, target] of seoAuditManifest.redirects) {
+  const redirected = await fetchPage(source);
+  expect(redirected.response.status === 308, `${source} should permanently redirect (got ${redirected.response.status})`);
+  expect(redirected.response.headers.get("location") === target, `${source} redirect target is incorrect`);
+  const destination = await fetchPage(target);
+  expect(destination.response.status === 200, `${source} redirect destination should return 200 without another hop`);
+}
 
-const legacy = await fetchPage("/article/feat1");
-expect([307, 308].includes(legacy.response.status), `legacy article should permanently redirect (got ${legacy.response.status})`);
-expect(legacy.response.headers.get("location") === "/blog/feat1", "legacy article redirect target is incorrect");
+for (const path of seoAuditManifest.intentional404) {
+  const missing = await fetchPage(path);
+  expect(missing.response.status === 404, `${path} should return 404 (got ${missing.response.status})`);
+}
 
 const sitemap = await fetchPage("/sitemap.xml");
 expect(sitemap.response.status === 200 && sitemap.html.includes("/flights/tehran-to-mashhad"), "sitemap is missing an indexable route");
 expect(!sitemap.html.includes("/checkout/") && !sitemap.html.includes("/account"), "sitemap contains private URLs");
 
 const robots = await fetchPage("/robots.txt");
-expect(robots.response.status === 200 && robots.html.includes("Disallow: /account/"), "robots policy is missing private-route rules");
+expect(robots.response.status === 200 && robots.html.includes("Disallow: /account"), "robots policy is missing private-route rules");
 
 if (failures.length) {
   console.error(`SEO check failed:\n- ${failures.join("\n- ")}`);
   process.exit(1);
 }
-console.log(`SEO raw HTML check passed (${indexable.length} indexable pages, 5 noindex pages, redirects, 404, sitemap and robots).`);
+console.log(`SEO raw HTML check passed (${seoAuditManifest.indexable.length} indexable pages, ${seoAuditManifest.noindex.length} noindex pages without private canonicals, ${seoAuditManifest.redirects.length} one-hop redirects, 404, sitemap and robots).`);

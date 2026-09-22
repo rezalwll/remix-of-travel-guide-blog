@@ -47,6 +47,7 @@ const envSchema = z.object({
   GIT_SHA: z.string().max(80).default("local"),
   BUILD_TIME: z.string().max(80).default("unknown"),
   RATE_LIMIT_STORE: z.enum(["memory"]).default("memory"),
+  E2E_OTP_CODE: z.string().regex(/^\d{5}$/).optional(),
 }).superRefine((value, ctx) => {
   if (value.NODE_ENV !== "production") return;
   if (!value.WEB_ORIGIN.startsWith("https://")) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["WEB_ORIGIN"], message: "WEB_ORIGIN must use HTTPS in production" });
@@ -57,6 +58,7 @@ const envSchema = z.object({
   if (value.APP_VERSION === "0.0.0-dev") ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["APP_VERSION"], message: "APP_VERSION must identify the release" });
   if (value.GIT_SHA === "local") ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["GIT_SHA"], message: "GIT_SHA must identify the deployed revision" });
   if (value.BUILD_TIME === "unknown" || Number.isNaN(Date.parse(value.BUILD_TIME))) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["BUILD_TIME"], message: "BUILD_TIME must be an ISO timestamp" });
+  if (value.E2E_OTP_CODE && !["127.0.0.1", "localhost", "::1"].includes(new URL(value.WEB_ORIGIN).hostname)) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["E2E_OTP_CODE"], message: "E2E_OTP_CODE is restricted to loopback certification environments" });
 });
 
 export function parseConfig(source: NodeJS.ProcessEnv = process.env) {
@@ -67,7 +69,7 @@ export function parseConfig(source: NodeJS.ProcessEnv = process.env) {
     SMS_PROVIDER_MODE: source.SMS_PROVIDER_MODE, SMS_PROVIDER_BASE_URL: source.SMS_PROVIDER_BASE_URL, SMS_PROVIDER_API_KEY: source.SMS_PROVIDER_API_KEY, SMS_PROVIDER_SENDER: source.SMS_PROVIDER_SENDER, SMS_PROVIDER_OTP_TEMPLATE: source.SMS_PROVIDER_OTP_TEMPLATE,
     PAYMENT_PROVIDER_MODE: source.PAYMENT_PROVIDER_MODE, PAYMENT_PROVIDER_BASE_URL: source.PAYMENT_PROVIDER_BASE_URL, PAYMENT_PROVIDER_MERCHANT_ID: source.PAYMENT_PROVIDER_MERCHANT_ID, PAYMENT_PROVIDER_SECRET: source.PAYMENT_PROVIDER_SECRET,
     TRAVEL_PROVIDER_MODE: source.TRAVEL_PROVIDER_MODE, TRAVEL_PROVIDER_BASE_URL: source.TRAVEL_PROVIDER_BASE_URL, TRAVEL_PROVIDER_API_KEY: source.TRAVEL_PROVIDER_API_KEY,
-    LOG_LEVEL: source.LOG_LEVEL, APP_VERSION: source.APP_VERSION, GIT_SHA: source.GIT_SHA, BUILD_TIME: source.BUILD_TIME, RATE_LIMIT_STORE: source.RATE_LIMIT_STORE,
+    LOG_LEVEL: source.LOG_LEVEL, APP_VERSION: source.APP_VERSION, GIT_SHA: source.GIT_SHA, BUILD_TIME: source.BUILD_TIME, RATE_LIMIT_STORE: source.RATE_LIMIT_STORE, E2E_OTP_CODE: source.E2E_OTP_CODE,
   });
   if (parsed.NODE_ENV === "production") {
     for (const name of ["DATABASE_URL", "WEB_ORIGIN", "API_PUBLIC_URL", "TRUST_PROXY", "APP_VERSION", "GIT_SHA", "BUILD_TIME"] as const) if (!source[name]) throw new Error(`${name} must be explicitly configured in production`);

@@ -21,10 +21,12 @@ test('tracking and help provide useful invalid and search states', async ({ page
   await page.getByLabel('شناسه سفارش').fill('KIA-INVALID');
   await page.getByLabel('موبایل خریدار').fill('09120000000');
   await page.getByRole('button', { name: 'جست‌وجوی سفارش' }).click();
-  await expect(page.getByRole('alert')).toContainText('پیدا نشد');
-  await page.goto('/help', { waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('alert').filter({ hasText: 'پیدا نشد' })).toBeVisible();
+  await page.goto('/support');
   await expect(page.getByRole('heading', { name: 'سوالات متداول' })).toBeVisible();
-  await page.getByPlaceholder('سوال یا موضوع خود را جست‌وجو کنید').fill('پرداخت');
+  const helpSearch = page.getByRole('textbox', { name: 'جست‌وجوی راهنما' });
+  await expect(helpSearch).toHaveCount(1);
+  await helpSearch.fill('پرداخت');
   await expect(page.getByText('اگر پرداخت ناموفق شود چه کار کنم؟')).toBeVisible();
 });
 

@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 
 export const siteName = "کی‌آشی";
-export const siteUrl = process.env.SITE_URL?.replace(/\/$/, "") || "https://kiashi.ir";
+const configuredSiteUrl = process.env.SITE_URL?.replace(/\/$/, "");
+if (process.env.NODE_ENV === "production" && !configuredSiteUrl) {
+  throw new Error("SITE_URL must be explicitly configured for a production build");
+}
+export const siteUrl = configuredSiteUrl || "http://localhost:3000";
 
 export const absoluteUrl = (path: string) => new URL(path.startsWith("/") ? path : `/${path}`, `${siteUrl}/`).toString();
 
@@ -27,4 +31,4 @@ export function createMetadata(input: {
 }
 
 export const privateMetadata = (title: string, description = "این صفحه برای کاربران و فرایندهای تراکنشی کی‌آشی است."): Metadata =>
-  createMetadata({ title, description, path: "/", index: false });
+  ({ title, description, robots: { index: false, follow: false, googleBot: { index: false, follow: false } } });

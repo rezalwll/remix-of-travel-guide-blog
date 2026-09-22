@@ -6,7 +6,7 @@ import {
   useRouter,
   useSearchParams as useNextSearchParams,
 } from "next/navigation";
-import { useCallback, useEffect, type AnchorHTMLAttributes, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, type AnchorHTMLAttributes, type ReactNode } from "react";
 
 type Destination = string | { pathname?: string; search?: string; hash?: string };
 
@@ -70,11 +70,13 @@ export function useSearchParams(): [URLSearchParams, (next: URLSearchParams | Re
   const current = useNextSearchParams();
   const pathname = usePathname();
   const router = useRouter();
-  const params = new URLSearchParams(current.toString());
-  return [params, (next) => {
+  const serialized = current.toString();
+  const params = useMemo(() => new URLSearchParams(serialized), [serialized]);
+  const setParams = useCallback((next: URLSearchParams | Record<string, string>) => {
     const value = next instanceof URLSearchParams ? next : new URLSearchParams(next);
     router.push(value.size ? `${pathname}?${value}` : pathname);
-  }];
+  }, [pathname, router]);
+  return [params, setParams];
 }
 
 export function Navigate({ to, replace = false }: { to: Destination; replace?: boolean }) {

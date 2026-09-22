@@ -12,6 +12,7 @@ jobs:
       DATABASE_URL_TEST: postgresql://kiashi:kiashi@localhost:5432/kiashi_test
       DATABASE_URL: postgresql://kiashi:kiashi@localhost:5432/kiashi_test
       NODE_ENV: test
+      SITE_URL: https://example.test
     services:
       postgres:
         image: postgres:16-alpine
@@ -49,8 +50,8 @@ jobs:
       - run: npm run release:check
         env:
           RELEASE_CHECK_DATABASE: "true"
-      - run: docker build --target api --tag kiashi:${{ github.sha }} .
-      - run: docker build --target web --tag kiashi-web:${{ github.sha }} .
+      - run: docker build --build-arg SITE_URL=https://example.test --target api --tag kiashi:${{ github.sha }} .
+      - run: docker build --build-arg SITE_URL=https://example.test --target web --tag kiashi-web:${{ github.sha }} .
       - run: docker build --target proxy --tag kiashi-proxy:${{ github.sha }} .
       - name: Smoke production API container
         shell: bash
@@ -85,7 +86,7 @@ jobs:
         run: |
           PREVIOUS_DIR="$RUNNER_TEMP/kiashi-previous"
           git worktree add --detach "$PREVIOUS_DIR" HEAD^
-          docker build --target api --tag kiashi:previous "$PREVIOUS_DIR"
+          docker build --build-arg SITE_URL=https://example.test --target api --tag kiashi:previous "$PREVIOUS_DIR"
           docker run --detach --name kiashi-rollback --network host \
             --env NODE_ENV=production \
             --env DATABASE_URL="$DATABASE_URL" \
@@ -137,6 +138,7 @@ jobs:
             --env APP_VERSION=ci-e2e \
             --env GIT_SHA=${{ github.sha }} \
             --env BUILD_TIME=2026-01-01T00:00:00.000Z \
+            --env E2E_OTP_CODE=12345 \
             kiashi:${{ github.sha }}
           docker run --detach --name kiashi-e2e-web --network host \
             --tmpfs /app/.next/cache:rw,mode=1777 \
@@ -160,6 +162,7 @@ jobs:
             sleep 2
           done
           SEO_BASE_URL=http://127.0.0.1:3000 npm run seo:check
+          SEO_BASE_URL=http://127.0.0.1:3000 npm run links:check
           E2E_EXTERNAL=true PLAYWRIGHT_BASE_URL=https://127.0.0.1 npx playwright test
           docker stop --time 15 kiashi-e2e-proxy kiashi-e2e-web kiashi-e2e-api
           test "$(docker inspect kiashi-e2e-web --format '{{.State.ExitCode}}')" = "0"

@@ -118,7 +118,7 @@ export async function buildApp(options: AppOptions = {}) {
     enforceRate(`otp:${request.ip}`, 10, 10 * 60_000);
     const parsed = z.object({ mobile: mobileSchema }).safeParse(request.body);
     if (!parsed.success) return errorResponse(reply, 400, "VALIDATION_ERROR", "شماره موبایل معتبر نیست");
-    const demoCode = env.NODE_ENV === "production" ? String(randomInt(0, 100_000)).padStart(5, "0") : "12345";
+    const demoCode = env.E2E_OTP_CODE ?? (env.NODE_ENV === "production" ? String(randomInt(0, 100_000)).padStart(5, "0") : "12345");
     const challenge = await repository.requestOtp(parsed.data.mobile, demoCode);
     await smsService.send({ mobile: parsed.data.mobile, template: "OTP_LOGIN", variables: { code: demoCode }, idempotencyKey: challenge.id }, request.id);
     return reply.code(202).send({ challengeId: challenge.id, expiresIn: 120, ...(env.NODE_ENV === "production" ? {} : { demoCode }) });

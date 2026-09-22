@@ -20,7 +20,7 @@ React Query برای server state تعاملی و cache مرورگر باقی م
 - search، order runtime و health: dynamic
 - account، checkout، payment و auth: noindex و بدون cache عمومی personalized
 
-ساخت production از `output: standalone` استفاده می‌کند. topology برابر است با `Nginx → Next/Fastify → PostgreSQL`. target وب Docker با کاربر non-root اجرا می‌شود، health مستقل `/healthz` دارد و filesystem آن read-only با tmpfs cache است. Nginx فقط `/_next/static` را immutable cache می‌کند و HTML SSR یا API را blanket-cache نمی‌کند.
+ساخت production از `output: standalone` استفاده می‌کند و `SITE_URL` باید هم به build و هم runtime داده شود. topology برابر است با `Nginx → Next/Fastify → PostgreSQL`. target وب Docker با کاربر non-root اجرا می‌شود، health مستقل `/healthz` دارد و filesystem آن read-only با tmpfs cache است. Nginx فقط `/_next/static` را immutable cache می‌کند و HTML SSR یا API را blanket-cache نمی‌کند.
 
 ## توسعه و تغییرات آینده
 

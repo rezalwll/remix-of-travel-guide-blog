@@ -33,7 +33,8 @@
     "ops:health": "node scripts/ops-health.mjs",
     "ops:load": "node scripts/load-sanity.mjs",
     "release:check": "tsx scripts/release-check.ts",
-    "seo:check": "tsx scripts/seo-check.ts"
+    "seo:check": "tsx scripts/seo-check.ts",
+    "links:check": "tsx scripts/link-check.ts"
   },
   "engines": {
     "node": ">=20 <21",
