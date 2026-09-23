@@ -45,7 +45,7 @@ export default function DestinationsPage() {
         <div className="container-page">
           <SectionHeader
             eyebrow="مقصدهای منتخب"
-            title="راهنماهای کامل کی‌آشی"
+            title="راهنماهای کامل کیاشی"
             description="این مقصدها راهنمای فارسی اختصاصی، نکات رفت‌وآمد و پیوند مستقیم به پرواز و اقامت دارند."
           />
           <div className="media-grid sm:grid-cols-2 lg:grid-cols-3">
@@ -117,7 +117,7 @@ export default function DestinationsPage() {
             { href: "/hotels", label: "جست‌وجوی هتل", text: "محله و شرایط لغو را بسنج." },
             { href: "/visa", label: "راهنمای ویزا", text: "مدارک عمومی را ببین." },
           ].map((link) => (
-            <Link key={link.href} href={link.href} className="group flex items-center justify-between gap-3 rounded-2xl border bg-card p-5 transition hover:-translate-y-0.5 hover:border-secondary/40">
+            <Link key={link.href} href={link.href} className="group flex items-center justify-between gap-3 rounded-2xl border bg-card p-5 transition-colors hover:border-secondary/40">
               <span>
                 <span className="block font-extrabold group-hover:text-primary">{link.label}</span>
                 <span className="mt-1 block text-xs text-muted-foreground">{link.text}</span>
@@ -135,7 +135,7 @@ export default function DestinationsPage() {
             asset={serviceAsset("support", "تصویر پشتیبانی سفر")}
             eyebrow="کمک برای انتخاب"
             title="در انتخاب مقصد مردد هستی؟"
-            description="راهنمای خرید و پرسش‌های متداول کی‌آشی می‌تواند تصمیم را ساده‌تر کند."
+            description="راهنمای خرید و پرسش‌های متداول کیاشی می‌تواند تصمیم را ساده‌تر کند."
             cta="مرکز راهنما"
             align="center"
           />

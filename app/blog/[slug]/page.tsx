@@ -14,7 +14,7 @@ import { destinationAsset, editorialMedia, legacyAsset, serviceAsset } from "@/m
 type NormalizedArticle = { slug: string; title: string; description: string; image: string; author: string; publishedAt: string; updatedAt: string; body: string[]; relatedDestination?: string; indexable: boolean };
 const legacyArticles = [...featuredArticles, ...continents.flatMap((continent) => continent.countries.flatMap((country) => country.articles))];
 
-function normalizeLegacy(article: Article): NormalizedArticle { return { slug: article.id, title: article.title, description: article.excerpt, image: article.image, author: article.author || "تحریریه کی‌آشی", publishedAt: article.date, updatedAt: article.date, body: article.content || [article.excerpt], indexable: Boolean(article.content?.length) }; }
+function normalizeLegacy(article: Article): NormalizedArticle { return { slug: article.id, title: article.title, description: article.excerpt, image: article.image, author: article.author || "تحریریه کیاشی", publishedAt: article.date, updatedAt: article.date, body: article.content || [article.excerpt], indexable: Boolean(article.content?.length) }; }
 function findArticle(slug: string): NormalizedArticle | undefined { return getSeoArticle(slug) || (legacyArticles.find((item) => item.id === slug) ? normalizeLegacy(legacyArticles.find((item) => item.id === slug)!) : undefined); }
 
 export const revalidate = 86_400;
@@ -58,7 +58,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
       <section className="pb-14 pt-10 sm:pb-20"><div className="container-page"><PromoBanner href="/travel-preparation" asset={serviceAsset("routes", "تصویر برنامه‌ریزی پیش از سفر")} eyebrow="پیش از حرکت" title="چک‌لیست سفر را مرور کن" description="مدارک، بیمه، اینترنت و زمان‌بندی رفت‌وآمد را یک‌جا بررسی کن." cta="آمادگی سفر" align="center" /></div></section>
 
-      <JsonLd data={{ "@context": "https://schema.org", "@type": "BlogPosting", headline: article.title, description: article.description, image: absoluteUrl(article.image), author: { "@type": "Organization", name: article.author }, publisher: { "@type": "Organization", name: "کی‌آشی" }, datePublished: article.publishedAt, dateModified: article.updatedAt, mainEntityOfPage: absoluteUrl(canonical), inLanguage: "fa-IR" }} />
+      <JsonLd data={{ "@context": "https://schema.org", "@type": "BlogPosting", headline: article.title, description: article.description, image: absoluteUrl(article.image), author: { "@type": "Organization", name: article.author }, publisher: { "@type": "Organization", name: "کیاشی" }, datePublished: article.publishedAt, dateModified: article.updatedAt, mainEntityOfPage: absoluteUrl(canonical), inLanguage: "fa-IR" }} />
     </main>
   );
 }

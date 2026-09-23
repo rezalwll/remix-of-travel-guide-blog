@@ -42,7 +42,7 @@ import {
 
 export const metadata = createMetadata({
   title: "پرواز، هتل و راهنمای سفر",
-  description: "جست‌وجوی پرواز و هتل، راهنمای مقصدهای منتخب و مدیریت شفاف سفر در کی‌آشی.",
+  description: "جست‌وجوی پرواز و هتل، راهنمای مقصدهای منتخب و مدیریت شفاف سفر در کیاشی.",
   path: "/",
   image: "/hero-kish-premium.webp",
 });
@@ -102,7 +102,7 @@ export default function HomePage() {
       <section className="media-section" aria-labelledby="services-heading">
         <div className="container-page">
           <SectionHeader
-            eyebrow="خدمات کی‌آشی"
+            eyebrow="خدمات کیاشی"
             title="از کجا شروع می‌کنی؟"
             description="هر سرویس صفحهٔ راهنمای خودش را دارد؛ جست‌وجوی واقعی و نرخ فقط در نتیجهٔ متصل به تأمین‌کننده انجام می‌شود."
           />
@@ -234,7 +234,7 @@ export default function HomePage() {
           <div className="media-grid md:grid-cols-3">
             <ImageCard
               href="/tours"
-              asset={serviceAsset("tours", "تصویر معرفی تورهای کی‌آشی")}
+              asset={serviceAsset("tours", "تصویر معرفی تورهای کیاشی")}
               title="تورهای چندروزه"
               description="برنامهٔ روزبه‌روز، خدمات مشمول و شرایط مدارک را کنار هم مقایسه کن."
               chips={["برنامهٔ شفاف", "خدمات قابل مقایسه"]}
@@ -316,7 +316,7 @@ export default function HomePage() {
 
       <section className="media-section">
         <div className="container-page">
-          <h2 className="sr-only">چرا کی‌آشی</h2>
+          <h2 className="sr-only">چرا کیاشی</h2>
           <div className="grid overflow-hidden rounded-[1.25rem] border bg-card sm:grid-cols-3">
             {trust.map(({ icon: Icon, title, text }) => (
               <div key={title} className="flex gap-3 border-b p-6 last:border-0 sm:border-b-0 sm:border-l">
@@ -337,7 +337,7 @@ export default function HomePage() {
               asset={serviceAsset("support", "تصویر بخش پشتیبانی سفر")}
               eyebrow="همراه سفر"
               title="سؤالی دربارهٔ سفر داری؟"
-              description="راهنمای خرید، استرداد و پیگیری سفارش در مرکز راهنمای کی‌آشی جمع شده است."
+              description="راهنمای خرید، استرداد و پیگیری سفارش در مرکز راهنمای کیاشی جمع شده است."
               cta="مرکز راهنما"
               align="center"
             />
@@ -347,9 +347,9 @@ export default function HomePage() {
 
       <section className="border-t bg-card">
         <div className="container-page py-10">
-          <h2 className="text-lg font-black">برنامه‌ریزی سفر با کی‌آشی</h2>
+          <h2 className="text-lg font-black">برنامه‌ریزی سفر با کیاشی</h2>
           <p className="mt-3 max-w-4xl text-sm leading-8 text-muted-foreground">
-            کی‌آشی مسیر انتخاب سفر را از جست‌وجوی پرواز و هتل تا پیگیری سفارش یکپارچه می‌کند.
+            کیاشی مسیر انتخاب سفر را از جست‌وجوی پرواز و هتل تا پیگیری سفارش یکپارچه می‌کند.
             صفحه‌های راهنمای مقصد و مسیر برای تصمیم‌گیری نوشته شده‌اند و نرخ، ظرفیت و موجودی فقط
             در نتیجهٔ جست‌وجوی متصل به تأمین‌کننده معتبر است. خدمات مکمل مانند بیمه، ترانسفر،
             تشریفات فرودگاهی و اینترنت مقصد هم با همان منطق شفاف ارائه می‌شوند.

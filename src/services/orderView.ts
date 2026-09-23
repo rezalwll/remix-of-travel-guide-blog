@@ -17,7 +17,7 @@ export const orderTitle = (order: ApiOrder) => {
   if (text(item.trainName)) return text(item.trainName);
   if (text(item.company)) return text(item.company);
   if (text(outbound.fromCity) || text(outbound.toCity)) return `${text(outbound.fromCity) || 'مبدأ'} ← ${text(outbound.toCity) || 'مقصد'}`;
-  return `${serviceLabel(order.serviceType)} کی‌آشی`;
+  return `${serviceLabel(order.serviceType)} کیاشی`;
 };
 
 export const paymentReference = (order: ApiOrder) => text(asRecord(order.paymentSnapshot).reference) || order.trackingCode;

@@ -61,7 +61,7 @@ const ContinentPage = () => {
             {continent.countries.map((country) => (
               <Link key={country.slug} to={`/destinations/${continent.slug}/${country.slug}`} className="image-card group">
                 <div className="relative aspect-[16/10] overflow-hidden">
-                  <img src={country.heroImage} alt={countryFa(country.name)} className="size-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
+                  <img src={country.heroImage} alt={countryFa(country.name)} className="size-full object-cover" loading="lazy" />
                   <span className="absolute end-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur">
                     {country.articles.length.toLocaleString("fa-IR")} راهنما
                   </span>
@@ -69,7 +69,7 @@ const ContinentPage = () => {
                 <div className="p-5">
                   <div className="flex items-center justify-between gap-3">
                     <h3 className="text-xl font-black">{countryFa(country.name)}</h3>
-                    <ArrowLeft className="size-5 text-primary transition group-hover:-translate-x-1" />
+                    <ArrowLeft className="size-5 text-primary" />
                   </div>
                   <p className="mt-2 line-clamp-2 text-sm leading-7 text-muted-foreground">برای فصل مناسب، منطقه‌های پیشنهادی و ایده‌های سفر به {countryFa(country.name)} آماده شو.</p>
                 </div>

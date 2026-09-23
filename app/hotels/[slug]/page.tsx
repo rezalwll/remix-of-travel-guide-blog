@@ -10,6 +10,7 @@ import { createMetadata, privateMetadata } from "@/seo/metadata";
 import { hotels } from "@/data/hotels";
 import LegacyPage from "@/components/next/LegacyPage";
 import { destinationAsset, serviceAsset, stayMedia } from "@/media/library";
+import { PersianDatePicker } from "@/components/ui/PersianDatePicker";
 
 export const revalidate = 43_200;
 export const dynamicParams = false;
@@ -46,8 +47,8 @@ export default async function HotelLandingPage({ params }: { params: Promise<{ s
       <form action="/hotels/search" method="get" className="container-page relative z-10 -mt-24">
         <div className="grid gap-3 rounded-2xl border bg-card p-5 shadow-xl sm:grid-cols-[1.5fr_1fr_1fr_auto]">
           <label className="text-xs font-bold">مقصد<input name="destination" defaultValue={item.slug} readOnly className="mt-2 min-h-12 w-full rounded-xl border bg-muted/40 px-3" /></label>
-          <label className="text-xs font-bold">ورود<input type="date" name="checkIn" required className="mt-2 min-h-12 w-full rounded-xl border px-3" /></label>
-          <label className="text-xs font-bold">خروج<input type="date" name="checkOut" required className="mt-2 min-h-12 w-full rounded-xl border px-3" /></label>
+          <PersianDatePicker label="ورود" name="checkIn" required />
+          <PersianDatePicker label="خروج" name="checkOut" required />
           <button type="submit" className="primary-cta self-end"><Search className="size-4" /> جست‌وجوی هتل</button>
         </div>
       </form>

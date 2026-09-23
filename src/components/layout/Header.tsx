@@ -70,14 +70,10 @@ const Header = () => {
         <Link
           to="/"
           className="group flex shrink-0 items-center gap-2.5"
-          aria-label="کی‌آشی، صفحه اصلی"
+          aria-label="کیاشی، صفحه اصلی"
         >
-          <span className="relative grid size-10 place-items-center overflow-hidden rounded-[14px] bg-primary text-xl font-black text-primary-foreground shadow-lg shadow-primary/20 transition group-hover:-rotate-3">
-            ک
-            <span className="absolute -end-2 -top-2 size-4 rounded-full bg-accent" />
-          </span>
+          <img src="/kiashi-logo.png" alt="کیاشی" className="h-10 w-auto max-w-[112px] object-contain object-right" />
           <span className="hidden sm:block">
-            <span className="block text-[18px] font-black leading-5 tracking-tight">کی‌آشی</span>
             <span className="block text-[9px] font-semibold text-muted-foreground">همهٔ سفر، یک‌جا</span>
           </span>
         </Link>

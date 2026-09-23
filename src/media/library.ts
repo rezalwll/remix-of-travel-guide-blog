@@ -40,7 +40,7 @@ const photo = (
   height,
   alt,
   usage,
-  credit: "کی‌آشی — دارایی نمایشی پروژه",
+  credit: "کیاشی — دارایی نمایشی پروژه",
   licenseNote: "asset shipped with the repository; no third-party stock licence required",
 });
 
@@ -200,7 +200,7 @@ export function legacyAsset(src: string | undefined, alt: string, seed = "legacy
   if (!src || !src.startsWith("/")) return { ...brandedFallback(seed), alt };
   const known = Object.values(photoLibrary).find((item) => item.src === src);
   if (known) return { ...known, alt };
-  return { kind: "photo", id: `legacy-${seed}`, src, width: 1600, height: 1067, alt, usage: "card", credit: "کی‌آشی — دارایی نمایشی پروژه", licenseNote: "repository demo asset" };
+  return { kind: "photo", id: `legacy-${seed}`, src, width: 1600, height: 1067, alt, usage: "card", credit: "کیاشی — دارایی نمایشی پروژه", licenseNote: "repository demo asset" };
 }
 
 export const mediaRegistry = { destinationMedia, serviceMedia, stayMedia, experienceMedia, editorialMedia, photoLibrary };

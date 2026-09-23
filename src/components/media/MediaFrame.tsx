@@ -35,7 +35,7 @@ export type MediaFrameProps = {
 
 /**
  * Single entry point for every visual surface. Photography goes through next/image,
- * branded scenes render as inline SVG, and both share identical framing, overlay and motion.
+ * branded scenes render as inline SVG, and both share identical framing and overlay.
  */
 export default function MediaFrame({
   asset,
@@ -46,10 +46,8 @@ export default function MediaFrame({
   className = "",
   imageClassName = "",
   decorative = false,
-  zoom = false,
   children,
 }: MediaFrameProps) {
-  const zoomClass = zoom ? "transition-transform duration-500 ease-out group-hover:scale-[1.04] motion-reduce:transform-none motion-reduce:transition-none" : "";
   return (
     <div className={`relative isolate overflow-hidden bg-muted ${ratios[ratio]} ${className}`}>
       {asset.kind === "photo" ? (
@@ -60,14 +58,14 @@ export default function MediaFrame({
           sizes={sizes}
           priority={priority}
           loading={priority ? undefined : "lazy"}
-          className={`object-cover ${zoomClass} ${imageClassName}`}
+          className={`object-cover ${imageClassName}`}
         />
       ) : (
         <TravelScene
           scene={asset.scene}
           palette={asset.palette}
           label={decorative ? undefined : asset.alt}
-          className={`absolute inset-0 size-full ${zoomClass} ${imageClassName}`}
+          className={`absolute inset-0 size-full ${imageClassName}`}
         />
       )}
       {overlay !== "none" && <div className={`absolute inset-0 ${overlays[overlay]}`} aria-hidden="true" />}

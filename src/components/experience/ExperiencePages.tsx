@@ -234,7 +234,7 @@ export const ExperienceListingPage = ({ type }: { type: ExperienceType }) => {
       ? experienceService.searchTours(filters, sort)
       : experienceService.searchZiyarat(filters, sort);
   useEffect(() => {
-    document.title = `${labels[type].title} | کی‌آشی`;
+    document.title = `${labels[type].title} | کیاشی`;
   }, [type]);
   return (
     <Layout>

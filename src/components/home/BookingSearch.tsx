@@ -5,7 +5,6 @@ import { useNavigate } from "@/lib/router";
 import {
   ArrowLeftRight,
   BusFront,
-  CalendarDays,
   Check,
   ChevronDown,
   Compass,
@@ -21,6 +20,7 @@ import {
 } from "lucide-react";
 import { travelLocations, type TravelLocation } from "@/data/homepage";
 import { cn } from "@/lib/utils";
+import { PersianDatePicker } from "@/components/ui/PersianDatePicker";
 
 type ServiceTab = "flight" | "hotel" | "tour" | "train" | "bus" | "ziyarat";
 type Counts = { adults: number; children: number; infants: number };
@@ -168,18 +168,7 @@ const DateField = ({
   value: string;
   onChange: (value: string) => void;
   min?: string;
-}) => (
-  <label className="travel-field min-w-0">
-    <FieldLabel icon={CalendarDays}>{label}</FieldLabel>
-    <input
-      type="date"
-      value={value}
-      min={min}
-      onChange={(event) => onChange(event.target.value)}
-      className="ltr-value mt-1 h-5 w-full min-w-0 bg-transparent text-sm font-extrabold leading-5 outline-none"
-    />
-  </label>
-);
+}) => <PersianDatePicker label={label} value={value} min={min} onChange={onChange} variant="travel" />;
 
 const SelectField = ({
   label,

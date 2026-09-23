@@ -95,7 +95,7 @@ const Destinations = () => {
               {filtered.map((continent) => (
                 <article key={continent.slug} className="surface-card flex min-h-72 flex-col overflow-hidden">
                   <Link to={`/destinations/${continent.slug}`} className="relative h-36 overflow-hidden">
-                    <img src={continent.heroImage} alt={continentFa(continent.name)} className="size-full object-cover transition duration-500 hover:scale-105" loading="lazy" />
+                    <img src={continent.heroImage} alt={continentFa(continent.name)} className="size-full object-cover" loading="lazy" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                     <div className="absolute inset-x-0 bottom-0 flex items-end justify-between p-4 text-white">
                       <h2 className="text-2xl font-black">{continentFa(continent.name)}</h2>

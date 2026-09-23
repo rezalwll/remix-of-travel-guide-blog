@@ -22,7 +22,7 @@ const legacyPublicPage = (path: string, title: string, description: string, prio
 });
 
 export const routePolicies: RoutePolicy[] = [
-  { ...publicPage("/", "پرواز، هتل و راهنمای سفر", "جست‌وجوی سفر و راهنمای مقصدهای منتخب کی‌آشی.", 1), rendering: "native-isr", contentSource: "typed-seo-content", changeFrequency: "daily" },
+  { ...publicPage("/", "پرواز، هتل و راهنمای سفر", "جست‌وجوی سفر و راهنمای مقصدهای منتخب کیاشی.", 1), rendering: "native-isr", contentSource: "typed-seo-content", changeFrequency: "daily" },
   { ...publicPage("/destinations", "راهنمای مقصدهای سفر", "راهنمای فارسی مقصدهای منتخب برای برنامه‌ریزی آگاهانه.", 0.8), rendering: "native-isr", contentSource: "typed-seo-content" },
   { ...publicPage("/blog", "مجله و راهنمای سفر", "مقاله‌ها و راهنماهای فارسی سفر.", 0.7), rendering: "native-isr", contentSource: "typed-seo-content" },
   publicPage("/flights", "جست‌وجوی پرواز", "جست‌وجوی پرواز و راهنمای انتخاب مسیر، بار و قوانین استرداد.", 0.8),
@@ -39,11 +39,11 @@ export const routePolicies: RoutePolicy[] = [
   publicPage("/fast-track", "فست ترک فرودگاهی", "راهنمای عبور سریع فرودگاهی و محدودیت‌های خدمت.", 0.6),
   publicPage("/esim", "eSIM سفر", "راهنمای انتخاب و فعال‌سازی اینترنت سفر.", 0.6),
   publicPage("/city-tours", "تجربه‌ها و گشت شهری", "راهنمای انتخاب گشت‌های شهری و تجربه‌های مقصد.", 0.6),
-  publicPage("/support", "مرکز راهنمای کی‌آشی", "پاسخ پرسش‌های متداول و راه‌های پشتیبانی.", 0.6),
+  publicPage("/support", "مرکز راهنمای کیاشی", "پاسخ پرسش‌های متداول و راه‌های پشتیبانی.", 0.6),
   legacyPublicPage("/help/purchase-guide", "راهنمای خرید", "مراحل جست‌وجو، بررسی و خرید خدمات سفر."),
   legacyPublicPage("/help/refund-guide", "راهنمای استرداد", "مراحل ثبت و پیگیری درخواست استرداد."),
   ...["about", "contact", "terms", "privacy", "refund-policy", "licenses", "business-travel", "club", "travel-preparation"].map((path) =>
-    legacyPublicPage(`/${path}`, path, `اطلاعات عمومی و راهنمای ${path} در کی‌آشی.`, 0.4)),
+    legacyPublicPage(`/${path}`, path, `اطلاعات عمومی و راهنمای ${path} در کیاشی.`, 0.4)),
 ];
 
 export const indexableStaticRoutes = routePolicies.filter((route) => route.indexable && route.sitemap);

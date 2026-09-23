@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { Link, useLocation, useParams } from "@/lib/router";
 import Layout from "@/components/layout/Layout";
+import { PersianDatePicker } from "@/components/ui/PersianDatePicker";
 import { AccountLayout } from "@/components/account/AccountLayout";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -738,13 +739,10 @@ export default function AccountPage() {
             dir="ltr"
             className="min-h-11 rounded-lg border border-border bg-background px-3 text-sm"
           />
-          <input
-            type="date"
+          <PersianDatePicker
+            label="تاریخ تولد"
             value={profile.birthDate}
-            onChange={(e) =>
-              setProfile({ ...profile, birthDate: e.target.value })
-            }
-            className="min-h-11 rounded-lg border border-border bg-background px-3 text-sm"
+            onChange={(birthDate) => setProfile({ ...profile, birthDate })}
           />
           <input
             value={profile.nationalId}

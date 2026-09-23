@@ -25,7 +25,7 @@ export default function BlogPage() {
       <TravelHero
         asset={photoLibrary.books}
         size="compact"
-        eyebrow="مجلهٔ سفر کی‌آشی"
+        eyebrow="مجلهٔ سفر کیاشی"
         title="قبل از حرکت بخوان"
         description="مقاله‌های منتخب فارسی در اولویت‌اند و آرشیو محتوای قبلی نیز با نشانی پایدار حفظ شده است."
       />

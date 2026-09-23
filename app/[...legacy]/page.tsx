@@ -14,8 +14,8 @@ const staticRoutes: Record<string, Entry> = {
   "help/purchase-guide": { name: "PublicInfoPage", props: { kind: "purchase" }, title: "راهنمای خرید", index: true },
   "help/refund-guide": { name: "PublicInfoPage", props: { kind: "refund-guide" }, title: "راهنمای استرداد", index: true },
   "track-order": { name: "TrackOrder", title: "پیگیری سفارش", index: false },
-  about: { name: "PublicInfoPage", props: { kind: "about" }, title: "درباره کی‌آشی", index: true },
-  contact: { name: "PublicInfoPage", props: { kind: "contact" }, title: "تماس با کی‌آشی", index: true },
+  about: { name: "PublicInfoPage", props: { kind: "about" }, title: "درباره کیاشی", index: true },
+  contact: { name: "PublicInfoPage", props: { kind: "contact" }, title: "تماس با کیاشی", index: true },
   terms: { name: "PublicInfoPage", props: { kind: "terms" }, title: "قوانین و مقررات", index: true },
   privacy: { name: "PublicInfoPage", props: { kind: "privacy" }, title: "حریم خصوصی", index: true },
   "refund-policy": { name: "PublicInfoPage", props: { kind: "refund" }, title: "سیاست استرداد", index: true },
@@ -85,7 +85,7 @@ export async function generateMetadata({ params }: { params: Promise<{ legacy: s
   const path = legacy.join("/");
   const entry = resolveRoute(path);
   if (!entry) notFound();
-  if (entry.index) return createMetadata({ title: entry.title, description: entry.description || `${entry.title} در کی‌آشی؛ اطلاعات کاربردی برای برنامه‌ریزی بهتر سفر.`, path: `/${path}`, index: true });
+  if (entry.index) return createMetadata({ title: entry.title, description: entry.description || `${entry.title} در کیاشی؛ اطلاعات کاربردی برای برنامه‌ریزی بهتر سفر.`, path: `/${path}`, index: true });
   return privateMetadata(entry.title, entry.description);
 }
 

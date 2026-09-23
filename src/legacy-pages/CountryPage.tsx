@@ -115,7 +115,7 @@ const CountryPage = () => {
             <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
               {articles.map((article, index) => (
                 <Link key={article.id} to={`/article/${article.id}`} className="image-card group">
-                  <div className="aspect-[16/10] overflow-hidden"><img src={article.image} alt={`راهنمای ${countryFa(country.name)}`} className="size-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" /></div>
+                  <div className="aspect-[16/10] overflow-hidden"><img src={article.image} alt={`راهنمای ${countryFa(country.name)}`} className="size-full object-cover" loading="lazy" /></div>
                   <div className="p-5">
                     <span className="text-xs font-bold text-secondary">{categoryFa(article.category)}</span>
                     <h3 className="mt-2 text-lg font-black leading-7">{`${(index + 1).toLocaleString("fa-IR")}. راهنمای ${categoryFa(article.category)} در ${countryFa(country.name)}`}</h3>

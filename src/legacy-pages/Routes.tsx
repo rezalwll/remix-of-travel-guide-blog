@@ -30,7 +30,7 @@ const Routes = () => (
           {travelRoutes.map((route, index) => (
             <article key={route.id} className={`image-card group ${index === 0 ? "lg:col-span-2 lg:grid lg:grid-cols-[1.15fr_.85fr]" : ""}`}>
               <Link to={`/routes/${route.id}`} className={`relative block overflow-hidden ${index === 0 ? "min-h-72" : "aspect-[16/9]"}`}>
-                <img src={route.image} alt={route.title} className="absolute inset-0 size-full object-cover transition duration-500 group-hover:scale-105" loading={index ? "lazy" : "eager"} />
+                <img src={route.image} alt={route.title} className="absolute inset-0 size-full object-cover" loading={index ? "lazy" : "eager"} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-transparent" />
                 <span className="absolute end-4 top-4 rounded-full bg-white/90 px-3 py-1.5 text-xs font-extrabold text-foreground shadow">{route.duration}</span>
               </Link>
@@ -41,7 +41,7 @@ const Routes = () => (
                 <p className="mt-4 line-clamp-3 text-sm leading-7 text-muted-foreground">{route.description}</p>
                 <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-4">
                   <div><p className="text-[11px] text-muted-foreground">برآورد نمایشی</p><p className="text-sm font-extrabold">{route.budget}</p></div>
-                  <Link to={`/routes/${route.id}`} className="inline-flex items-center gap-2 text-sm font-extrabold text-primary">جزئیات مسیر <ArrowLeft className="size-4 transition group-hover:-translate-x-1" /></Link>
+                  <Link to={`/routes/${route.id}`} className="inline-flex items-center gap-2 text-sm font-extrabold text-primary">جزئیات مسیر <ArrowLeft className="size-4" /></Link>
                 </div>
               </div>
             </article>

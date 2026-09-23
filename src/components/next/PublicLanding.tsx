@@ -202,7 +202,7 @@ export function PublicLanding({ page }: { page: PageKey }) {
               <Link
                 key={related}
                 href={`/${related}`}
-                className="group flex items-center justify-between gap-3 rounded-2xl border bg-card p-5 transition hover:-translate-y-0.5 hover:border-secondary/40"
+                className="group flex items-center justify-between gap-3 rounded-2xl border bg-card p-5 transition-colors hover:border-secondary/40"
               >
                 <span>
                   <span className="block font-extrabold group-hover:text-primary">{serviceLabel[related]}</span>

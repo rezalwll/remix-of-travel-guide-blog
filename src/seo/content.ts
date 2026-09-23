@@ -145,17 +145,17 @@ export const seoHotelLandings: SeoHotelLanding[] = [
 export const seoArticles: SeoArticle[] = [
   {
     slug: "best-time-to-visit-istanbul", title: "بهترین زمان سفر به استانبول؛ راهنمای فصل‌به‌فصل", description: "مقایسه فصل‌های استانبول از نظر آب‌وهوا، شلوغی و نوع تجربه برای انتخاب زمان مناسب سفر.",
-    image: "/hero-greece.jpg", author: "تحریریه کی‌آشی", publishedAt: "2026-08-20", updatedAt: "2026-09-12", relatedDestination: "/destinations/turkey/istanbul", indexable: true,
+    image: "/hero-greece.jpg", author: "تحریریه کیاشی", publishedAt: "2026-08-20", updatedAt: "2026-09-12", relatedDestination: "/destinations/turkey/istanbul", indexable: true,
     body: ["بهترین زمان سفر به استانبول برای همه یکسان نیست. اگر پیاده‌روی طولانی و کافه‌گردی اولویت شماست، بهار و پاییز معمولاً دمای متعادل‌تری دارند.", "تابستان روزهای بلندتری دارد اما بخش‌های گردشگری شلوغ‌تر می‌شوند. زمستان خلوت‌تر است و برای موزه و خرید مناسب است، هرچند باران و باد می‌تواند برنامه فضای باز را تغییر دهد.", "پیش از انتخاب تاریخ، تعطیلات رسمی، رویدادها و پیش‌بینی هوا را بررسی کنید. قیمت و ظرفیت فقط در نتایج واقعی جست‌وجو معتبر است."],
   },
   {
     slug: "kish-travel-guide", title: "راهنمای برنامه‌ریزی سفر کوتاه به کیش", description: "یک چارچوب ساده برای برنامه‌ریزی سفر دو تا چهارروزه کیش، از پرواز و هتل تا برنامه‌های ساحلی.",
-    image: "/hero-camping.jpg", author: "تحریریه کی‌آشی", publishedAt: "2026-08-18", updatedAt: "2026-09-10", relatedDestination: "/destinations/iran/kish", indexable: true,
+    image: "/hero-camping.jpg", author: "تحریریه کیاشی", publishedAt: "2026-08-18", updatedAt: "2026-09-10", relatedDestination: "/destinations/iran/kish", indexable: true,
     body: ["برای سفر کوتاه کیش بهتر است پرواز، زمان تحویل اتاق و برنامه‌های فضای باز را یک‌جا هماهنگ کنید.", "روز اول را سبک نگه دارید و برنامه‌های دریایی را به روزی با پیش‌بینی هوای مناسب بسپارید. بازار و برنامه‌های داخلی می‌توانند گزینه جایگزین باشند.", "این راهنما اطلاعات عمومی ارائه می‌کند و ادعای قیمت، ظرفیت یا اجرای قطعی خدمات ندارد."],
   },
   {
     slug: "mashhad-travel-planning", title: "چطور سفر به مشهد را بهتر برنامه‌ریزی کنیم؟", description: "نکات کاربردی انتخاب زمان، مسیر، اقامت و رفت‌وآمد در سفر مشهد.",
-    image: "/asia-temple.jpg", author: "تحریریه کی‌آشی", publishedAt: "2026-08-15", updatedAt: "2026-09-08", relatedDestination: "/destinations/iran/mashhad", indexable: true,
+    image: "/asia-temple.jpg", author: "تحریریه کیاشی", publishedAt: "2026-08-15", updatedAt: "2026-09-08", relatedDestination: "/destinations/iran/mashhad", indexable: true,
     body: ["در سفر مشهد، محل اقامت روی زمان رفت‌وآمد روزانه اثر زیادی دارد. فاصله روی نقشه و دسترسی مترو یا سرویس هتل را بررسی کنید.", "در تعطیلات و مناسبت‌ها برای فرودگاه، راه‌آهن و مسیرهای مرکزی زمان اضافه در نظر بگیرید.", "شرایط تغییر و استرداد پرواز و هتل را پیش از پرداخت بخوانید تا برنامه سفر انعطاف‌پذیر بماند."],
   },
 ];

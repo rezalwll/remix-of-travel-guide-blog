@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-export const siteName = "کی‌آشی";
+export const siteName = "کیاشی";
 const configuredSiteUrl = process.env.SITE_URL?.replace(/\/$/, "");
 if (process.env.NODE_ENV === "production" && !configuredSiteUrl) {
   throw new Error("SITE_URL must be explicitly configured for a production build");
@@ -30,5 +30,5 @@ export function createMetadata(input: {
   };
 }
 
-export const privateMetadata = (title: string, description = "این صفحه برای کاربران و فرایندهای تراکنشی کی‌آشی است."): Metadata =>
+export const privateMetadata = (title: string, description = "این صفحه برای کاربران و فرایندهای تراکنشی کیاشی است."): Metadata =>
   ({ title, description, robots: { index: false, follow: false, googleBot: { index: false, follow: false } } });

@@ -42,7 +42,7 @@
 38. **SEO regression:** 8 صفحه indexable، 5 صفحه noindex، 8 redirect یک‌مرحله‌ای، 404، sitemap و robots پاس؛ 159 URL sitemap و 169 لینک داخلی سالم.
 39. **Playwright:** 28 پاس و 2 skip شرطی در Chromium/Pixel 7؛ 24 مسیر بصری بدون broken image/overflow و screenshot artifact تولید شد.
 40. **تست‌ها:** typecheck و lint پاس؛ Vitest: 74 پاس و 6 skip؛ API: 45 پاس و 6 skip؛ provider: 18 پاس؛ release check روی Node 20/npm 10 پاس.
-41. **موارد بصری باقی‌مانده:** عکس‌ها placeholder توسعه‌اند و در نسخهٔ نهایی باید با کتابخانهٔ اختصاصی کی‌آشی جایگزین شوند؛ polish سلیقه‌ای پس از بازخورد مالک محصول ممکن است.
+41. **موارد بصری باقی‌مانده:** عکس‌ها placeholder توسعه‌اند و در نسخهٔ نهایی باید با کتابخانهٔ اختصاصی کیاشی جایگزین شوند؛ polish سلیقه‌ای پس از بازخورد مالک محصول ممکن است.
 42. **اسکرین‌شات‌های مرورشده:** خانه، پرواز، هتل، مقصدها، وبلاگ، پشتیبانی و ورود در desktop/mobile؛ route/detail و 404 نیز smoke شدند.
 43. **فایل‌های افزوده:** کامپوننت‌های media، registry/test، اسکریپت optimize، ۲۰ WebP بهینه/جدید و ۵ سند UI/QA.
 44. **فایل‌های تغییرکرده:** در مقایسه با `03792fc` مجموعاً 65 مسیر افزوده/تغییر/حذف شده؛ تغییرها فقط UI/media/test/docs و script مرتبط هستند.

@@ -10,6 +10,7 @@ import { getRouteLanding, isIndexableContent, seoRoutes } from "@/seo/content";
 import { absoluteUrl, createMetadata, privateMetadata } from "@/seo/metadata";
 import { mockFlights } from "@/data/flights";
 import { destinationAsset, serviceAsset } from "@/media/library";
+import { PersianDatePicker } from "@/components/ui/PersianDatePicker";
 
 export const revalidate = 43_200;
 export const dynamicParams = false;
@@ -50,7 +51,7 @@ export default async function FlightRoutePage({ params }: { params: Promise<{ sl
         <div className="grid gap-3 rounded-2xl border bg-card p-5 shadow-xl sm:grid-cols-[1fr_1fr_1fr_auto]">
           <label className="text-xs font-bold">مبدأ<input name="from" defaultValue={route.originCode} readOnly className="mt-2 min-h-12 w-full rounded-xl border bg-muted/40 px-3" /></label>
           <label className="text-xs font-bold">مقصد<input name="to" defaultValue={route.destinationCode} readOnly className="mt-2 min-h-12 w-full rounded-xl border bg-muted/40 px-3" /></label>
-          <label className="text-xs font-bold">تاریخ حرکت<input type="date" name="departure" required className="mt-2 min-h-12 w-full rounded-xl border px-3" /></label>
+          <PersianDatePicker label="تاریخ حرکت" name="departure" required />
           <button type="submit" className="primary-cta self-end">جست‌وجوی پرواز</button>
           <input type="hidden" name="adults" value="1" />
           <input type="hidden" name="trip" value="oneway" />

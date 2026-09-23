@@ -93,8 +93,8 @@ const HotelDetail = () => {
   const favorite = favoriteState.favorite;
   useEffect(() => {
     document.title = hotel
-      ? `${hotel.name}، ${hotel.city} | کی‌آشی`
-      : "هتل پیدا نشد | کی‌آشی";
+      ? `${hotel.name}، ${hotel.city} | کیاشی`
+      : "هتل پیدا نشد | کیاشی";
     if (hotel) recordRecentlyViewed("hotel", hotel.id);
   }, [hotel]);
   if (!hotel)
