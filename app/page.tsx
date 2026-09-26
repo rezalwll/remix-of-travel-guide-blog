@@ -75,7 +75,7 @@ export default function HomePage() {
   return (
     <main>
       <TravelHero
-        asset={photoLibrary.kishShore}
+        asset={photoLibrary.hormuzRedCoast}
         size="page"
         overlapBottom
         bright
