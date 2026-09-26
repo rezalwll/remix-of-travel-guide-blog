@@ -87,12 +87,22 @@ export default function TravelHero({
           {(primary || secondary) && (
             <div className="flex flex-wrap gap-3">
               {primary && (
-                <Link href={primary.href} className="primary-cta bg-white text-foreground hover:bg-white/90">
+                <Link
+                  href={primary.href}
+                  className={brandWash
+                    ? "primary-cta border border-white/30 bg-[#DF301C] text-white shadow-[0_10px_28px_rgb(126_23_11/0.28)] hover:bg-[#c92917]"
+                    : "primary-cta bg-white text-foreground hover:bg-white/90"}
+                >
                   {primary.label}
                 </Link>
               )}
               {secondary && (
-                <Link href={secondary.href} className="secondary-cta border-white/30 bg-white/10 text-white hover:bg-white/15 hover:text-white">
+                <Link
+                  href={secondary.href}
+                  className={brandWash
+                    ? "secondary-cta border-[#DF301C] bg-[#DF301C] text-white shadow-[0_10px_28px_rgb(126_23_11/0.2)] hover:border-[#c92917] hover:bg-[#c92917] hover:text-white"
+                    : "secondary-cta border-white/30 bg-white/10 text-white hover:bg-white/15 hover:text-white"}
+                >
                   {secondary.label} <ArrowLeft className="size-4" />
                 </Link>
               )}
