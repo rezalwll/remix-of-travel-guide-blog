@@ -58,6 +58,7 @@ const pexelsPhoto = (id: string, file: string, width: number, height: number, al
 
 /** Photography that ships with the repository. Each entry is used deliberately, not as filler. */
 export const photoLibrary = {
+  redMountainLake: photo("red-mountain-lake", "/hero-red-mountain-lake.webp", 1672, 941, "چشم‌انداز کوهستان و دریاچه در غروب سرخ", "hero"),
   hormuzRedCoast: photo("hormuz-red-coast", "/hero-hormuz-red.webp", 1916, 821, "ساحل سرخ هرمز و صخره‌های ساحلی در غروب", "hero"),
   kishShore: photo("kish-shore", "/hero-kish-premium.webp", 1920, 768, "نمای ساحلی کیش در ساعت طلایی", "hero"),
   tehranHotel: photo("tehran-hotel", "/hotel-tehran-premium.webp", 1536, 1024, "نمای بیرونی یک هتل شهری مدرن", "hero"),
