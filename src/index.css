@@ -69,8 +69,8 @@
   .soft-chip { @apply inline-flex min-h-7 items-center gap-1.5 rounded-full border border-border/80 bg-card px-3 text-xs font-bold text-muted-foreground; }
   .field-shell { @apply rounded-xl border border-input bg-card transition duration-200 hover:border-secondary/60 focus-within:border-secondary focus-within:ring-4 focus-within:ring-secondary/10; }
   .travel-field { @apply flex h-[4.5rem] min-h-[4.5rem] flex-col justify-center rounded-xl border border-input bg-card px-3.5 py-2.5 transition duration-200 hover:border-secondary/60 focus-within:border-secondary focus-within:ring-4 focus-within:ring-secondary/10; }
-  .primary-cta { @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-extrabold text-primary-foreground shadow-lg shadow-primary/20 transition-colors duration-200 hover:bg-[hsl(10_82%_44%)] disabled:opacity-45 disabled:shadow-none; }
-  .secondary-cta { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 text-sm font-bold transition duration-200 hover:border-secondary/50 hover:bg-secondary/5 hover:text-secondary; }
+  .primary-cta { @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#DF301C] px-6 text-sm font-extrabold text-white shadow-lg shadow-[#DF301C]/20 transition-colors duration-200 hover:bg-[#c92917] disabled:opacity-45 disabled:shadow-none; }
+  .secondary-cta { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#FB6C00] bg-[#FB6C00] px-5 text-sm font-bold text-white shadow-md shadow-[#FB6C00]/15 transition-colors duration-200 hover:border-[#e55f00] hover:bg-[#e55f00] hover:text-white; }
   .image-card { @apply overflow-hidden rounded-[1.25rem] border border-border/70 bg-card transition-colors duration-300 hover:border-secondary/30; box-shadow: var(--shadow-xs); }
   .image-card:hover { box-shadow: var(--shadow-card); }
   .media-section { @apply py-12 sm:py-16 lg:py-20; }

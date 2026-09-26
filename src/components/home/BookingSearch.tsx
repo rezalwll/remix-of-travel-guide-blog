@@ -441,7 +441,13 @@ const BookingSearch = () => {
 
   return (
     <section id="booking" aria-label="جست‌وجوی خدمات سفر" className="relative z-10 mx-auto -mt-24 w-full max-w-[1280px] px-4 sm:-mt-28 sm:px-6 lg:px-8">
-      <div className="rounded-[1.5rem] border border-white/70 bg-card p-3 sm:p-5" style={{ boxShadow: "var(--shadow-float)" }}>
+      <div
+        className="rounded-[1.5rem] border border-[#FB6C00]/20 bg-card p-3 sm:p-5"
+        style={{
+          backgroundImage: "radial-gradient(circle at 88% 12%, rgba(251, 108, 0, 0.2), transparent 30%), radial-gradient(circle at 12% 88%, rgba(249, 182, 55, 0.24), transparent 34%)",
+          boxShadow: "0 26px 70px -32px rgba(251, 108, 0, 0.62), 0 12px 34px -22px rgba(223, 48, 28, 0.42), var(--shadow-float)",
+        }}
+      >
         <div className="scrollbar-none flex gap-1 overflow-x-auto border-b border-border/80 pb-3" role="tablist" aria-label="انتخاب نوع خدمت">
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -458,8 +464,8 @@ const BookingSearch = () => {
                 className={cn(
                   "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-4 text-sm font-extrabold transition",
                   active === tab.id
-                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                    ? "bg-[#DF301C] text-white shadow-lg shadow-[#DF301C]/20"
+                    : "text-muted-foreground hover:bg-[#FB6C00]/10 hover:text-[#e55f00]",
                 )}
               >
                 <Icon className="size-4" aria-hidden="true" />
@@ -479,11 +485,11 @@ const BookingSearch = () => {
                     className={cn(
                       "flex min-h-9 cursor-pointer items-center gap-2 rounded-full border px-3 text-xs font-bold transition",
                       tripType === id
-                        ? "border-primary/25 bg-primary/5 text-primary"
-                        : "border-border text-muted-foreground hover:border-secondary/40",
+                        ? "border-[#FB6C00]/35 bg-[#FB6C00]/10 text-[#d85600]"
+                        : "border-border text-muted-foreground hover:border-[#FB6C00]/45",
                     )}
                   >
-                    <input type="radio" name="tripType" checked={tripType === id} onChange={() => setTripType(id as typeof tripType)} className="accent-primary" />
+                    <input type="radio" name="tripType" checked={tripType === id} onChange={() => setTripType(id as typeof tripType)} className="accent-[#FB6C00]" />
                     {label}
                   </label>
                 ))}
@@ -497,7 +503,7 @@ const BookingSearch = () => {
                   <button
                     type="button"
                     onClick={swap}
-                    className="absolute start-1/2 top-1/2 z-20 grid size-9 -translate-y-1/2 translate-x-1/2 place-items-center rounded-full border border-border bg-card text-secondary shadow-md transition hover:border-secondary hover:bg-secondary/5 max-sm:hidden"
+                    className="absolute start-1/2 top-1/2 z-20 grid size-9 -translate-y-1/2 translate-x-1/2 place-items-center rounded-full border border-[#FB6C00] bg-[#FB6C00] text-white shadow-md shadow-[#FB6C00]/20 transition-colors hover:border-[#e55f00] hover:bg-[#e55f00] max-sm:hidden"
                     aria-label="جابجایی مبدا و مقصد"
                   >
                     <ArrowLeftRight className="size-4" />
