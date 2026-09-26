@@ -17,6 +17,7 @@ const overlays = {
   soft: "bg-[linear-gradient(to_top,hsl(213_35%_10%/0.72),hsl(213_35%_10%/0.12)_52%,transparent)]",
   strong: "bg-[linear-gradient(to_top,hsl(213_35%_8%/0.88),hsl(213_35%_8%/0.45)_55%,hsl(213_35%_8%/0.22))]",
   side: "bg-[linear-gradient(270deg,hsl(213_35%_9%/0.14),hsl(213_35%_9%/0.55)_48%,hsl(213_35%_9%/0.86))]",
+  sideLight: "bg-[linear-gradient(270deg,hsl(213_35%_9%/0.06),hsl(213_35%_9%/0.38)_48%,hsl(213_35%_9%/0.68))]",
 } as const;
 
 export type MediaFrameProps = {
