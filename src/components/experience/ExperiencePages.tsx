@@ -34,13 +34,13 @@ const labels = {
   tour: {
     title: "تورهای مسافرتی",
     empty: "توری با این شرایط پیدا نشد",
-    tone: "bg-[hsl(35_35%_97%)]",
+    tone: "bg-background",
     button: "مشاهده تور",
   },
   ziyarat: {
     title: "سفرهای زیارتی",
     empty: "برنامه‌ای با این شرایط پیدا نشد",
-    tone: "bg-[hsl(177_18%_97%)]",
+    tone: "bg-[hsl(39_100%_97%)]",
     button: "مشاهده برنامه",
   },
 };
@@ -246,7 +246,7 @@ export const ExperienceListingPage = ({ type }: { type: ExperienceType }) => {
         >
           <div className="container-page py-10">
             <p
-              className={`text-xs font-bold ${type === "ziyarat" ? "text-[hsl(42_100%_60%)]" : "text-primary"}`}
+              className={`text-xs font-bold ${type === "ziyarat" ? "text-accent" : "text-primary"}`}
             >
               {type === "tour" ? "کشف مقصد تازه" : "سفر با آرامش و احترام"}
             </p>

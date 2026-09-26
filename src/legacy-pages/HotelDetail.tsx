@@ -176,7 +176,7 @@ const HotelDetail = () => {
   };
   return (
     <Layout>
-      <main className="bg-[hsl(35_35%_97%)] pb-24">
+      <main className="bg-background pb-24">
         <div className="container-page py-5">
           <div className="relative grid h-[330px] gap-2 overflow-hidden rounded-2xl sm:grid-cols-4 sm:grid-rows-2 lg:h-[430px]">
             <button

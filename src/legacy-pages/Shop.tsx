@@ -13,7 +13,7 @@ const Shop = () => {
       <main className="pb-20">
         <section className="relative isolate overflow-hidden bg-earth-dark py-16 text-white sm:py-24">
           <img src="/travel-books.jpg" alt="کتاب‌ها و راهنماهای برنامه‌ریزی سفر" className="absolute inset-0 -z-20 size-full object-cover opacity-30" />
-          <div className="absolute inset-0 -z-10 bg-gradient-to-l from-[hsl(213_27%_12%/0.97)] via-[hsl(213_27%_12%/0.84)] to-[hsl(2_76%_45%/0.55)]" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-l from-[hsl(213_27%_12%/0.97)] via-[hsl(213_27%_12%/0.84)] to-[hsl(10_81%_51%/0.55)]" />
           <div className="container-page"><span className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-bold backdrop-blur"><BookOpen className="size-4 text-accent" /> فروشگاه راهنمای سفر</span><h1 className="max-w-3xl text-4xl font-black leading-tight sm:text-6xl">برنامه‌ریزی بهتر، پیش از بستن چمدان</h1><p className="mt-5 max-w-2xl text-sm leading-8 text-white/75 sm:text-base">راهنماها و پلنرهای دیجیتال فارسی برای آماده‌سازی سفر؛ دانلودی، کاربردی و مناسب استفاده روی موبایل.</p>
             <label className="mt-7 flex h-14 max-w-xl items-center gap-3 rounded-2xl border border-white/20 bg-white px-4 text-foreground shadow-xl"><Search className="size-5 text-secondary" /><span className="sr-only">جست‌وجوی راهنما</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="جست‌وجو در راهنماها" className="h-full min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none" /></label>
           </div>

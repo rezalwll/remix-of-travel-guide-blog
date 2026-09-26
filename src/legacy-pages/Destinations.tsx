@@ -43,7 +43,7 @@ const Destinations = () => {
             alt="نقشه جهان برای انتخاب مقصد سفر"
             className="absolute inset-0 -z-20 size-full object-cover opacity-25"
           />
-          <div className="absolute inset-0 -z-10 bg-gradient-to-l from-[hsl(213_27%_15%/0.96)] via-[hsl(213_27%_15%/0.86)] to-[hsl(180_100%_22%/0.68)]" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-l from-[hsl(213_27%_15%/0.96)] via-[hsl(213_27%_15%/0.86)] to-[hsl(26_100%_36%/0.68)]" />
           <div className="container-page">
             <div className="max-w-2xl">
               <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-bold backdrop-blur">

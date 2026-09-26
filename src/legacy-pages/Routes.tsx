@@ -8,7 +8,7 @@ const Routes = () => (
     <main className="pb-20">
       <section className="relative isolate overflow-hidden bg-earth-dark py-16 text-white sm:py-24">
         <img src="/hero-camping.jpg" alt="مسیر جاده‌ای برای برنامه سفر" className="absolute inset-0 -z-20 size-full object-cover opacity-35" />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-l from-[hsl(213_27%_12%/0.96)] via-[hsl(213_27%_12%/0.82)] to-[hsl(180_100%_26%/0.55)]" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-l from-[hsl(213_27%_12%/0.96)] via-[hsl(213_27%_12%/0.82)] to-[hsl(26_100%_42%/0.55)]" />
         <div className="container-page">
           <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-bold backdrop-blur"><Compass className="size-4 text-accent" /> مسیرهای پیشنهادی سفر</span>
           <h1 className="max-w-3xl text-4xl font-black leading-tight sm:text-6xl">برای روزهای سفرت یک نقشهٔ روشن داشته باش</h1>

@@ -10,36 +10,36 @@
     --card-foreground: 213 25% 14%;
     --popover: 0 0% 100%;
     --popover-foreground: 213 25% 14%;
-    --primary: 2 76% 55%;
+    --primary: 10 81% 51%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 180 100% 32%;
+    --secondary: 26 100% 49%;
     --secondary-foreground: 0 0% 100%;
     --muted: 220 20% 97%;
     --muted-foreground: 216 9% 43%;
-    --accent: 42 100% 51%;
+    --accent: 39 94% 60%;
     --accent-foreground: 213 25% 14%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     --success: 153 63% 36%;
-    --warning: 28 95% 54%;
+    --warning: 26 100% 49%;
     --info: 198 82% 44%;
     --border: 220 15% 90%;
     --input: 220 13% 82%;
-    --ring: 180 100% 32%;
+    --ring: 26 100% 49%;
     --radius: 0.875rem;
     --earth-dark: 213 27% 15%;
-    --earth-olive: 180 100% 32%;
-    --earth-sand: 35 55% 88%;
-    --earth-cream: 220 20% 97%;
-    --earth-warm: 28 95% 54%;
+    --earth-olive: 26 100% 49%;
+    --earth-sand: 39 100% 81%;
+    --earth-cream: 39 100% 96%;
+    --earth-warm: 39 94% 60%;
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 213 25% 14%;
-    --sidebar-primary: 2 76% 55%;
+    --sidebar-primary: 10 81% 51%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 20% 97%;
     --sidebar-accent-foreground: 213 25% 14%;
     --sidebar-border: 220 15% 90%;
-    --sidebar-ring: 180 100% 32%;
+    --sidebar-ring: 26 100% 49%;
     --shadow-xs: 0 1px 2px hsl(213 25% 14% / 0.04);
     --shadow-card: 0 10px 35px hsl(213 25% 14% / 0.07);
     --shadow-float: 0 24px 70px hsl(213 35% 12% / 0.16);
@@ -69,7 +69,7 @@
   .soft-chip { @apply inline-flex min-h-7 items-center gap-1.5 rounded-full border border-border/80 bg-card px-3 text-xs font-bold text-muted-foreground; }
   .field-shell { @apply rounded-xl border border-input bg-card transition duration-200 hover:border-secondary/60 focus-within:border-secondary focus-within:ring-4 focus-within:ring-secondary/10; }
   .travel-field { @apply flex h-[4.5rem] min-h-[4.5rem] flex-col justify-center rounded-xl border border-input bg-card px-3.5 py-2.5 transition duration-200 hover:border-secondary/60 focus-within:border-secondary focus-within:ring-4 focus-within:ring-secondary/10; }
-  .primary-cta { @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-extrabold text-primary-foreground shadow-lg shadow-primary/20 transition-colors duration-200 hover:bg-[hsl(2_71%_48%)] disabled:opacity-45 disabled:shadow-none; }
+  .primary-cta { @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-extrabold text-primary-foreground shadow-lg shadow-primary/20 transition-colors duration-200 hover:bg-[hsl(10_82%_44%)] disabled:opacity-45 disabled:shadow-none; }
   .secondary-cta { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 text-sm font-bold transition duration-200 hover:border-secondary/50 hover:bg-secondary/5 hover:text-secondary; }
   .image-card { @apply overflow-hidden rounded-[1.25rem] border border-border/70 bg-card transition-colors duration-300 hover:border-secondary/30; box-shadow: var(--shadow-xs); }
   .image-card:hover { box-shadow: var(--shadow-card); }
