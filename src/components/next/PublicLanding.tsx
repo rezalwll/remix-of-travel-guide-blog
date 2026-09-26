@@ -31,7 +31,7 @@ const content: Record<PageKey, { intro: string; points: string[]; links: Landing
   hotels: { intro: "پیش از انتخاب اقامت، محله، فاصله تا نقاط اصلی و شرایط لغو را کنار قیمت نهایی بسنجید.", points: ["انتخاب محلهٔ مناسب", "بررسی امکانات و قوانین", "تطبیق تاریخ ورود و خروج"], links: [{ href: "/hotels/kish", label: "هتل‌های کیش", text: "راهنمای محله‌ها و انتخاب اقامت در جزیره" }, { href: "/hotels/mashhad", label: "هتل‌های مشهد", text: "فاصله، دسترسی و نکات رزرو" }, { href: "/hotels/istanbul", label: "هتل‌های استانبول", text: "مقایسهٔ محله‌های اصلی شهر" }] },
   routes: { intro: "مسیرهای پیشنهادی برای ساختن یک برنامهٔ واقع‌بینانه؛ زمان آزاد، جابه‌جایی و فصل مناسب را پیش از رزرو بسنجید.", points: ["برنامهٔ روزبه‌روز", "زمان‌بندی جابه‌جایی", "نکات فصل و بودجه"], links: [{ href: "/routes/turkiye-city-coast", label: "استانبول و ساحل اژه", text: "ترکیب شهر و ساحل با ریتم متعادل" }, { href: "/routes/persian-classic", label: "مسیر کلاسیک ایران", text: "تهران، کاشان، اصفهان و شیراز" }] },
   tours: { intro: "برنامه، خدمات مشمول و غیرمشمول و وضعیت مدارک را شفاف مقایسه کنید. ظرفیت نمایشی به معنی تأیید رزرو نیست.", points: ["برنامه و مدت روشن", "خدمات قابل مقایسه", "کنترل مدارک پیش از خرید"], links: [{ href: "/tours/tour-استانبول-0", label: "نمونه تور استانبول", text: "مشاهدهٔ برنامه و خدمات نمونه" }, { href: "/support", label: "راهنمای خرید", text: "پاسخ پرسش‌های رایج پیش از رزرو" }] },
-  ziyarat: { intro: "نوع جابه‌جایی، محل اقامت، مدارک و خدمات کاروان را پیش از انتخاب برنامه بررسی کنید.", points: ["برنامهٔ آرام و شفاف", "مدارک و مقررات سفر", "خدمات اقامت و ترانسفر"], links: [{ href: "/ziyarat/ziyarat-0-0", label: "نمونه نجف و کربلا", text: "برنامه و خدمات نمونهٔ سفر زیارتی" }, { href: "/travel-preparation", label: "آمادگی سفر", text: "چک‌لیست عمومی پیش از حرکت" }] },
+  ziyarat: { intro: "نوع جابه‌جایی، محل اقامت، مدارک و خدمات کاروان را پیش از انتخاب برنامه بررسی کنید.", points: [], links: [{ href: "/ziyarat/ziyarat-0-0", label: "نمونه نجف و کربلا", text: "برنامه و خدمات نمونهٔ سفر زیارتی" }, { href: "/travel-preparation", label: "آمادگی سفر", text: "چک‌لیست عمومی پیش از حرکت" }] },
   visa: { intro: "اطلاعات این بخش راهنمای عمومی است؛ مدارک، هزینه و زمان رسیدگی را همیشه از مرجع رسمی مقصد کنترل کنید.", points: ["تفکیک نوع ویزا", "چک‌لیست مدارک", "ارجاع به مقررات رسمی"], links: [{ href: "/visa/canada", label: "ویزای کانادا", text: "انواع درخواست و مدارک عمومی" }, { href: "/visa/schengen", label: "ویزای شنگن", text: "راهنمای اولیهٔ درخواست" }, { href: "/visa/uae", label: "ویزای امارات", text: "اطلاعات عمومی سفر و درخواست" }] },
   trains: { intro: "زمان حرکت، ایستگاه، نوع واگن و قوانین استرداد را در نتیجهٔ معتبر بررسی کنید.", points: ["مقایسهٔ نوع واگن", "کنترل ایستگاه", "قوانین استرداد"], links: [{ href: "/trains/search", label: "جست‌وجوی قطار", text: "مشاهدهٔ گزینه‌های موجود" }] },
   buses: { intro: "پایانهٔ مبدأ و مقصد، نوع اتوبوس و ساعت حضور را پیش از خرید کنترل کنید.", points: ["انتخاب پایانه", "مقایسهٔ نوع اتوبوس", "اطلاعات سوارشدن"], links: [{ href: "/buses/search", label: "جست‌وجوی اتوبوس", text: "مشاهدهٔ گزینه‌های موجود" }] },
@@ -129,19 +129,21 @@ export function PublicLanding({ page }: { page: PageKey }) {
 
       {showSearch && <BookingSearch />}
 
-      <section className="media-section">
-        <div className="container-page">
-          <h2 className="sr-only">نکات کلیدی {serviceLabel[page]}</h2>
-          <ul className="grid gap-3 sm:grid-cols-3">
-            {item.points.map((point) => (
-              <li key={point} className="flex items-center gap-2.5 rounded-xl border bg-card p-4 text-sm font-bold">
-                <CheckCircle2 className="size-5 shrink-0 text-secondary" />
-                {point}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
+      {item.points.length > 0 && (
+        <section className="media-section">
+          <div className="container-page">
+            <h2 className="sr-only">نکات کلیدی {serviceLabel[page]}</h2>
+            <ul className="grid gap-3 sm:grid-cols-3">
+              {item.points.map((point) => (
+                <li key={point} className="flex items-center gap-2.5 rounded-xl border bg-card p-4 text-sm font-bold">
+                  <CheckCircle2 className="size-5 shrink-0 text-secondary" />
+                  {point}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
 
       <section className="media-section-tinted">
         <div className="container-page">
