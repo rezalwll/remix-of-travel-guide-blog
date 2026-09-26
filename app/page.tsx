@@ -18,7 +18,6 @@ import {
 import BookingSearch from "@/components/home/BookingSearch";
 import TravelHero from "@/components/media/TravelHero";
 import {
-  CategoryBubble,
   EditorialCard,
   ImageCard,
   MediaRail,
@@ -62,16 +61,6 @@ const services = [
   { href: "/visa", label: "ویزا", hint: "راهنمای مدارک", icon: FileText, media: "visa" },
   { href: "/fast-track", label: "فست ترک", hint: "عبور سریع", icon: LifeBuoy, media: "fast-track" },
   { href: "/esim", label: "eSIM", hint: "اینترنت مقصد", icon: Signal, media: "esim" },
-] as const;
-
-const categories = [
-  { href: "/destinations/iran/kish", label: "ساحلی", media: "beach" },
-  { href: "/city-tours", label: "طبیعت", media: "nature" },
-  { href: "/destinations/turkey/istanbul", label: "شهری", media: "city" },
-  { href: "/ziyarat", label: "زیارتی", media: "pilgrimage" },
-  { href: "/destinations/iran/mashhad", label: "تاریخی", media: "heritage" },
-  { href: "/hotels/istanbul", label: "لوکس", media: "luxury" },
-  { href: "/buses", label: "اقتصادی", media: "budget" },
 ] as const;
 
 const trust = [
@@ -181,14 +170,6 @@ export default function HomePage() {
               />
             ))}
           </div>
-
-          <ul className="scrollbar-none mt-9 flex gap-4 overflow-x-auto pb-1" aria-label="دسته‌بندی سبک سفر">
-            {categories.map((category) => (
-              <li key={category.href}>
-                <CategoryBubble href={category.href} asset={experienceAsset(category.media, `تصویر دستهٔ ${category.label}`)} label={category.label} />
-              </li>
-            ))}
-          </ul>
         </div>
       </section>
 
