@@ -60,19 +60,19 @@ const Header = () => {
     cn(
       "relative inline-flex min-h-10 items-center rounded-xl px-3 text-sm font-bold transition-colors",
       isActive
-        ? "bg-primary/[0.08] text-primary after:absolute after:inset-x-3 after:-bottom-[17px] after:h-0.5 after:rounded-full after:bg-primary"
-        : "text-foreground/[0.68] hover:bg-muted hover:text-foreground",
+        ? "bg-white/15 text-white after:absolute after:inset-x-3 after:-bottom-[17px] after:h-0.5 after:rounded-full after:bg-white"
+        : "text-white/85 hover:bg-white/10 hover:text-white",
     );
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/70 bg-card/95 shadow-[0_1px_0_hsl(213_25%_14%/0.02)] backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-[#c92917] bg-[#DF301C] text-white shadow-[0_4px_18px_rgb(126_23_11/0.18)]">
       <div className="container-page flex h-[72px] items-center justify-between gap-4">
         <Link
           to="/"
           className="group flex shrink-0 items-center gap-2.5"
           aria-label="کیاشی، صفحه اصلی"
         >
-          <img src="/kiashi-logo.png" alt="کیاشی" className="h-10 w-auto max-w-[112px] object-contain object-right" />
+          <img src="/kiashi-logo.png" alt="کیاشی" className="h-10 w-auto max-w-[112px] object-contain object-right brightness-0 invert" />
         </Link>
 
         <nav className="hidden items-center gap-0.5 lg:flex" aria-label="خدمات اصلی">
@@ -85,7 +85,7 @@ const Header = () => {
             <button
               type="button"
               onClick={() => setMoreOpen((value) => !value)}
-              className="inline-flex min-h-10 items-center gap-1 rounded-xl px-3 text-sm font-bold text-foreground/[0.68] transition hover:bg-muted hover:text-foreground"
+              className="inline-flex min-h-10 items-center gap-1 rounded-xl px-3 text-sm font-bold text-white/85 transition hover:bg-white/10 hover:text-white"
               aria-expanded={moreOpen}
               aria-haspopup="menu"
             >
@@ -94,7 +94,7 @@ const Header = () => {
             </button>
             {moreOpen && (
               <div
-                className="absolute start-0 top-full mt-3 grid min-w-64 grid-cols-2 gap-1 rounded-2xl border border-border/80 bg-card p-2.5 shadow-2xl"
+                className="absolute start-0 top-full mt-3 grid min-w-64 grid-cols-2 gap-1 rounded-2xl border border-border/80 bg-card p-2.5 text-foreground shadow-2xl"
                 role="menu"
               >
                 <div className="col-span-2 mb-1 flex items-center gap-2 rounded-xl bg-secondary/[0.08] px-3 py-2 text-xs font-bold text-secondary">
@@ -118,38 +118,38 @@ const Header = () => {
         <div className="flex items-center gap-1.5">
           <Link
             to="/support"
-            className="hidden min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-foreground/[0.65] transition hover:bg-muted hover:text-secondary xl:inline-flex"
+            className="hidden min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-white/85 transition hover:bg-white/10 hover:text-white xl:inline-flex"
           >
             <Headphones className="size-4" /> پشتیبانی
           </Link>
           <Link
             to="/track-order"
-            className="hidden min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-foreground/[0.65] transition hover:bg-muted hover:text-secondary md:inline-flex"
+            className="hidden min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-white/85 transition hover:bg-white/10 hover:text-white md:inline-flex"
           >
             <Search className="size-4" /> پیگیری
           </Link>
           {user ? (
             <div className="hidden items-center gap-1 md:flex">
-              <Link to="/account" className="secondary-cta min-h-10 px-3">
+              <Link to="/account" className="secondary-cta min-h-10 border-white bg-white px-3 text-[#DF301C] hover:border-white hover:bg-white/90 hover:text-[#DF301C]">
                 <UserRound className="size-4" /> {user.firstName || "حساب من"}
               </Link>
               <button
                 type="button"
                 onClick={() => void logout()}
-                className="rounded-xl px-2 py-2 text-xs font-semibold text-muted-foreground hover:bg-muted"
+                className="rounded-xl px-2 py-2 text-xs font-semibold text-white/75 hover:bg-white/10 hover:text-white"
               >
                 خروج
               </button>
             </div>
           ) : (
-            <Link to="/auth/login" className="secondary-cta hidden min-h-10 px-3 md:inline-flex">
+            <Link to="/auth/login" className="secondary-cta hidden min-h-10 border-white bg-white px-3 text-[#DF301C] hover:border-white hover:bg-white/90 hover:text-[#DF301C] md:inline-flex">
               <UserRound className="size-4" /> ورود / ثبت‌نام
             </Link>
           )}
           <button
             type="button"
             onClick={() => setOpen((value) => !value)}
-            className="grid size-11 place-items-center rounded-xl border border-border bg-card transition hover:bg-muted lg:hidden"
+            className="grid size-11 place-items-center rounded-xl border border-white/35 bg-white/10 text-white transition hover:bg-white/20 lg:hidden"
             aria-label={open ? "بستن منو" : "باز کردن منو"}
             aria-expanded={open}
           >
@@ -159,7 +159,7 @@ const Header = () => {
       </div>
 
       {open && (
-        <div className="border-t border-border/70 bg-card lg:hidden">
+        <div className="border-t border-white/20 bg-[#DF301C] text-white lg:hidden">
           <nav className="container-page max-h-[calc(100vh-72px)] overflow-y-auto py-4" aria-label="منوی موبایل">
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {primaryLinks.map((item) => (
@@ -169,7 +169,7 @@ const Header = () => {
                   className={({ isActive }) =>
                     cn(
                       "rounded-xl border px-3 py-3 text-center text-sm font-bold",
-                      isActive ? "border-primary/20 bg-primary/[0.08] text-primary" : "border-border bg-muted/[0.35]",
+                      isActive ? "border-white bg-white text-[#DF301C]" : "border-white/20 bg-white/10 text-white",
                     )
                   }
                 >
@@ -177,15 +177,15 @@ const Header = () => {
                 </NavLink>
               ))}
             </div>
-            <p className="mb-2 mt-5 text-xs font-bold text-muted-foreground">خدمات بیشتر</p>
+            <p className="mb-2 mt-5 text-xs font-bold text-white/70">خدمات بیشتر</p>
             <div className="grid grid-cols-2 gap-1">
               {moreLinks.map(([label, to]) => (
-                <Link key={to} to={to} className="rounded-xl px-3 py-2.5 text-sm font-semibold hover:bg-muted">
+                <Link key={to} to={to} className="rounded-xl px-3 py-2.5 text-sm font-semibold hover:bg-white/10">
                   {label}
                 </Link>
               ))}
-              <Link to="/track-order" className="rounded-xl px-3 py-2.5 text-sm font-semibold hover:bg-muted">پیگیری خرید</Link>
-              <Link to={user ? "/account" : "/auth/login"} className="rounded-xl px-3 py-2.5 text-sm font-semibold text-primary hover:bg-primary/5">
+              <Link to="/track-order" className="rounded-xl px-3 py-2.5 text-sm font-semibold hover:bg-white/10">پیگیری خرید</Link>
+              <Link to={user ? "/account" : "/auth/login"} className="rounded-xl bg-white px-3 py-2.5 text-sm font-semibold text-[#DF301C] hover:bg-white/90">
                 {user ? "حساب کاربری" : "ورود / ثبت‌نام"}
               </Link>
             </div>
