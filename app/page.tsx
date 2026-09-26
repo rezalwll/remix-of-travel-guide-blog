@@ -75,9 +75,9 @@ const categories = [
 ] as const;
 
 const trust = [
-  { icon: ShieldCheck, title: "پرداخت و نشست امن", text: "کوکی HttpOnly، مالکیت سفارش و کنترل کامل سمت سرور." },
-  { icon: BadgeCheck, title: "اطلاعات بدون اغراق", text: "محتوای راهنما از موجودی و نرخ واقعی تأمین‌کننده جدا می‌ماند." },
-  { icon: Headphones, title: "پیگیری شفاف", text: "وضعیت سفارش، استرداد و پشتیبانی در یک حساب کاربری." },
+  { icon: ShieldCheck, title: "پرداخت امن", text: "اطلاعات پرداخت در درگاه بانکی و با استانداردهای امنیتی پردازش می‌شود." },
+  { icon: BadgeCheck, title: "مقایسه و انتخاب آسان", text: "گزینه‌های سفر را بر اساس زمان، قیمت و شرایط رزرو بررسی کنید." },
+  { icon: Headphones, title: "پیگیری آنلاین", text: "سفارش‌ها و درخواست‌های پشتیبانی را از حساب کاربری دنبال کنید." },
 ] as const;
 
 const [leadArticle, ...restArticles] = seoArticles;
@@ -89,12 +89,10 @@ export default function HomePage() {
         asset={photoLibrary.kishShore}
         size="page"
         overlapBottom
-        eyebrow="سفر آگاهانه، از جست‌وجو تا پیگیری"
-        title={<>سفر را انتخاب کن،<br /><span className="text-accent">نگرانی‌اش با ما</span></>}
-        description="پرواز، اقامت و تجربه‌های مقصد را مقایسه کن؛ راهنمای واقعی بخوان و همه جزئیات سفر را در یک حساب مدیریت کن."
-        primary={{ href: "#booking", label: "شروع جست‌وجو" }}
-        secondary={{ href: "/destinations", label: "کشف مقصدها" }}
-        badges={["بدون قیمت ساختگی", "راهنمای فارسی مقصد", "پشتیبانی سفارش"]}
+        title={<>سفر بعدی‌ات را<br /><span className="text-accent">همین‌جا پیدا کن</span></>}
+        description="بلیط هواپیما، قطار و اتوبوس، هتل، تور و خدمات سفر را جست‌وجو و رزرو کن."
+        primary={{ href: "#booking", label: "جست‌وجوی سفر" }}
+        secondary={{ href: "/track-order", label: "پیگیری خرید" }}
       />
 
       <BookingSearch />
@@ -102,9 +100,8 @@ export default function HomePage() {
       <section className="media-section" aria-labelledby="services-heading">
         <div className="container-page">
           <SectionHeader
-            eyebrow="خدمات کیاشی"
-            title="از کجا شروع می‌کنی؟"
-            description="هر سرویس صفحهٔ راهنمای خودش را دارد؛ جست‌وجوی واقعی و نرخ فقط در نتیجهٔ متصل به تأمین‌کننده انجام می‌شود."
+            title="خدمات سفر"
+            description="برای خرید بلیط، رزرو اقامت یا استفاده از خدمات تکمیلی، گزینهٔ موردنظرت را انتخاب کن."
           />
           <h2 id="services-heading" className="sr-only">خدمات سفر</h2>
           <div className="media-grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
@@ -125,9 +122,8 @@ export default function HomePage() {
       <section className="media-section-tinted" aria-labelledby="routes-heading">
         <div className="container-page">
           <SectionHeader
-            eyebrow="مسیرهای پرطرفدار"
-            title="راهنمای مسیرهای پرتردد"
-            description="فرودگاه، مدت مسیر، بار و شرایط استرداد را پیش از جست‌وجو بدان. این صفحه‌ها نرخ زنده اعلام نمی‌کنند."
+            title="پرواز به مقصدهای پرطرفدار"
+            description="مسیرهای محبوب را ببین و اطلاعات پرواز، فرودگاه و شرایط سفر را بررسی کن."
             action={{ href: "/routes", label: "همهٔ مسیرها" }}
           />
           <h2 id="routes-heading" className="sr-only">مسیرهای پرطرفدار</h2>
@@ -139,7 +135,7 @@ export default function HomePage() {
                 origin={route.origin}
                 destination={route.destination}
                 note={route.summary}
-                badge="راهنمای مسیر"
+                badge="مسیر پرطرفدار"
                 originAsset={destinationAsset(route.origin === "تهران" ? "tehran" : route.slug.split("-to-")[0], `تصویرسازی ${route.origin}`)}
                 destinationAsset={destinationAsset(route.slug.split("-to-")[1], `تصویرسازی ${route.destination}`)}
               />
@@ -153,10 +149,10 @@ export default function HomePage() {
           <PromoBanner
             href="/hotels/kish"
             asset={experienceAsset("beach", "تصویرسازی ساحل و آب‌های کیش")}
-            eyebrow="پیشنهاد فصلی"
-            title="چند روز آبی در کیش"
-            description="پرواز، اقامت و برنامهٔ ساحلی را یکجا بچین. محتوای این بنر راهنماست و نرخ یا ظرفیت قطعی اعلام نمی‌کند."
-            cta="راهنمای اقامت کیش"
+            eyebrow="سفر به کیش"
+            title="تعطیلاتی کنار خلیج فارس"
+            description="پرواز و هتل کیش را برای تاریخ سفرت بررسی کن و برای تفریحات جزیره برنامه بریز."
+            cta="مشاهده هتل‌های کیش"
           />
         </div>
       </section>
@@ -164,9 +160,8 @@ export default function HomePage() {
       <section className="media-section-tinted" aria-labelledby="destinations-heading">
         <div className="container-page">
           <SectionHeader
-            eyebrow="مقصدهای منتخب"
-            title="مقصد را با چشم باز انتخاب کن"
-            description="هر مقصد فقط وقتی منتشر می‌شود که راهنمای واقعی، زمان مناسب سفر و پیوندهای کاربردی داشته باشد."
+            title="مقصدهای محبوب ایران و جهان"
+            description="با شهرهای پرطرفدار، بهترین زمان سفر و دیدنی‌های هر مقصد آشنا شو."
             action={{ href: "/destinations", label: "همهٔ مقصدها" }}
           />
           <h2 id="destinations-heading" className="sr-only">مقصدهای منتخب</h2>
@@ -198,9 +193,8 @@ export default function HomePage() {
       <section className="media-section" aria-labelledby="stays-heading">
         <div className="container-page">
           <SectionHeader
-            eyebrow="اقامت"
-            title="راهنمای انتخاب هتل"
-            description="محله، فاصله و شرایط لغو را پیش از رزرو بسنج. موجودی و نرخ فقط در جست‌وجوی واقعی معتبر است."
+            title="هتل‌های پرطرفدار"
+            description="هتل‌های مقصدهای محبوب را بر اساس موقعیت، امکانات و شرایط رزرو مقایسه کن."
             action={{ href: "/hotels", label: "جست‌وجوی هتل" }}
           />
           <h2 id="stays-heading" className="sr-only">راهنمای اقامت</h2>
@@ -213,8 +207,8 @@ export default function HomePage() {
                   title={stay.title}
                   description={stay.summary}
                   chips={stay.neighborhoods.slice(0, 3)}
-                  badge="راهنمای اقامت"
-                  cta="مشاهدهٔ راهنما"
+                  badge="اقامت محبوب"
+                  cta="مشاهده هتل‌ها"
                   sizes="(max-width: 640px) 78vw, (max-width: 1024px) 46vw, 31vw"
                 />
               </RailItem>
@@ -226,9 +220,8 @@ export default function HomePage() {
       <section className="media-section-tinted" aria-labelledby="experiences-heading">
         <div className="container-page">
           <SectionHeader
-            eyebrow="تجربه‌های مقصد"
-            title="سفر فقط بلیط نیست"
-            description="تور، سفر زیارتی و گشت شهری با برنامه و خدمات مشخص؛ ظرفیت نمایشی به معنی تأیید رزرو نیست."
+            title="تور و تجربه‌های سفر"
+            description="از تورهای چندروزه تا سفرهای زیارتی و گشت شهری، برنامهٔ مناسب سفرت را پیدا کن."
           />
           <h2 id="experiences-heading" className="sr-only">تجربه‌های مقصد</h2>
           <div className="media-grid md:grid-cols-3">
@@ -236,15 +229,15 @@ export default function HomePage() {
               href="/tours"
               asset={serviceAsset("tours", "تصویر معرفی تورهای کیاشی")}
               title="تورهای چندروزه"
-              description="برنامهٔ روزبه‌روز، خدمات مشمول و شرایط مدارک را کنار هم مقایسه کن."
-              chips={["برنامهٔ شفاف", "خدمات قابل مقایسه"]}
-              cta="راهنمای تور"
+              description="تورهای داخلی و خارجی را بر اساس مقصد، مدت سفر و خدمات مقایسه کن."
+              chips={["تور داخلی", "تور خارجی"]}
+              cta="مشاهده تورها"
             />
             <ImageCard
               href="/ziyarat"
               asset={serviceAsset("ziyarat", "تصویر معرفی سفرهای زیارتی")}
               title="سفر زیارتی"
-              description="جابه‌جایی، اقامت، مدارک و خدمات کاروان با زبانی آرام و روشن."
+              description="برنامه‌های سفر به مشهد، نجف و کربلا را همراه با خدمات هر سفر ببین."
               chips={["نجف و کربلا", "مشهد"]}
               cta="راهنمای زیارت"
             />
@@ -252,7 +245,7 @@ export default function HomePage() {
               href="/city-tours"
               asset={serviceAsset("city-tours", "تصویر معرفی گشت‌های شهری")}
               title="گشت شهری و تجربه"
-              description="مدت گشت، نقطهٔ شروع و هزینه‌های جانبی را قبل از انتخاب بدان."
+              description="دیدنی‌های هر شهر را با گشت‌های نیم‌روزه و تمام‌روز تجربه کن."
               chips={["نیم‌روزه", "تمام‌روز"]}
               cta="مشاهدهٔ تجربه‌ها"
             />
@@ -276,9 +269,8 @@ export default function HomePage() {
       <section className="media-section-tinted" aria-labelledby="magazine-heading">
         <div className="container-page">
           <SectionHeader
-            eyebrow="مجلهٔ سفر"
-            title="قبل از حرکت بخوان"
-            description="راهنماهای کوتاه و به‌روزشده برای تصمیم بهتر، با تاریخ به‌روزرسانی واقعی."
+            title="راهنمای سفر"
+            description="پیشنهادهای کاربردی برای انتخاب مقصد، برنامه‌ریزی و تجربهٔ بهتر سفر."
             action={{ href: "/blog", label: "همهٔ مقاله‌ها" }}
           />
           <h2 id="magazine-heading" className="sr-only">مجلهٔ سفر</h2>
@@ -316,7 +308,7 @@ export default function HomePage() {
 
       <section className="media-section">
         <div className="container-page">
-          <h2 className="sr-only">چرا کیاشی</h2>
+          <h2 className="mb-7 text-2xl font-black sm:text-3xl">چرا کیاشی؟</h2>
           <div className="grid overflow-hidden rounded-[1.25rem] border bg-card sm:grid-cols-3">
             {trust.map(({ icon: Icon, title, text }) => (
               <div key={title} className="flex gap-3 border-b p-6 last:border-0 sm:border-b-0 sm:border-l">
@@ -335,10 +327,10 @@ export default function HomePage() {
             <PromoBanner
               href="/support"
               asset={serviceAsset("support", "تصویر بخش پشتیبانی سفر")}
-              eyebrow="همراه سفر"
-              title="سؤالی دربارهٔ سفر داری؟"
-              description="راهنمای خرید، استرداد و پیگیری سفارش در مرکز راهنمای کیاشی جمع شده است."
-              cta="مرکز راهنما"
+              eyebrow="پشتیبانی"
+              title="برای رزرو یا پیگیری خرید کمک می‌خواهی؟"
+              description="پاسخ پرسش‌های متداول، راهنمای استرداد و وضعیت سفارش را در مرکز پشتیبانی ببین."
+              cta="رفتن به پشتیبانی"
               align="center"
             />
           </div>
@@ -347,12 +339,11 @@ export default function HomePage() {
 
       <section className="border-t bg-card">
         <div className="container-page py-10">
-          <h2 className="text-lg font-black">برنامه‌ریزی سفر با کیاشی</h2>
+          <h2 className="text-lg font-black">رزرو خدمات سفر با کیاشی</h2>
           <p className="mt-3 max-w-4xl text-sm leading-8 text-muted-foreground">
-            کیاشی مسیر انتخاب سفر را از جست‌وجوی پرواز و هتل تا پیگیری سفارش یکپارچه می‌کند.
-            صفحه‌های راهنمای مقصد و مسیر برای تصمیم‌گیری نوشته شده‌اند و نرخ، ظرفیت و موجودی فقط
-            در نتیجهٔ جست‌وجوی متصل به تأمین‌کننده معتبر است. خدمات مکمل مانند بیمه، ترانسفر،
-            تشریفات فرودگاهی و اینترنت مقصد هم با همان منطق شفاف ارائه می‌شوند.
+            در کیاشی می‌توانید پرواز، هتل، قطار، اتوبوس و تور را جست‌وجو کنید و خدماتی مثل بیمه،
+            ترانسفر، تشریفات فرودگاهی و اینترنت سفر را هم در کنار رزرو اصلی ببینید. راهنماهای مسیر
+            و مقصد نیز برای آشنایی با زمان سفر، فرودگاه‌ها، محله‌های اقامتی و دیدنی‌ها در دسترس‌اند.
           </p>
           <ul className="mt-5 flex flex-wrap gap-2">
             {[

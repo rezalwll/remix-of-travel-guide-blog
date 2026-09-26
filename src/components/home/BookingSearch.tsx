@@ -554,7 +554,7 @@ const BookingSearch = () => {
           ) : null}
           <div className="mt-4 flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
             <p className="text-[11px] leading-6 text-muted-foreground sm:text-xs">
-              موجودی این نسخه نمایشی است؛ قیمت نهایی پیش از پرداخت دوباره بررسی می‌شود.
+              قیمت و ظرفیت گزینه‌ها هنگام جست‌وجو بررسی می‌شود و مبلغ نهایی پیش از پرداخت نمایش داده خواهد شد.
             </p>
             <button type="button" onClick={onSubmit} className="primary-cta min-w-44">
               <Search className="size-4" aria-hidden="true" />

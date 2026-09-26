@@ -73,9 +73,6 @@ const Header = () => {
           aria-label="کیاشی، صفحه اصلی"
         >
           <img src="/kiashi-logo.png" alt="کیاشی" className="h-10 w-auto max-w-[112px] object-contain object-right" />
-          <span className="hidden sm:block">
-            <span className="block text-[9px] font-semibold text-muted-foreground">همهٔ سفر، یک‌جا</span>
-          </span>
         </Link>
 
         <nav className="hidden items-center gap-0.5 lg:flex" aria-label="خدمات اصلی">
