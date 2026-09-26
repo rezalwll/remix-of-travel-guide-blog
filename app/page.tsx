@@ -79,8 +79,9 @@ export default function HomePage() {
         size="page"
         overlapBottom
         bright
+        brandWash
         relaxedCopy
-        title={<>سفر بعدی‌ات را<br /><span className="text-accent">همین‌جا پیدا کن</span></>}
+        title={<>سفر بعدی‌ات را<br /><span className="text-[#ffdd9c]">همین‌جا پیدا کن</span></>}
         description="بلیط هواپیما، قطار و اتوبوس، هتل، تور و خدمات سفر را جست‌وجو و رزرو کن."
         primary={{ href: "#booking", label: "جست‌وجوی سفر" }}
         secondary={{ href: "/track-order", label: "پیگیری خرید" }}

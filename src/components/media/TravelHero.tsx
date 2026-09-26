@@ -16,6 +16,7 @@ export type TravelHeroProps = {
   children?: React.ReactNode;
   align?: "start" | "center";
   bright?: boolean;
+  brandWash?: boolean;
   relaxedCopy?: boolean;
   /** Adds room at the bottom so an overlapping search widget can sit across the hero edge. */
   overlapBottom?: boolean;
@@ -43,6 +44,7 @@ export default function TravelHero({
   children,
   align = "start",
   bright = false,
+  brandWash = false,
   relaxedCopy = false,
   overlapBottom = false,
 }: TravelHeroProps) {
@@ -59,6 +61,12 @@ export default function TravelHero({
           className={`size-full ${sizes[size]}`}
           imageClassName={bright ? "object-cover brightness-110" : "object-cover"}
         />
+        {brandWash && (
+          <div
+            className="absolute inset-0 bg-[linear-gradient(270deg,rgb(231_63_30/0.96)_0%,rgb(251_108_0/0.9)_52%,rgb(249_182_55/0.72)_100%)]"
+            aria-hidden="true"
+          />
+        )}
       </div>
       <div className={`container-page flex ${sizes[size]} flex-col justify-center py-12 sm:py-16 ${overlapBottom ? "pb-32 sm:pb-36" : ""}`}>
         <div className={`flex flex-col ${relaxedCopy ? "gap-7" : "gap-5"} ${align === "center" ? "mx-auto max-w-3xl items-center text-center" : "max-w-2xl items-start"}`}>
