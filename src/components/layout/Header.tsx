@@ -72,7 +72,7 @@ const Header = () => {
           className="group flex shrink-0 items-center gap-2.5"
           aria-label="کیاشی، صفحه اصلی"
         >
-          <img src="/kiashi-logo.png" alt="کیاشی" className="h-10 w-auto max-w-[112px] object-contain object-right brightness-0 invert" />
+          <img src="/kiashi-logo.png" alt="کیاشی" className="h-10 w-auto max-w-[112px] object-contain object-right" />
         </Link>
 
         <nav className="hidden items-center gap-0.5 lg:flex" aria-label="خدمات اصلی">
