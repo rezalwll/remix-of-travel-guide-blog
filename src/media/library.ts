@@ -58,6 +58,7 @@ const pexelsPhoto = (id: string, file: string, width: number, height: number, al
 
 /** Photography that ships with the repository. Each entry is used deliberately, not as filler. */
 export const photoLibrary = {
+  kiashiTravelBanner: photo("kiashi-travel-support-banner", "/kiashi-travel-support-banner.webp", 1916, 821, "جادهٔ کوهستانی در غروب با نشان کیاشی", "hero"),
   redMountainLake: photo("red-mountain-lake", "/hero-red-mountain-lake.webp", 1672, 941, "چشم‌انداز کوهستان و دریاچه در غروب سرخ", "hero"),
   hormuzRedCoast: photo("hormuz-red-coast", "/hero-hormuz-red.webp", 1916, 821, "ساحل سرخ هرمز و صخره‌های ساحلی در غروب", "hero"),
   kishShore: photo("kish-shore", "/hero-kish-premium.webp", 1920, 768, "نمای ساحلی کیش در ساعت طلایی", "hero"),
@@ -131,10 +132,7 @@ export const serviceMedia: Record<string, MediaAsset> = {
   insurance: photoLibrary.globeInHand,
   cip: photoLibrary.airportTraveller,
   transfer: photoLibrary.roadTrip,
-  "fast-track": photoLibrary.airportTraveller,
-  esim: photoLibrary.travelTeam,
   visa: photoLibrary.mapAndPlane,
-  "city-tours": photoLibrary.cityBridge,
   support: photoLibrary.travelTeam,
 };
 

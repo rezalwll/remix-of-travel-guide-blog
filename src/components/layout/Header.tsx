@@ -29,9 +29,6 @@ const moreLinks = [
   ["بیمه سفر", "/insurance"],
   ["CIP فرودگاه", "/cip"],
   ["ترانسفر", "/transfer"],
-  ["Fast Track", "/fast-track"],
-  ["eSIM", "/esim"],
-  ["تجربه‌های سفر", "/experiences"],
   ["مجله سفر", "/blog"],
   ["مرکز راهنما", "/help"],
 ] as const;
@@ -65,14 +62,14 @@ const Header = () => {
     );
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#c92917] bg-[#DF301C] text-white shadow-[0_4px_18px_rgb(126_23_11/0.18)]">
+    <header className="sticky top-0 z-50 border-b border-[#4b0d73] bg-[#621295] text-white shadow-[0_4px_18px_rgb(63_8_97/0.22)]">
       <div className="container-page flex h-[72px] items-center justify-between gap-4">
         <Link
           to="/"
           className="group flex shrink-0 items-center gap-2.5"
           aria-label="کیاشی، صفحه اصلی"
         >
-          <img src="/kiashi-logo.png" alt="کیاشی" className="h-10 w-auto max-w-[112px] object-contain object-right" />
+          <img src="/kiashi-logo.png" alt="کیاشی" className="h-10 w-auto max-w-[112px] object-contain object-right brightness-0 invert" />
         </Link>
 
         <nav className="hidden items-center gap-0.5 lg:flex" aria-label="خدمات اصلی">
@@ -130,7 +127,7 @@ const Header = () => {
           </Link>
           {user ? (
             <div className="hidden items-center gap-1 md:flex">
-              <Link to="/account" className="secondary-cta min-h-10 border-white bg-white px-3 text-[#DF301C] hover:border-white hover:bg-white/90 hover:text-[#DF301C]">
+              <Link to="/account" className="secondary-cta min-h-10 border-white bg-white px-3 text-[#621295] hover:border-white hover:bg-white/90 hover:text-[#621295]">
                 <UserRound className="size-4" /> {user.firstName || "حساب من"}
               </Link>
               <button
@@ -142,7 +139,7 @@ const Header = () => {
               </button>
             </div>
           ) : (
-            <Link to="/auth/login" className="secondary-cta hidden min-h-10 border-white bg-white px-3 text-[#DF301C] hover:border-white hover:bg-white/90 hover:text-[#DF301C] md:inline-flex">
+            <Link to="/auth/login" className="secondary-cta hidden min-h-10 border-white bg-white px-3 text-[#621295] hover:border-white hover:bg-white/90 hover:text-[#621295] md:inline-flex">
               <UserRound className="size-4" /> ورود / ثبت‌نام
             </Link>
           )}
@@ -159,7 +156,7 @@ const Header = () => {
       </div>
 
       {open && (
-        <div className="border-t border-white/20 bg-[#DF301C] text-white lg:hidden">
+        <div className="border-t border-white/20 bg-[#621295] text-white lg:hidden">
           <nav className="container-page max-h-[calc(100vh-72px)] overflow-y-auto py-4" aria-label="منوی موبایل">
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {primaryLinks.map((item) => (
@@ -169,7 +166,7 @@ const Header = () => {
                   className={({ isActive }) =>
                     cn(
                       "rounded-xl border px-3 py-3 text-center text-sm font-bold",
-                      isActive ? "border-white bg-white text-[#DF301C]" : "border-white/20 bg-white/10 text-white",
+                      isActive ? "border-white bg-white text-[#621295]" : "border-white/20 bg-white/10 text-white",
                     )
                   }
                 >
@@ -185,7 +182,7 @@ const Header = () => {
                 </Link>
               ))}
               <Link to="/track-order" className="rounded-xl px-3 py-2.5 text-sm font-semibold hover:bg-white/10">پیگیری خرید</Link>
-              <Link to={user ? "/account" : "/auth/login"} className="rounded-xl bg-white px-3 py-2.5 text-sm font-semibold text-[#DF301C] hover:bg-white/90">
+              <Link to={user ? "/account" : "/auth/login"} className="rounded-xl bg-white px-3 py-2.5 text-sm font-semibold text-[#621295] hover:bg-white/90">
                 {user ? "حساب کاربری" : "ورود / ثبت‌نام"}
               </Link>
             </div>

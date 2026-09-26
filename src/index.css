@@ -81,6 +81,14 @@
   .ltr-value { direction: ltr; unicode-bidi: isolate; }
   .scrollbar-none { scrollbar-width: none; }
   .scrollbar-none::-webkit-scrollbar { display: none; }
+  .booking-search-theme .travel-field:hover { border-color: rgb(98 18 149 / 0.6); }
+  .booking-search-theme .travel-field:focus-within { border-color: #621295; box-shadow: 0 0 0 4px rgb(98 18 149 / 0.1); }
+  .booking-purple-calendar [class~="text-primary"],
+  .booking-purple-calendar [class~="text-secondary"] { color: #621295; }
+  .booking-purple-calendar [class~="bg-primary"] { background-color: #621295; }
+  .booking-purple-calendar [class~="bg-primary/10"] { background-color: rgb(98 18 149 / 0.1); }
+  .booking-purple-calendar [class~="hover:bg-primary/5"]:hover { background-color: rgb(98 18 149 / 0.07); }
+  .booking-purple-calendar [class~="focus-visible:ring-primary/50"]:focus-visible { --tw-ring-color: rgb(98 18 149 / 0.5); }
 }
 
 @media (max-width: 639px) {

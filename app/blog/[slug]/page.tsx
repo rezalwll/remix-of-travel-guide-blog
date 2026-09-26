@@ -38,7 +38,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
   return (
     <main id="main-content" className="min-h-[70vh] bg-muted/35">
-      <TravelHero asset={cover} size="compact" eyebrow={`${article.author} · ${new Date(article.updatedAt).toLocaleDateString("fa-IR")}`} title={article.title} description={article.description} />
+      <TravelHero asset={cover} size="compact" title={article.title} description={article.description} />
 
       <div className="container-page pt-7"><Breadcrumbs items={[{ label: "خانه", href: "/" }, { label: "مجله سفر", href: "/blog" }, { label: article.title, href: canonical }]} /></div>
 
@@ -51,12 +51,12 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             </div>
           ))}
         </div>
-        {article.relatedDestination && <aside className="mx-auto mt-10 max-w-3xl"><PromoBanner href={article.relatedDestination} asset={destinationSlug ? destinationAsset(destinationSlug, `تصویر مقصد مرتبط با ${article.title}`) : editorialMedia.travellers} eyebrow="ادامهٔ برنامه‌ریزی" title="راهنمای مقصد را هم ببین" description="زمان سفر، رفت‌وآمد و پیوندهای پرواز و اقامت در صفحهٔ مقصد جمع شده است." cta="مشاهدهٔ مقصد" /></aside>}
+        {article.relatedDestination && <aside className="mx-auto mt-10 max-w-3xl"><PromoBanner href={article.relatedDestination} asset={destinationSlug ? destinationAsset(destinationSlug, `تصویر مقصد مرتبط با ${article.title}`) : editorialMedia.travellers} title="راهنمای مقصد را هم ببین" description="زمان سفر، رفت‌وآمد و پیوندهای پرواز و اقامت در صفحهٔ مقصد جمع شده است." cta="مشاهدهٔ مقصد" /></aside>}
       </article>
 
-      <section className="media-section-tinted"><div className="container-page"><SectionHeader eyebrow="مطالب بعدی" title="از مجلهٔ سفر" action={{ href: "/blog", label: "همهٔ مقاله‌ها" }} /><div className="media-grid sm:grid-cols-2 lg:grid-cols-3">{related.map((item, index) => <ImageCard key={item.slug} href={`/blog/${item.slug}`} asset={legacyAsset(item.image, item.title, item.slug)} title={item.title} description={item.description} meta={index === 0 ? "پیشنهاد تحریریه" : undefined} cta="خواندن مقاله" />)}</div></div></section>
+      <section className="media-section-tinted"><div className="container-page"><SectionHeader title="از مجلهٔ سفر" action={{ href: "/blog", label: "همهٔ مقاله‌ها" }} /><div className="media-grid sm:grid-cols-2 lg:grid-cols-3">{related.map((item, index) => <ImageCard key={item.slug} href={`/blog/${item.slug}`} asset={legacyAsset(item.image, item.title, item.slug)} title={item.title} description={item.description} meta={index === 0 ? "پیشنهاد تحریریه" : undefined} cta="خواندن مقاله" />)}</div></div></section>
 
-      <section className="pb-14 pt-10 sm:pb-20"><div className="container-page"><PromoBanner href="/travel-preparation" asset={serviceAsset("routes", "تصویر برنامه‌ریزی پیش از سفر")} eyebrow="پیش از حرکت" title="چک‌لیست سفر را مرور کن" description="مدارک، بیمه، اینترنت و زمان‌بندی رفت‌وآمد را یک‌جا بررسی کن." cta="آمادگی سفر" align="center" /></div></section>
+      <section className="pb-14 pt-10 sm:pb-20"><div className="container-page"><PromoBanner href="/travel-preparation" asset={serviceAsset("routes", "تصویر برنامه‌ریزی پیش از سفر")} title="چک‌لیست سفر را مرور کن" description="مدارک، بیمه، اینترنت و زمان‌بندی رفت‌وآمد را یک‌جا بررسی کن." cta="آمادگی سفر" align="center" /></div></section>
 
       <JsonLd data={{ "@context": "https://schema.org", "@type": "BlogPosting", headline: article.title, description: article.description, image: absoluteUrl(article.image), author: { "@type": "Organization", name: article.author }, publisher: { "@type": "Organization", name: "کیاشی" }, datePublished: article.publishedAt, dateModified: article.updatedAt, mainEntityOfPage: absoluteUrl(canonical), inLanguage: "fa-IR" }} />
     </main>

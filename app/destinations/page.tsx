@@ -20,7 +20,6 @@ const themes = [
   { href: "/destinations/iran/kish", label: "ساحلی", media: "beach" },
   { href: "/destinations/iran/mashhad", label: "زیارتی", media: "pilgrimage" },
   { href: "/destinations/turkey/istanbul", label: "شهری", media: "city" },
-  { href: "/city-tours", label: "طبیعت", media: "nature" },
   { href: "/tours", label: "تاریخی", media: "heritage" },
   { href: "/hotels", label: "لوکس", media: "luxury" },
 ] as const;
@@ -30,7 +29,6 @@ export default function DestinationsPage() {
     <main>
       <TravelHero
         asset={photoLibrary.greece}
-        eyebrow="راهنمای مقصد"
         title="مقصد را آگاهانه انتخاب کنید"
         description="هر صفحه فقط برای مقصدی منتشر می‌شود که راهنمای کاربردی، پیوند مرتبط و تاریخ به‌روزرسانی واقعی داشته باشد؛ ترکیب‌های نازک و خودکار وارد ایندکس نمی‌شوند."
         badges={["زمان مناسب سفر", "رفت‌وآمد شهری", "پیوند پرواز و اقامت"]}
@@ -44,7 +42,6 @@ export default function DestinationsPage() {
       <section className="pb-4 pt-8">
         <div className="container-page">
           <SectionHeader
-            eyebrow="مقصدهای منتخب"
             title="راهنماهای کامل کیاشی"
             description="این مقصدها راهنمای فارسی اختصاصی، نکات رفت‌وآمد و پیوند مستقیم به پرواز و اقامت دارند."
           />
@@ -78,7 +75,6 @@ export default function DestinationsPage() {
           <PromoBanner
             href="/flights/tehran-to-kish"
             asset={experienceAsset("beach", "تصویرسازی سفر ساحلی")}
-            eyebrow="سفر کوتاه"
             title="جزیره در چند روز"
             description="مسیر پرواز، زمان تحویل اتاق و برنامهٔ ساحلی را با هم هماهنگ کن."
             cta="راهنمای مسیر تهران به کیش"
@@ -89,7 +85,6 @@ export default function DestinationsPage() {
       <section className="media-section-tinted">
         <div className="container-page">
           <SectionHeader
-            eyebrow="آرشیو مقصدها"
             title="مرور بر اساس قاره"
             description="آرشیو راهنمای مقصدهای پیشین با نشانی پایدار حفظ شده است."
           />
@@ -133,7 +128,6 @@ export default function DestinationsPage() {
           <PromoBanner
             href="/support"
             asset={serviceAsset("support", "تصویر پشتیبانی سفر")}
-            eyebrow="کمک برای انتخاب"
             title="در انتخاب مقصد مردد هستی؟"
             description="راهنمای خرید و پرسش‌های متداول کیاشی می‌تواند تصمیم را ساده‌تر کند."
             cta="مرکز راهنما"

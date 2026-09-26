@@ -15,7 +15,6 @@ const pages = {
   HelpCenter: dynamic(() => import("@/legacy-pages/HelpCenter")),
   TrackOrder: dynamic(() => import("@/legacy-pages/TrackOrder")),
   PublicInfoPage: dynamic(() => import("@/legacy-pages/PublicInfoPage")),
-  ServiceLanding: dynamic(() => import("@/legacy-pages/ServiceLanding")),
   FlightSearchResults: dynamic(() => import("@/legacy-pages/FlightSearchResults")),
   HotelSearchResults: dynamic(() => import("@/legacy-pages/HotelSearchResults")),
   HotelDetail: dynamic(() => import("@/legacy-pages/HotelDetail")),

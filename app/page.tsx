@@ -7,9 +7,7 @@ import {
   FileText,
   Headphones,
   Hotel,
-  LifeBuoy,
   Plane,
-  Signal,
   Sparkles,
   TrainFront,
   Car,
@@ -59,8 +57,6 @@ const services = [
   { href: "/cip", label: "CIP", hint: "تشریفات فرودگاهی", icon: ArmchairIcon, media: "cip" },
   { href: "/transfer", label: "ترانسفر", hint: "استقبال فرودگاهی", icon: Car, media: "transfer" },
   { href: "/visa", label: "ویزا", hint: "راهنمای مدارک", icon: FileText, media: "visa" },
-  { href: "/fast-track", label: "فست ترک", hint: "عبور سریع", icon: LifeBuoy, media: "fast-track" },
-  { href: "/esim", label: "eSIM", hint: "اینترنت مقصد", icon: Signal, media: "esim" },
 ] as const;
 
 const trust = [
@@ -140,7 +136,6 @@ export default function HomePage() {
           <PromoBanner
             href="/hotels/kish"
             asset={experienceAsset("beach", "تصویرسازی ساحل و آب‌های کیش")}
-            eyebrow="سفر به کیش"
             title="تعطیلاتی کنار خلیج فارس"
             description="پرواز و هتل کیش را برای تاریخ سفرت بررسی کن و برای تفریحات جزیره برنامه بریز."
             cta="مشاهده هتل‌های کیش"
@@ -200,14 +195,14 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="media-section-tinted" aria-labelledby="experiences-heading">
+      <section className="media-section-tinted" aria-labelledby="tours-heading">
         <div className="container-page">
           <SectionHeader
-            title="تور و تجربه‌های سفر"
-            description="از تورهای چندروزه تا سفرهای زیارتی و گشت شهری، برنامهٔ مناسب سفرت را پیدا کن."
+            title="تور و سفرهای زیارتی"
+            description="تورهای چندروزه و سفرهای زیارتی را بر اساس مقصد، مدت و خدمات مقایسه کن."
           />
-          <h2 id="experiences-heading" className="sr-only">تجربه‌های مقصد</h2>
-          <div className="media-grid md:grid-cols-3">
+          <h2 id="tours-heading" className="sr-only">تور و سفرهای زیارتی</h2>
+          <div className="media-grid md:grid-cols-2">
             <ImageCard
               href="/tours"
               asset={serviceAsset("tours", "تصویر معرفی تورهای کیاشی")}
@@ -224,14 +219,6 @@ export default function HomePage() {
               chips={["نجف و کربلا", "مشهد"]}
               cta="راهنمای زیارت"
             />
-            <ImageCard
-              href="/city-tours"
-              asset={serviceAsset("city-tours", "تصویر معرفی گشت‌های شهری")}
-              title="گشت شهری و تجربه"
-              description="دیدنی‌های هر شهر را با گشت‌های نیم‌روزه و تمام‌روز تجربه کن."
-              chips={["نیم‌روزه", "تمام‌روز"]}
-              cta="مشاهدهٔ تجربه‌ها"
-            />
           </div>
         </div>
       </section>
@@ -241,7 +228,6 @@ export default function HomePage() {
           <PromoBanner
             href="/flights/tehran-to-istanbul"
             asset={photoLibrary.greece}
-            eyebrow="سفر شهری"
             title="استانبول، دو قاره در یک سفر"
             description="فرودگاه مقصد، محلهٔ اقامت و شرایط ورود را پیش از خرید بررسی کن."
             cta="راهنمای مسیر تهران به استانبول"
@@ -310,7 +296,6 @@ export default function HomePage() {
             <PromoBanner
               href="/support"
               asset={serviceAsset("support", "تصویر بخش پشتیبانی سفر")}
-              eyebrow="پشتیبانی"
               title="برای رزرو یا پیگیری خرید کمک می‌خواهی؟"
               description="پاسخ پرسش‌های متداول، راهنمای استرداد و وضعیت سفارش را در مرکز پشتیبانی ببین."
               cta="رفتن به پشتیبانی"
@@ -320,30 +305,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="border-t bg-card">
-        <div className="container-page py-10">
-          <h2 className="text-lg font-black">رزرو خدمات سفر با کیاشی</h2>
-          <p className="mt-3 max-w-4xl text-sm leading-8 text-muted-foreground">
-            در کیاشی می‌توانید پرواز، هتل، قطار، اتوبوس و تور را جست‌وجو کنید و خدماتی مثل بیمه،
-            ترانسفر، تشریفات فرودگاهی و اینترنت سفر را هم در کنار رزرو اصلی ببینید. راهنماهای مسیر
-            و مقصد نیز برای آشنایی با زمان سفر، فرودگاه‌ها، محله‌های اقامتی و دیدنی‌ها در دسترس‌اند.
-          </p>
-          <ul className="mt-5 flex flex-wrap gap-2">
-            {[
-              { href: "/flights/tehran-to-mashhad", label: "پرواز تهران به مشهد" },
-              { href: "/flights/tehran-to-kish", label: "پرواز تهران به کیش" },
-              { href: "/hotels/mashhad", label: "هتل‌های مشهد" },
-              { href: "/hotels/kish", label: "هتل‌های کیش" },
-              { href: "/destinations/turkey/istanbul", label: "راهنمای استانبول" },
-              { href: "/visa", label: "راهنمای ویزا" },
-            ].map((link) => (
-              <li key={link.href}>
-                <Link href={link.href} className="soft-chip hover:border-secondary/50 hover:text-secondary">{link.label}</Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
     </main>
   );
 }

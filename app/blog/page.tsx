@@ -25,7 +25,6 @@ export default function BlogPage() {
       <TravelHero
         asset={photoLibrary.books}
         size="compact"
-        eyebrow="مجلهٔ سفر کیاشی"
         title="قبل از حرکت بخوان"
         description="مقاله‌های منتخب فارسی در اولویت‌اند و آرشیو محتوای قبلی نیز با نشانی پایدار حفظ شده است."
       />
@@ -70,7 +69,6 @@ export default function BlogPage() {
       <section className="media-section-tinted">
         <div className="container-page">
           <SectionHeader
-            eyebrow="آرشیو"
             title="راهنماهای مقصد"
             description="محتوای پیشین بدون حذف یا شکستن پیوند به معماری جدید منتقل شده است."
           />
