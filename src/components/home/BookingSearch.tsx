@@ -442,10 +442,10 @@ const BookingSearch = () => {
   return (
     <section id="booking" aria-label="جست‌وجوی خدمات سفر" className="relative z-10 mx-auto -mt-24 w-full max-w-[1280px] px-4 sm:-mt-28 sm:px-6 lg:px-8">
       <div
-        className="rounded-[1.5rem] border border-[#FB6C00]/20 bg-card p-3 sm:p-5"
+        className="rounded-[1.5rem] border border-[#DF301C]/30 bg-card p-3 sm:p-5"
         style={{
-          backgroundImage: "radial-gradient(circle at 88% 12%, rgba(251, 108, 0, 0.2), transparent 30%), radial-gradient(circle at 12% 88%, rgba(249, 182, 55, 0.24), transparent 34%)",
-          boxShadow: "0 26px 70px -32px rgba(251, 108, 0, 0.62), 0 12px 34px -22px rgba(223, 48, 28, 0.42), var(--shadow-float)",
+          backgroundImage: "radial-gradient(circle at 88% 12%, rgba(223, 48, 28, 0.27), transparent 31%), radial-gradient(circle at 12% 88%, rgba(255, 68, 36, 0.2), transparent 35%)",
+          boxShadow: "0 28px 76px -28px rgba(223, 48, 28, 0.78), 0 10px 38px -18px rgba(223, 48, 28, 0.58), var(--shadow-float)",
         }}
       >
         <div className="scrollbar-none flex gap-1 overflow-x-auto border-b border-border/80 pb-3" role="tablist" aria-label="انتخاب نوع خدمت">
