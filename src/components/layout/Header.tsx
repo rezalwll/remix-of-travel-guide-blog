@@ -69,13 +69,13 @@ const Header = () => {
       <div className="container-page flex h-[72px] items-center justify-between gap-4">
         <Link
           to="/"
-          className="group order-3 flex shrink-0 items-center gap-2.5"
+          className="group flex shrink-0 items-center gap-2.5"
           aria-label="کیاشی، صفحه اصلی"
         >
           <img src="/kiashi-logo.png" alt="کیاشی" className="h-10 w-auto max-w-[112px] object-contain object-right brightness-0 invert" />
         </Link>
 
-        <nav className="order-2 hidden items-center gap-0.5 lg:flex" aria-label="خدمات اصلی">
+        <nav className="hidden items-center gap-0.5 lg:flex" aria-label="خدمات اصلی">
           {primaryLinks.map((item) => (
             <NavLink key={item.to} to={item.to} className={linkClass}>
               {item.label}
@@ -115,7 +115,7 @@ const Header = () => {
           </div>
         </nav>
 
-        <div className="order-1 flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5">
           <Link
             to="/support"
             className="hidden min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-white/85 transition hover:bg-white/10 hover:text-white xl:inline-flex"

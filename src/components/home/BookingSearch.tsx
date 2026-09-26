@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "@/lib/router";
+import { Link, useNavigate } from "@/lib/router";
 import {
   ArrowLeftRight,
   BusFront,
@@ -448,6 +448,11 @@ const BookingSearch = () => {
           boxShadow: "0 28px 76px -28px rgba(223, 48, 28, 0.78), 0 10px 38px -18px rgba(223, 48, 28, 0.58), var(--shadow-float)",
         }}
       >
+        <div className="mb-2 flex justify-end">
+          <Link to="/" aria-label="کیاشی، صفحه اصلی" className="inline-flex rounded-xl bg-white/80 px-2.5 py-1.5 shadow-sm backdrop-blur">
+            <img src="/kiashi-logo.png" alt="کیاشی" className="h-7 w-auto max-w-[96px] object-contain" />
+          </Link>
+        </div>
         <div className="scrollbar-none flex gap-1 overflow-x-auto border-b border-border/80 pb-3" role="tablist" aria-label="انتخاب نوع خدمت">
           {tabs.map((tab) => {
             const Icon = tab.icon;
