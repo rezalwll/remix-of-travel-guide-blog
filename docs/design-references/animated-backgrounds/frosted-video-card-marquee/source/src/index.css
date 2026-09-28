@@ -1,0 +1,59 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Outfit', sans-serif;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    background: #f9fafb;
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+    background: #f9fafb;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer components {
+  .marquee-mask {
+    mask-image: linear-gradient(to right, transparent, black 9%, black 91%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 9%, black 91%, transparent);
+  }
+
+  .marquee-track {
+    animation: marquee 28s linear infinite;
+    will-change: transform;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation-play-state: paused;
+  }
+}
