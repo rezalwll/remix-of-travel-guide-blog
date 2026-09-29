@@ -1,3 +1,5 @@
+import { photoLibrary } from "@/media/library";
+
 export interface TravelRoute {
   id: string;
   title: string;
@@ -21,7 +23,7 @@ export const travelRoutes: TravelRoute[] = [
     subtitle: "ترکیب شهر، خرید، غذا و چند روز آرام کنار دریا",
     description: "مسیر هشت‌روزه‌ای از محله‌های تاریخی استانبول تا ساحل اژه؛ مناسب سفر دونفره یا خانوادگی با ریتم متعادل.",
     duration: "۸ روز",
-    image: "/hero-greece.jpg",
+    image: photoLibrary.istanbul.src,
     countries: ["ترکیه", "استانبول", "ازمیر"],
     difficulty: "آسان",
     bestSeason: "اردیبهشت تا مهر",
@@ -42,7 +44,7 @@ export const travelRoutes: TravelRoute[] = [
     subtitle: "یک مسیر کلاسیک ایران‌گردی با قطار و پرواز داخلی",
     description: "برنامه‌ای نه‌روزه برای دیدن معماری، باغ‌ها و خوراک محلی؛ با جابه‌جایی‌های روشن و زمان آزاد کافی.",
     duration: "۹ روز",
-    image: "/hero-desert.jpg",
+    image: photoLibrary.isfahan.src,
     countries: ["تهران", "کاشان", "اصفهان", "شیراز"],
     difficulty: "متوسط",
     bestSeason: "فروردین تا خرداد و مهر",
@@ -63,7 +65,7 @@ export const travelRoutes: TravelRoute[] = [
     subtitle: "جزیره‌گردی جنوب با ریتم آرام و تجربه‌های دریایی",
     description: "هفت روز میان ساحل، بازارهای محلی و ژئوسایت‌های جنوب؛ مناسب فصل خنک و سفرهای خانوادگی.",
     duration: "۷ روز",
-    image: "/hero-camping.jpg",
+    image: photoLibrary.qeshm.src,
     countries: ["کیش", "هندورابی", "قشم"],
     difficulty: "آسان",
     bestSeason: "آبان تا فروردین",
@@ -83,7 +85,7 @@ export const travelRoutes: TravelRoute[] = [
     subtitle: "مسیر زمینی قفقاز با شهرهای تاریخی و طبیعت سبز",
     description: "ده روز برای کشف تفلیس، ساحل باتومی و کافه‌های ایروان؛ با جابه‌جایی زمینی برنامه‌ریزی‌شده.",
     duration: "۱۰ روز",
-    image: "/iceland.jpg",
+    image: photoLibrary.tbilisi.src,
     countries: ["گرجستان", "تفلیس", "ارمنستان"],
     difficulty: "متوسط",
     bestSeason: "خرداد تا مهر",
@@ -103,7 +105,7 @@ export const travelRoutes: TravelRoute[] = [
     subtitle: "سفر شهری مدرن در کنار طبیعت و معماری عمان",
     description: "شش روز میان تجربه‌های شهری دبی و آرامش مسقط؛ با پرواز کوتاه بین دو مقصد.",
     duration: "۶ روز",
-    image: "/morocco.jpg",
+    image: photoLibrary.dubai.src,
     countries: ["امارات", "دبی", "عمان", "مسقط"],
     difficulty: "آسان",
     bestSeason: "آبان تا اسفند",

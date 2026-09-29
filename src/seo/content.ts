@@ -1,5 +1,6 @@
 import { scaledAirports, scaledDestinations, scaledHotels, scaledRoutes, scaledTours } from "./scaled-content";
 import type { SeoSource } from "./taxonomy";
+import { photoLibrary } from "@/media/library";
 
 export type SeoFaq = { question: string; answer: string };
 
@@ -110,7 +111,7 @@ export const seoDestinations: SeoDestination[] = [
     countrySlug: "iran", citySlug: "kish", country: "ایران", city: "کیش",
     title: "راهنمای سفر به کیش", description: "راهنمای کاربردی سفر به کیش؛ بهترین زمان، رفت‌وآمد، محله‌های اقامت و پیوند به پرواز و هتل.",
     summary: "کیش برای سفر کوتاه ساحلی، خرید و تفریح‌های دریایی انتخابی در دسترس است. پیش از حرکت، وضعیت آب‌وهوا و اجرای برنامه‌های دریایی را بررسی کنید.",
-    heroImage: "/hero-camping.jpg", bestTime: "از آبان تا فروردین هوا معمولاً برای پیاده‌روی و برنامه‌های فضای باز مناسب‌تر است.",
+    heroImage: photoLibrary.kishShore.src, bestTime: "از آبان تا فروردین هوا معمولاً برای پیاده‌روی و برنامه‌های فضای باز مناسب‌تر است.",
     transportNotes: "رفت‌وآمد اصلی با تاکسی انجام می‌شود. برای ساعت‌های شلوغ و رفت‌وآمد فرودگاهی زمان اضافه در نظر بگیرید.",
     highlights: ["ساحل و مسیر دوچرخه", "کشتی یونانی", "کاریز کیش", "تفریح‌های دریایی وابسته به شرایط جوی"],
     relatedRoutes: ["tehran-to-kish"], relatedHotels: ["kish"], relatedArticles: ["kish-travel-guide"], updatedAt: "2026-09-10", indexable: true,
@@ -119,7 +120,7 @@ export const seoDestinations: SeoDestination[] = [
     countrySlug: "iran", citySlug: "mashhad", country: "ایران", city: "مشهد",
     title: "راهنمای سفر به مشهد", description: "راهنمای برنامه‌ریزی سفر به مشهد با اطلاعات مسیر، اقامت، حمل‌ونقل شهری و زمان مناسب سفر.",
     summary: "مشهد علاوه بر سفر زیارتی، برای موزه‌گردی، بازار و گردش‌های یک‌روزه پیرامون شهر هم برنامه‌های متنوعی دارد.",
-    heroImage: "/asia-temple.jpg", bestTime: "بهار و اوایل پاییز معمولاً آب‌وهوای متعادل‌تری دارند؛ تعطیلات مذهبی و نوروز شلوغ‌تر است.",
+    heroImage: photoLibrary.mashhad.src, bestTime: "بهار و اوایل پاییز معمولاً آب‌وهوای متعادل‌تری دارند؛ تعطیلات مذهبی و نوروز شلوغ‌تر است.",
     transportNotes: "مترو، اتوبوس و تاکسی بخش زیادی از شهر را پوشش می‌دهند. فاصله هتل تا مقصد اصلی را پیش از رزرو بسنجید.",
     highlights: ["مجموعه حرم", "آرامگاه فردوسی", "بازار رضا", "طرقبه و شاندیز"],
     relatedRoutes: ["tehran-to-mashhad"], relatedHotels: ["mashhad"], relatedArticles: ["mashhad-travel-planning"], updatedAt: "2026-09-08", indexable: true,
@@ -128,7 +129,7 @@ export const seoDestinations: SeoDestination[] = [
     countrySlug: "turkey", citySlug: "istanbul", country: "ترکیه", city: "استانبول",
     title: "راهنمای سفر به استانبول", description: "راهنمای فارسی سفر به استانبول؛ محله‌ها، حمل‌ونقل، بهترین زمان و برنامه‌ریزی پرواز و هتل.",
     summary: "استانبول شهری بزرگ میان اروپا و آسیاست. انتخاب محله اقامت و استفاده از حمل‌ونقل عمومی می‌تواند زمان و هزینه رفت‌وآمد را کنترل کند.",
-    heroImage: "/hero-greece.jpg", bestTime: "بهار و پاییز برای پیاده‌روی مناسب‌ترند؛ تابستان و تعطیلات معمولاً پرتردد است.",
+    heroImage: photoLibrary.istanbul.src, bestTime: "بهار و پاییز برای پیاده‌روی مناسب‌ترند؛ تابستان و تعطیلات معمولاً پرتردد است.",
     transportNotes: "استانبول‌کارت برای مترو، تراموا، اتوبوس و کشتی کاربرد دارد. برای مسیر فرودگاه زمان ترافیک را لحاظ کنید.",
     highlights: ["سلطان‌احمد و ایاصوفیه", "بسفر", "کادیکوی", "گالاتا و خیابان استقلال"],
     relatedRoutes: ["tehran-to-istanbul"], relatedHotels: ["istanbul"], relatedArticles: ["best-time-to-visit-istanbul"], updatedAt: "2026-09-12", indexable: true,
@@ -188,17 +189,17 @@ export const seoAirportGuides: SeoAirportGuide[] = scaledAirports;
 export const seoArticles: SeoArticle[] = [
   {
     slug: "best-time-to-visit-istanbul", title: "بهترین زمان سفر به استانبول؛ راهنمای فصل‌به‌فصل", description: "مقایسه فصل‌های استانبول از نظر آب‌وهوا، شلوغی و نوع تجربه برای انتخاب زمان مناسب سفر.",
-    image: "/hero-greece.jpg", author: "تحریریه کیاشی", publishedAt: "2026-08-20", updatedAt: "2026-09-12", relatedDestination: "/destinations/turkey/istanbul", indexable: true,
+    image: photoLibrary.istanbul.src, author: "تحریریه کیاشی", publishedAt: "2026-08-20", updatedAt: "2026-09-12", relatedDestination: "/destinations/turkey/istanbul", indexable: true,
     body: ["بهترین زمان سفر به استانبول برای همه یکسان نیست. اگر پیاده‌روی طولانی و کافه‌گردی اولویت شماست، بهار و پاییز معمولاً دمای متعادل‌تری دارند.", "تابستان روزهای بلندتری دارد اما بخش‌های گردشگری شلوغ‌تر می‌شوند. زمستان خلوت‌تر است و برای موزه و خرید مناسب است، هرچند باران و باد می‌تواند برنامه فضای باز را تغییر دهد.", "پیش از انتخاب تاریخ، تعطیلات رسمی، رویدادها و پیش‌بینی هوا را بررسی کنید. قیمت و ظرفیت فقط در نتایج واقعی جست‌وجو معتبر است."],
   },
   {
     slug: "kish-travel-guide", title: "راهنمای برنامه‌ریزی سفر کوتاه به کیش", description: "یک چارچوب ساده برای برنامه‌ریزی سفر دو تا چهارروزه کیش، از پرواز و هتل تا برنامه‌های ساحلی.",
-    image: "/hero-camping.jpg", author: "تحریریه کیاشی", publishedAt: "2026-08-18", updatedAt: "2026-09-10", relatedDestination: "/destinations/iran/kish", indexable: true,
+    image: photoLibrary.kishShore.src, author: "تحریریه کیاشی", publishedAt: "2026-08-18", updatedAt: "2026-09-10", relatedDestination: "/destinations/iran/kish", indexable: true,
     body: ["برای سفر کوتاه کیش بهتر است پرواز، زمان تحویل اتاق و برنامه‌های فضای باز را یک‌جا هماهنگ کنید.", "روز اول را سبک نگه دارید و برنامه‌های دریایی را به روزی با پیش‌بینی هوای مناسب بسپارید. بازار و برنامه‌های داخلی می‌توانند گزینه جایگزین باشند.", "این راهنما اطلاعات عمومی ارائه می‌کند و ادعای قیمت، ظرفیت یا اجرای قطعی خدمات ندارد."],
   },
   {
     slug: "mashhad-travel-planning", title: "چطور سفر به مشهد را بهتر برنامه‌ریزی کنیم؟", description: "نکات کاربردی انتخاب زمان، مسیر، اقامت و رفت‌وآمد در سفر مشهد.",
-    image: "/asia-temple.jpg", author: "تحریریه کیاشی", publishedAt: "2026-08-15", updatedAt: "2026-09-08", relatedDestination: "/destinations/iran/mashhad", indexable: true,
+    image: photoLibrary.mashhad.src, author: "تحریریه کیاشی", publishedAt: "2026-08-15", updatedAt: "2026-09-08", relatedDestination: "/destinations/iran/mashhad", indexable: true,
     body: ["در سفر مشهد، محل اقامت روی زمان رفت‌وآمد روزانه اثر زیادی دارد. فاصله روی نقشه و دسترسی مترو یا سرویس هتل را بررسی کنید.", "در تعطیلات و مناسبت‌ها برای فرودگاه، راه‌آهن و مسیرهای مرکزی زمان اضافه در نظر بگیرید.", "شرایط تغییر و استرداد پرواز و هتل را پیش از پرداخت بخوانید تا برنامه سفر انعطاف‌پذیر بماند."],
   },
 ];

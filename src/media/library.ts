@@ -56,6 +56,17 @@ const pexelsPhoto = (id: string, file: string, width: number, height: number, al
   licenseNote: `Pexels License; source https://www.pexels.com/photo/${id}/`,
 });
 
+const sourcedPhoto = (
+  id: string,
+  src: string,
+  width: number,
+  height: number,
+  alt: string,
+  credit: string,
+  licenseNote: string,
+  usage: MediaUsage = "card",
+): PhotoAsset => ({ kind: "photo", id, src, width, height, alt, usage, credit, licenseNote });
+
 /** Photography that ships with the repository. Each entry is used deliberately, not as filler. */
 export const photoLibrary = {
   kiashiTravelBanner: photo("kiashi-travel-support-banner", "/kiashi-travel-support-banner.webp", 1916, 821, "جادهٔ کوهستانی در غروب با نشان کیاشی", "hero"),
@@ -92,32 +103,48 @@ export const photoLibrary = {
   globeInHand: pexelsPhoto("346885", "lake.webp", 1200, 800, "کرهٔ زمین در دست مسافر", "editorial"),
   roadTrip: pexelsPhoto("386009", "beach.webp", 1200, 800, "مینی‌بوس سفر و چمدان روی سقف"),
   scenicOverlook: pexelsPhoto("2574010", "airport.webp", 1200, 900, "چشم‌انداز کوهستان از سکوی تماشا", "hero"),
+  tehran: sourcedPhoto("tehran-skyline", "/media/destinations/tehran.webp", 1000, 590, "نمای شهر تهران از برج میلاد", "Amin Yari / Mojnews — Wikimedia Commons", "CC BY 4.0; source https://commons.wikimedia.org/wiki/File:Tehran_skyline_from_Milad_Tower_by_Mojnews_02.jpg", "hero"),
+  mashhad: sourcedPhoto("mashhad-imam-reza-shrine", "/media/destinations/mashhad.webp", 1600, 979, "حرم امام رضا در مشهد", "Mohammad Hosein Tabatabaeian — Wikimedia Commons", "CC BY-SA 3.0; source https://commons.wikimedia.org/wiki/File:Imam_Reza_shrine.jpg", "hero"),
+  shiraz: sourcedPhoto("shiraz-nasir-al-mulk", "/media/destinations/shiraz.webp", 1600, 1067, "شبستان رنگین مسجد نصیرالملک شیراز", "Faraz Ahanin — Wikimedia Commons", "CC0; source https://commons.wikimedia.org/wiki/File:Nasir_al-Mulk_Mosque_-_Shiraz.jpg", "hero"),
+  isfahan: sourcedPhoto("isfahan-naqsh-e-jahan", "/media/destinations/isfahan.webp", 1600, 1067, "میدان نقش جهان اصفهان", "Ninara — Wikimedia Commons", "CC BY 2.0; source https://commons.wikimedia.org/wiki/File:Naqsh-e_Jahan_Square,_Isfahan_(53792753143).jpg", "hero"),
+  yazd: sourcedPhoto("yazd-amir-chakhmaq", "/media/destinations/yazd.webp", 1600, 1067, "مجموعه امیرچخماق یزد", "Bernard Gagnon — Wikimedia Commons", "CC BY-SA 4.0; source https://commons.wikimedia.org/wiki/File:Amir_Chakhmaq_Complex,_Yazd.jpg", "hero"),
+  tabriz: sourcedPhoto("tabriz-grand-bazaar", "/media/destinations/tabriz.webp", 1600, 2632, "راسته‌های تاریخی بازار بزرگ تبریز", "Sana Taba — Wikimedia Commons", "CC BY-SA 4.0; source https://commons.wikimedia.org/wiki/File:Tabriz_grand_bazaar-interior_view.jpg", "hero"),
+  qeshm: sourcedPhoto("qeshm-stars-valley", "/media/destinations/qeshm.webp", 1600, 1067, "دره ستاره‌های قشم", "Ninara — Wikimedia Commons", "CC BY 2.0; source https://commons.wikimedia.org/wiki/File:Qeshm,_Iran,_Valley_of_the_stars.jpg", "hero"),
+  istanbul: sourcedPhoto("istanbul-skyline", "/media/destinations/istanbul.webp", 1600, 428, "خط آسمان استانبول و تنگه بسفر", "Benreis — Wikimedia Commons", "CC BY 3.0; source https://commons.wikimedia.org/wiki/File:Istanbul_Skyline_Beşiktaş_Şişli.JPG", "hero"),
+  dubai: sourcedPhoto("dubai-skyline", "/media/destinations/dubai.webp", 1600, 1200, "نمای شهری دبی از برج خلیفه", "Ubahnverleih — Wikimedia Commons", "CC0; source https://commons.wikimedia.org/wiki/File:Dubai,_View_from_Burj_Khalifa,_2018.jpg", "hero"),
+  najaf: sourcedPhoto("najaf-imam-ali-shrine", "/media/destinations/najaf.webp", 1280, 960, "حرم امام علی در نجف", "Qadri Shazly — Wikimedia Commons", "CC0; source https://commons.wikimedia.org/wiki/File:Beautiful_Views_of_Holy_Shrine_of_Hazrat_Imam_Ali_-Najaf_-Iraq_حضرت_امام_علی_کے_حرم_اور_مزار_کی_خوبصورت_تصاویر.jpg", "hero"),
+  tbilisi: sourcedPhoto("tbilisi-panorama", "/media/destinations/tbilisi.webp", 1600, 450, "نمای پانورامای شهر تفلیس", "Dudva — Wikimedia Commons", "CC BY-SA 4.0; source https://commons.wikimedia.org/wiki/File:Panorama_of_Tbilisi.jpg", "hero"),
+  yerevan: sourcedPhoto("yerevan-republic-square", "/media/destinations/yerevan.webp", 1600, 368, "نمای میدان جمهوری ایروان", "Garik Avakian — Wikimedia Commons", "CC BY-SA 4.0; source https://commons.wikimedia.org/wiki/File:Republic_Square_Yerevan_Panorama.jpg", "hero"),
+  karbalaHero: sourcedPhoto("karbala-aerial-night", "/media/ziyarat/karbala-hero.webp", 1600, 375, "نمای هوایی شبانه حرم امام حسین و شهر کربلا", "نهال‌گشت — نمونه آزمایشی", "Experimental prototype only; source https://nahalgasht.com/tours/iraq/karbala/; replace or obtain permission before public release", "hero"),
+  karbalaNight: sourcedPhoto("karbala-shrine-entrance", "/media/ziyarat/karbala-night.webp", 1600, 1067, "ورودی و گلدسته‌های حرم در کربلا", "نهال‌گشت — نمونه آزمایشی", "Experimental prototype only; source https://nahalgasht.com/tours/iraq/karbala/; replace or obtain permission before public release"),
+  karbalaPilgrims: sourcedPhoto("karbala-pilgrims-sunset", "/media/ziyarat/karbala-pilgrims.webp", 1600, 1067, "زائران در مسیر حرم کربلا هنگام غروب", "نهال‌گشت — نمونه آزمایشی", "Experimental prototype only; source https://nahalgasht.com/tours/iraq/karbala/; replace or obtain permission before public release"),
+  karbalaDay: sourcedPhoto("karbala-shrine-aerial", "/media/ziyarat/karbala-day.webp", 1600, 1067, "نمای هوایی حرم و بافت شهری کربلا", "نهال‌گشت — نمونه آزمایشی", "Experimental prototype only; source https://nahalgasht.com/tours/iraq/karbala/; replace or obtain permission before public release"),
 } satisfies Record<string, PhotoAsset>;
 
 /**
- * Destination visuals. Iranian and regional destinations have no licensed photography in this
- * repository, so they use branded Kiashi scenes instead of pretending a stock photo is the city.
+ * Destination visuals use locally stored, source-tracked photography matched to each place.
  */
 export const destinationMedia: Record<string, MediaAsset> = {
   kish: photoLibrary.kishShore,
-  qeshm: photoLibrary.tropicalBeach,
-  mashhad: photoLibrary.temple,
-  tehran: photoLibrary.tehranHotel,
-  shiraz: photoLibrary.morocco,
-  isfahan: photoLibrary.temple,
-  yazd: photoLibrary.desert,
-  tabriz: photoLibrary.cityBridge,
+  qeshm: photoLibrary.qeshm,
+  mashhad: photoLibrary.mashhad,
+  tehran: photoLibrary.tehran,
+  shiraz: photoLibrary.shiraz,
+  isfahan: photoLibrary.isfahan,
+  yazd: photoLibrary.yazd,
+  tabriz: photoLibrary.tabriz,
   rasht: photoLibrary.forestMist,
   mazandaran: photoLibrary.highland,
   alborz: photoLibrary.mountainLake,
-  istanbul: photoLibrary.greece,
-  dubai: photoLibrary.resortPool,
+  istanbul: photoLibrary.istanbul,
+  dubai: photoLibrary.dubai,
   antalya: photoLibrary.tropicalBeach,
   van: photoLibrary.mountainLake,
-  najaf: photoLibrary.temple,
-  karbala: photoLibrary.temple,
-  tbilisi: photoLibrary.france,
-  yerevan: photoLibrary.scenicOverlook,
+  najaf: photoLibrary.najaf,
+  karbala: photoLibrary.karbalaHero,
+  "najaf-karbala": photoLibrary.karbalaHero,
+  tbilisi: photoLibrary.tbilisi,
+  yerevan: photoLibrary.yerevan,
 };
 
 /** Service landings. Each service has its own visual identity so pages never look interchangeable. */
@@ -125,13 +152,13 @@ export const serviceMedia: Record<string, MediaAsset> = {
   flights: photoLibrary.aircraft,
   hotels: photoLibrary.tehranHotel,
   routes: photoLibrary.forestRoad,
-  tours: photoLibrary.cityBridge,
-  ziyarat: photoLibrary.temple,
+  tours: photoLibrary.istanbul,
+  ziyarat: photoLibrary.karbalaHero,
   trains: photoLibrary.metro,
   buses: photoLibrary.forestRoad,
   insurance: photoLibrary.globeInHand,
   cip: photoLibrary.airportTraveller,
-  transfer: photoLibrary.roadTrip,
+  transfer: photoLibrary.airportTraveller,
   visa: photoLibrary.mapAndPlane,
   support: photoLibrary.travelTeam,
 };
@@ -160,7 +187,7 @@ export const experienceMedia: Record<string, MediaAsset> = {
   adventure: photoLibrary.iceland,
   luxury: photoLibrary.istanbulHotel,
   budget: photoLibrary.roadTrip,
-  pilgrimage: photoLibrary.temple,
+  pilgrimage: photoLibrary.karbalaPilgrims,
 };
 
 /** Editorial covers for magazine surfaces. */

@@ -1,4 +1,5 @@
 import type { SeoAirportGuide, SeoDestination, SeoHotelLanding, SeoRoute, SeoTourLanding } from "./content";
+import { destinationAsset, photoLibrary } from "@/media/library";
 
 const updatedAt = "2026-09-27";
 
@@ -29,6 +30,11 @@ const destinationSeeds: DestinationSeed[] = [
   { countrySlug: "iraq", citySlug: "najaf", country: "عراق", city: "نجف", summary: "نجف مقصد زیارتی پرترددی است و برنامه سفر باید بر محل اقامت، مسیرهای پیاده و هماهنگی جابه‌جایی بین‌شهری متمرکز باشد.", bestTime: "دمای هوا و تقویم مناسبت‌ها روی شلوغی اثر دارد؛ هر دو را نزدیک تاریخ سفر بررسی کنید.", transport: "برای فرودگاه، محل اقامت و سفر بین نجف و شهرهای اطراف زمان جداگانه و حاشیه امن در نظر بگیرید.", highlights: ["حرم امام علی", "بازار پیرامون حرم", "مسجد کوفه", "مسیر نجف تا کربلا"], route: "tehran-to-najaf" },
 ];
 
+const destinationImage = (slug: string) => {
+  const asset = destinationAsset(slug);
+  return asset.kind === "photo" ? asset.src : photoLibrary.redMountainLake.src;
+};
+
 export const scaledDestinations: SeoDestination[] = destinationSeeds.map((seed) => ({
   countrySlug: seed.countrySlug,
   citySlug: seed.citySlug,
@@ -37,7 +43,7 @@ export const scaledDestinations: SeoDestination[] = destinationSeeds.map((seed) 
   title: `راهنمای سفر به ${seed.city}`,
   description: `راهنمای کاربردی سفر به ${seed.city}؛ زمان مناسب، رفت‌وآمد، دیدنی‌ها و پیوندهای لازم برای بررسی پرواز و اقامت.`,
   summary: seed.summary,
-  heroImage: "/hero-red-mountain-lake.webp",
+  heroImage: destinationImage(seed.citySlug),
   bestTime: seed.bestTime,
   transportNotes: seed.transport,
   highlights: seed.highlights,
