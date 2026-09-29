@@ -4,18 +4,17 @@ import { Link, useSearchParams } from '@/lib/router';
 import Layout from '@/components/layout/Layout';
 import { HotelCard } from '@/components/hotel/HotelCard';
 import { HotelFiltersPanel } from '@/components/hotel/HotelFilters';
-import { hotelService } from '@/services/hotelService';
+import { hotelService, resolveHotelDestination } from '@/services/hotelService';
 import type { HotelFilters, HotelSearchParams, HotelSortMode } from '@/types/hotel';
 import MediaFrame from '@/components/media/MediaFrame';
 import { serviceAsset } from '@/media/library';
 
-const cityNames: Record<string, string> = { THR: 'تهران', MHD: 'مشهد', KIH: 'کیش', SYZ: 'شیراز', IFN: 'اصفهان', IST: 'استانبول', DXB: 'دبی', NJF: 'نجف' };
 const initialFilters: HotelFilters = { minPrice: 0, maxPrice: 50000000, stars: [], minRating: 0, area: [], amenities: [], mealPlan: 'all', refundable: 'all', tags: [] };
 const HotelResultNotice = ({ title, text, action }: { title: string; text: string; action: React.ReactNode }) => <div className="grid overflow-hidden rounded-2xl border border-border bg-card sm:grid-cols-[12rem_1fr]"><MediaFrame asset={serviceAsset('hotels', 'تصویر اقامت برای وضعیت جست‌وجوی هتل')} ratio="4/3" sizes="192px" decorative className="hidden size-full min-h-48 sm:block" /><div className="flex flex-col items-start justify-center p-7"><HotelIcon className="size-8 text-secondary sm:hidden" /><h2 className="mt-3 text-xl font-extrabold sm:mt-0">{title}</h2><p className="mt-2 text-sm leading-7 text-muted-foreground">{text}</p><div className="mt-5">{action}</div></div></div>;
 
 const parseHotelSearch = (query: URLSearchParams): HotelSearchParams => {
   const rawDestination = query.get('destination') || query.get('city') || '';
-  return { destination: cityNames[rawDestination.toUpperCase()] || rawDestination, checkIn: query.get('checkin') || query.get('checkIn') || '', checkOut: query.get('checkout') || query.get('checkOut') || '', rooms: Number(query.get('rooms') || 1), adults: Number(query.get('adults') || query.get('guests') || 1), children: Number(query.get('children') || 0) };
+  return { destination: resolveHotelDestination(rawDestination), checkIn: query.get('checkin') || query.get('checkIn') || '', checkOut: query.get('checkout') || query.get('checkOut') || '', rooms: Number(query.get('rooms') || 1), adults: Number(query.get('adults') || query.get('guests') || 1), children: Number(query.get('children') || 0) };
 };
 
 const HotelSkeleton = () => <div className="grid animate-pulse overflow-hidden rounded-2xl border border-border bg-card sm:grid-cols-[250px_1fr]"><div className="h-52 bg-muted sm:h-64" /><div className="space-y-4 p-5"><div className="h-5 w-1/2 rounded bg-muted" /><div className="h-3 w-1/3 rounded bg-muted" /><div className="h-16 rounded bg-muted" /><div className="ms-auto h-9 w-32 rounded bg-muted" /></div></div>;

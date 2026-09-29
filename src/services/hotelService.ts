@@ -1,6 +1,28 @@
 import { hotels } from '@/data/hotels';
 import type { Hotel, HotelFilters, HotelSearchParams, HotelSortMode, HotelRoom } from '@/types/hotel';
 
+const destinationAliases: Record<string, string> = {
+  thr: 'تهران', tehran: 'تهران',
+  mhd: 'مشهد', mashhad: 'مشهد',
+  kih: 'کیش', kish: 'کیش',
+  syz: 'شیراز', shiraz: 'شیراز',
+  ifn: 'اصفهان', isfahan: 'اصفهان',
+  gsm: 'قشم', qeshm: 'قشم',
+  yzd: 'یزد', yazd: 'یزد',
+  tbz: 'تبریز', tabriz: 'تبریز',
+  rasht: 'رشت',
+  ist: 'استانبول', istanbul: 'استانبول',
+  dxb: 'دبی', dubai: 'دبی',
+  njf: 'نجف', najaf: 'نجف',
+};
+
+const normalizeSearchText = (value: string) => value.trim().toLowerCase().replaceAll('ي', 'ی').replaceAll('ك', 'ک');
+
+export const resolveHotelDestination = (value: string) => {
+  const normalized = normalizeSearchText(value);
+  return destinationAliases[normalized] ?? value.trim();
+};
+
 export const calculateNights = (checkIn: string, checkOut: string) => {
   const start = new Date(`${checkIn}T00:00:00`).getTime();
   const end = new Date(`${checkOut}T00:00:00`).getTime();
@@ -32,8 +54,8 @@ export const sortHotels = (items: Hotel[], mode: HotelSortMode) => [...items].so
 
 export const hotelService = {
   searchHotels: (params: HotelSearchParams, filters?: HotelFilters, sort: HotelSortMode = 'recommended') => {
-    const destination = params.destination.trim().toLowerCase();
-    const matching = hotels.filter((hotel) => `${hotel.city} ${hotel.name} ${hotel.country} ${hotel.area}`.toLowerCase().includes(destination));
+    const destination = normalizeSearchText(resolveHotelDestination(params.destination));
+    const matching = hotels.filter((hotel) => normalizeSearchText(`${hotel.city} ${hotel.name} ${hotel.country} ${hotel.area}`).includes(destination));
     return sortHotels(filters ? filterHotels(matching, filters) : matching, sort);
   },
   getHotelById: (id: string) => hotels.find((hotel) => hotel.id === id || hotel.slug === id) ?? null,
