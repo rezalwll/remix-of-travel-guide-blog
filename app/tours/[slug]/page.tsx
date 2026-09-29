@@ -20,7 +20,7 @@ if (collisions.length) throw new Error(`Tour landing/detail slug collision: ${co
 
 export function generateStaticParams() {
   return [
-    ...seoTourLandings.filter((item) => isIndexableSeoPath(`/tours/${item.slug}`)).map((item) => ({ slug: item.slug })),
+    ...seoTourLandings.map((item) => ({ slug: item.slug })),
     ...tours.map((tour) => ({ slug: tour.slug })),
   ];
 }
@@ -40,8 +40,6 @@ export default async function TourDestinationPage({ params }: { params: Promise<
     if (!legacyTourSlugs.has(slug)) notFound();
     return <LegacyPage name="TourDetail" />;
   }
-  if (!isIndexableSeoPath(`/tours/${slug}`)) notFound();
-
   const media = destinationAsset(item.slug, `نمایی از ${item.destination}`);
   return (
     <main id="main-content" className="min-h-[70vh] bg-muted/35">

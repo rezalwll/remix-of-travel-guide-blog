@@ -12,7 +12,7 @@ import { destinationAsset, experienceAsset, legacyAsset, serviceAsset, type Medi
 
 export const revalidate = 86_400;
 export const dynamicParams = false;
-export function generateStaticParams() { return [...seoDestinations.filter((item) => isIndexableSeoPath(`/destinations/${item.countrySlug}/${item.citySlug}`)).map((item) => ({ country: item.countrySlug, city: item.citySlug })), ...continents.flatMap((continent) => continent.countries.map((country) => ({ country: continent.slug, city: country.slug })))]; }
+export function generateStaticParams() { return [...seoDestinations.map((item) => ({ country: item.countrySlug, city: item.citySlug })), ...continents.flatMap((continent) => continent.countries.map((country) => ({ country: continent.slug, city: country.slug })))]; }
 
 export async function generateMetadata({ params }: { params: Promise<{ country: string; city: string }> }): Promise<Metadata> {
   const { country, city } = await params;
@@ -47,7 +47,6 @@ export default async function DestinationPage({ params }: { params: Promise<{ co
   let view: DestinationView;
 
   if (item) {
-    if (!isIndexableSeoPath(`/destinations/${country}/${city}`)) notFound();
     view = {
       city: item.city,
       countryLabel: item.country,

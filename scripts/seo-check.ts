@@ -1,4 +1,5 @@
 import { seoAuditManifest } from "../src/seo/audit-manifest";
+import { isIndexableSeoPath, seoContentInventory } from "../src/seo/inventory";
 
 const baseUrl = (process.env.SEO_BASE_URL || "http://127.0.0.1:3000").replace(/\/$/, "");
 
@@ -18,6 +19,15 @@ for (const { path, h1, jsonLd } of seoAuditManifest.indexable) {
   expect(html.includes(h1), `${path} H1/content is not present in raw HTML`);
   expect(!/name="robots"[^>]+noindex/i.test(html), `${path} should be indexable`);
   if (jsonLd) expect(html.includes("application/ld+json"), `${path} is missing JSON-LD`);
+}
+
+// Content quality controls indexing, not whether a known page is available.
+for (const { path } of seoContentInventory) {
+  const { response, html } = await fetchPage(path);
+  expect(response.status === 200, `${path} is known content and should render (got ${response.status})`);
+  if (!isIndexableSeoPath(path)) {
+    expect(/name="robots"[^>]+content="[^"]*noindex/i.test(html) || /content="[^"]*noindex[^"]*"[^>]+name="robots"/i.test(html), `${path} fails the quality gate and should emit noindex`);
+  }
 }
 
 for (const path of seoAuditManifest.noindex) {
@@ -52,4 +62,4 @@ if (failures.length) {
   console.error(`SEO check failed:\n- ${failures.join("\n- ")}`);
   process.exit(1);
 }
-console.log(`SEO raw HTML check passed (${seoAuditManifest.indexable.length} indexable pages, ${seoAuditManifest.noindex.length} noindex pages without private canonicals, ${seoAuditManifest.redirects.length} one-hop redirects, 404, sitemap and robots).`);
+console.log(`SEO raw HTML check passed (${seoContentInventory.length} known content pages available, ${seoAuditManifest.indexable.length} indexable pages, ${seoAuditManifest.noindex.length} noindex pages without private canonicals, ${seoAuditManifest.redirects.length} one-hop redirects, 404, sitemap and robots).`);

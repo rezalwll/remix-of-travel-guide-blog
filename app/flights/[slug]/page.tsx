@@ -17,7 +17,7 @@ export const revalidate = 43_200;
 export const dynamicParams = false;
 export function generateStaticParams() {
   return [
-    ...seoRoutes.filter((item) => isIndexableSeoPath(`/flights/${item.slug}`)).map((item) => ({ slug: item.slug })),
+    ...seoRoutes.map((item) => ({ slug: item.slug })),
     ...mockFlights.map((item) => ({ slug: item.id })),
   ];
 }
@@ -37,7 +37,7 @@ export default async function FlightRoutePage({ params }: { params: Promise<{ sl
   const route = getRouteLanding(slug);
   const legacyFlight = mockFlights.find((item) => item.id === slug);
   if (legacyFlight) permanentRedirect(`/flights/search?from=${legacyFlight.fromCode}&to=${legacyFlight.toCode}&adults=1&trip=oneway`);
-  if (!route || !isIndexableSeoPath(`/flights/${slug}`)) notFound();
+  if (!route) notFound();
 
   const canonical = `/flights/${route.slug}`;
   const destinationSlug = route.destinationPath.split("/").at(-1) ?? route.destinationCode.toLowerCase();

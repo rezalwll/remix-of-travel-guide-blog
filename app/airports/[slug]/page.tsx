@@ -14,7 +14,7 @@ export const revalidate = 86_400;
 export const dynamicParams = false;
 
 export function generateStaticParams() {
-  return seoAirportGuides.filter((item) => isIndexableSeoPath(`/airports/${item.slug}`)).map((item) => ({ slug: item.slug }));
+  return seoAirportGuides.map((item) => ({ slug: item.slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function AirportGuidePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const item = getAirportGuide(slug);
-  if (!item || !isIndexableSeoPath(`/airports/${slug}`)) notFound();
+  if (!item) notFound();
   const media = serviceAsset("cip", `مسافر در ${item.airport}`);
 
   return (

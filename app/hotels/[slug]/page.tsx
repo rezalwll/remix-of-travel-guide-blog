@@ -18,7 +18,7 @@ export const dynamicParams = false;
 const hotelDetailSlugs = new Set(hotels.map((item) => item.slug));
 const landingCollisions = seoHotelLandings.filter((item) => hotelDetailSlugs.has(item.slug));
 if (landingCollisions.length) throw new Error(`Hotel landing/detail slug collision: ${landingCollisions.map((item) => item.slug).join(", ")}`);
-export function generateStaticParams() { return [...seoHotelLandings.filter((item) => isIndexableSeoPath(`/hotels/${item.slug}`)).map((item) => ({ slug: item.slug })), ...hotels.map((item) => ({ slug: item.slug }))]; }
+export function generateStaticParams() { return [...seoHotelLandings.map((item) => ({ slug: item.slug })), ...hotels.map((item) => ({ slug: item.slug }))]; }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -38,8 +38,6 @@ export default async function HotelLandingPage({ params }: { params: Promise<{ s
     if (!hotels.some((value) => value.slug === slug)) notFound();
     return <LegacyPage name="HotelDetail" />;
   }
-  if (!isIndexableSeoPath(`/hotels/${slug}`)) notFound();
-
   const destinationMedia = destinationAsset(item.slug, `نمایی از مقصد ${item.city}`);
   return (
     <main id="main-content" className="min-h-[70vh] bg-muted/35">
