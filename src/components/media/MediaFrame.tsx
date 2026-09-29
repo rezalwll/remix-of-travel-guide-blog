@@ -3,6 +3,7 @@ import type { MediaAsset } from "@/media/library";
 import TravelScene from "@/components/media/TravelScene";
 
 const ratios = {
+  auto: "aspect-auto",
   "21/9": "aspect-[21/9]",
   "16/9": "aspect-[16/9]",
   "3/2": "aspect-[3/2]",

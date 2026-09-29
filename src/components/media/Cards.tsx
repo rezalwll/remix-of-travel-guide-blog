@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import type { MediaAsset } from "@/media/library";
 import MediaFrame, { type MediaFrameProps } from "@/components/media/MediaFrame";
+export { MediaRail } from "@/components/media/MediaRail";
 
 type Ratio = MediaFrameProps["ratio"];
 
@@ -32,18 +33,6 @@ export function SectionHeader({
         </Link>
       )}
     </div>
-  );
-}
-
-/**
- * Horizontal scroll rail. Pure CSS scroll-snap: keyboard reachable, swipeable,
- * RTL-correct and fully crawlable because every card stays in the DOM.
- */
-export function MediaRail({ children, label }: { children: React.ReactNode; label: string }) {
-  return (
-    <ul aria-label={label} className="scrollbar-none -mx-4 mt-7 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
-      {children}
-    </ul>
   );
 }
 
@@ -290,11 +279,11 @@ export function PromoBanner({
 }) {
   return (
     <Link href={href} className="premium-promo group relative block overflow-hidden rounded-[1.5rem] border border-border/60 shadow-[var(--shadow-card)]">
-      <MediaFrame asset={asset} ratio="21/9" sizes="(max-width: 1024px) 100vw, 1200px" overlay="side" zoom decorative priority={priority} className="min-h-[15rem]">
-        <div className={`absolute inset-0 z-10 flex flex-col justify-center gap-3 p-6 text-white sm:p-12 ${align === "center" ? "items-center text-center" : "items-start max-w-xl"}`}>
+      <MediaFrame asset={asset} ratio="auto" sizes="(max-width: 1024px) 100vw, 1200px" overlay="side" zoom decorative priority={priority} className="min-h-[15rem] w-full sm:aspect-[21/9]">
+        <div className={`absolute inset-0 z-10 flex min-w-0 flex-col justify-center gap-3 p-6 text-white sm:p-12 ${align === "center" ? "items-center text-center" : "items-start"}`}>
           {eyebrow && <Badge tone="accent">{eyebrow}</Badge>}
-          <h3 className="text-2xl font-black leading-tight sm:text-4xl">{title}</h3>
-          {description && <p className="text-sm leading-7 text-white/82 sm:text-base">{description}</p>}
+          <h3 className={`max-w-xl text-2xl font-black leading-tight sm:text-4xl ${align === "center" ? "text-center" : "text-start"}`}>{title}</h3>
+          {description && <p className={`max-w-xl text-sm leading-7 text-white/82 sm:text-base ${align === "center" ? "text-center" : "text-start"}`}>{description}</p>}
           <span className="mt-1 inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-foreground transition group-hover:bg-accent group-hover:text-accent-foreground">
             {cta} <ArrowLeft className="size-4" />
           </span>

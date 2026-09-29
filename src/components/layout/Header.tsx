@@ -53,6 +53,13 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", close);
   }, []);
 
+  useEffect(() => {
+    if (!open) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [open]);
+
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     cn(
       "relative inline-flex min-h-10 items-center rounded-xl px-3 text-sm font-bold transition-colors",
@@ -149,6 +156,7 @@ const Header = () => {
             className="grid size-11 place-items-center rounded-xl border border-white/35 bg-white/10 text-white transition hover:bg-white/20 lg:hidden"
             aria-label={open ? "بستن منو" : "باز کردن منو"}
             aria-expanded={open}
+            aria-controls="mobile-navigation"
           >
             {open ? <X className="size-5" /> : <Menu className="size-5" />}
           </button>
@@ -156,8 +164,8 @@ const Header = () => {
       </div>
 
       {open && (
-        <div className="border-t border-white/20 bg-[#F12613] text-white lg:hidden">
-          <nav className="container-page max-h-[calc(100vh-72px)] overflow-y-auto py-4" aria-label="منوی موبایل">
+        <div className="absolute inset-x-0 top-full border-t border-white/20 bg-[#F12613] text-white shadow-2xl lg:hidden">
+          <nav id="mobile-navigation" className="container-page max-h-[calc(100dvh-72px)] overflow-x-hidden overflow-y-auto py-4" aria-label="منوی موبایل">
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {primaryLinks.map((item) => (
                 <NavLink
@@ -165,7 +173,7 @@ const Header = () => {
                   to={item.to}
                   className={({ isActive }) =>
                     cn(
-                      "rounded-xl border px-3 py-3 text-center text-sm font-bold",
+                      "min-w-0 rounded-xl border px-3 py-3 text-center text-sm font-bold",
                       isActive ? "border-white bg-white text-[#DF301C]" : "border-white/20 bg-white/10 text-white",
                     )
                   }
@@ -177,12 +185,12 @@ const Header = () => {
             <p className="mb-2 mt-5 text-xs font-bold text-white/70">خدمات بیشتر</p>
             <div className="grid grid-cols-2 gap-1">
               {moreLinks.map(([label, to]) => (
-                <Link key={to} to={to} className="rounded-xl px-3 py-2.5 text-sm font-semibold hover:bg-white/10">
+                <Link key={to} to={to} className="min-w-0 rounded-xl px-3 py-2.5 text-center text-sm font-semibold hover:bg-white/10">
                   {label}
                 </Link>
               ))}
-              <Link to="/track-order" className="rounded-xl px-3 py-2.5 text-sm font-semibold hover:bg-white/10">پیگیری خرید</Link>
-              <Link to={user ? "/account" : "/auth/login"} className="rounded-xl bg-white px-3 py-2.5 text-sm font-semibold text-[#DF301C] hover:bg-white/90">
+              <Link to="/track-order" className="min-w-0 rounded-xl px-3 py-2.5 text-center text-sm font-semibold hover:bg-white/10">پیگیری خرید</Link>
+              <Link to={user ? "/account" : "/auth/login"} className="min-w-0 rounded-xl bg-white px-3 py-2.5 text-center text-sm font-semibold text-[#DF301C] hover:bg-white/90">
                 {user ? "حساب کاربری" : "ورود / ثبت‌نام"}
               </Link>
             </div>
