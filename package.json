@@ -35,7 +35,10 @@
     "release:check": "tsx scripts/release-check.ts",
     "media:optimize": "node scripts/optimize-media.mjs",
     "seo:check": "tsx scripts/seo-check.ts",
-    "links:check": "tsx scripts/link-check.ts"
+    "seo:metadata": "tsx scripts/seo-metadata.ts",
+    "seo:crawl": "tsx scripts/seo-crawl.ts",
+    "seo:links": "tsx scripts/link-check.ts",
+    "links:check": "npm run seo:links"
   },
   "engines": {
     "node": ">=20 <21",

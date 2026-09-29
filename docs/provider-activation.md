@@ -54,4 +54,4 @@ npm run reconcile:bookings -- 50
 
 ## وضعیت dependency audit
 
-در بازبینی ۲۰۲۶-۰۹-۱۹، `npm audit` پنج advisory متوسط و چهار advisory high گزارش کرد. highها در زنجیرهٔ ابزار Prisma (`deepmerge-ts`) و بقیه در Vitest/Vite/React Router هستند؛ اصلاح پیشنهادی npm مستلزم تغییر major یا downgrade شکسته بود. طبق سیاست این فاز `npm audit fix --force` اجرا نشد. CI audit را گزارش می‌کند ولی تا migration کنترل‌شدهٔ نسخه‌های major آن را blocker خودکار نکرده‌ایم. این debt باید با migration جداگانه، تست کامل database/E2E و سپس حذف `continue-on-error` بسته شود.
+بازبینی ۲۰۲۶-۰۹-۱۹ یک snapshot تاریخی پیش از تکمیل cutover فرانت بود و اشاره‌های Vite/React Router وضعیت معماری فعلی نیستند. CI همچنان audit را برای visibility اجرا می‌کند و `--force` مجاز نیست؛ وضعیت روز advisoryها فقط پس از audit lockfile همین release، تحلیل runtime/dev scope و regression کامل قابل اعلام است.

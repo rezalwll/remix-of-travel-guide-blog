@@ -39,6 +39,7 @@ jobs:
       - run: npm run db:generate
       - run: npm run db:migrate:deploy
       - run: npm run typecheck:web
+      - run: npm run seo:metadata
       - run: npm run build:api
       - run: npm run lint
       - run: npm run provider:status -- --json
@@ -162,7 +163,8 @@ jobs:
             sleep 2
           done
           SEO_BASE_URL=http://127.0.0.1:3000 npm run seo:check
-          SEO_BASE_URL=http://127.0.0.1:3000 npm run links:check
+          SEO_BASE_URL=http://127.0.0.1:3000 npm run seo:links
+          SEO_BASE_URL=http://127.0.0.1:3000 npm run seo:crawl
           E2E_EXTERNAL=true PLAYWRIGHT_BASE_URL=https://127.0.0.1 npx playwright test
           docker stop --time 15 kiashi-e2e-proxy kiashi-e2e-web kiashi-e2e-api
           test "$(docker inspect kiashi-e2e-web --format '{{.State.ExitCode}}')" = "0"

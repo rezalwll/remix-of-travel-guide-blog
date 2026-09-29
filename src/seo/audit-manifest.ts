@@ -4,6 +4,8 @@ export const seoAuditManifest = {
     { path: "/destinations/iran/kish", h1: "راهنمای سفر به کیش", jsonLd: false },
     { path: "/flights/tehran-to-mashhad", h1: "بلیط هواپیما تهران به مشهد", jsonLd: true },
     { path: "/hotels/kish", h1: "هتل‌های کیش", jsonLd: false },
+    { path: "/tours/istanbul", h1: "راهنمای تور استانبول", jsonLd: false },
+    { path: "/airports/ika", h1: "راهنمای فرودگاه امام خمینی", jsonLd: false },
     { path: "/blog/best-time-to-visit-istanbul", h1: "بهترین زمان سفر به استانبول", jsonLd: true },
     { path: "/flights", h1: "جست‌وجوی پرواز", jsonLd: false },
     { path: "/hotels", h1: "جست‌وجوی هتل", jsonLd: false },

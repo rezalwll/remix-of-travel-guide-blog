@@ -2,7 +2,7 @@
 
 ## معماری
 
-`Internet → Nginx/TLS/static Vite → Fastify API → PostgreSQL`. فایل `Dockerfile` از یک build مشترک، دو target مستقل `api` و `proxy` می‌سازد؛ target پروکسی assetهای Vite را داخل image دارد و به build محلی میزبان وابسته نیست. `docker-compose.production.example.yml` یک PostgreSQL و استقرار نمونهٔ cloud-vendor-neutral ارائه می‌دهد. این طراحی برای یک replica ساده است؛ در چند replica باید rate limit مشترک و یک pooler مدیریت‌شده در سطح زیرساخت انتخاب شود.
+`Internet → Nginx/TLS → Next.js web + Fastify API → PostgreSQL`. فایل `Dockerfile` targetهای مستقل `web`، `api` و `proxy` می‌سازد؛ image وب خروجی standalone خود Next.js را اجرا می‌کند و به build محلی میزبان وابسته نیست. `docker-compose.production.example.yml` یک PostgreSQL و استقرار نمونهٔ cloud-vendor-neutral ارائه می‌دهد. این طراحی برای یک replica ساده است؛ در چند replica باید rate limit مشترک و یک pooler مدیریت‌شده در سطح زیرساخت انتخاب شود.
 
 ## محیط‌ها و secrets
 
@@ -50,7 +50,7 @@ Fastify با Pino JSON، request id، route، status و duration log می‌کن
 
 `ops/nginx.example.conf` فقط نمونه است: HTTP به HTTPS redirect، HSTS و CSP/security header، forwarding header، body limit، gzip، cache immutable برای `/assets/` و no-store برای API/health/auth/payment callback. `TRUST_PROXY` باید IP/CIDR دقیق proxyهایی باشد که headerهای forwarded را overwrite می‌کنند؛ compose نمونه برای این کار subnet ثابت دارد.
 
-در production فرانت از same-origin مسیر `/api` استفاده می‌کند و اگر build-time `VITE_API_URL` تنظیم شود باید به API عمومی همان محیط اشاره کند؛ secret هرگز با `VITE_*` وارد build نمی‌شود. Vite source map production تولید نمی‌کند و TypeScript server نیز source map را publish نمی‌کند؛ stack کامل فقط در log داخلی محیط اجرا می‌ماند.
+در production فرانت از same-origin مسیر `/api` استفاده می‌کند و `API_INTERNAL_URL` فقط برای rewrite داخلی Next.js به Fastify است. secret نباید با متغیرهای عمومی وارد bundle مرورگر شود. image وب خروجی standalone Next.js را اجرا می‌کند و TypeScript server نیز source map عمومی منتشر نمی‌کند؛ stack کامل فقط در log داخلی محیط اجرا می‌ماند.
 
 ## reconciliation و scheduler
 

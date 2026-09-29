@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ country: 
   const continent = continents.find((item) => item.slug === country);
   if (continent) return createMetadata({ title: `مقصدهای ${continent.name}`, description: continent.introduction, path: `/destinations/${country}`, image: continent.heroImage });
   const cities = seoDestinations.filter((item) => item.countrySlug === country);
-  return cities.length ? createMetadata({ title: `راهنمای سفر به ${cities[0]!.country}`, description: `راهنمای شهرها، مسیرهای پرواز و اقامت در ${cities[0]!.country} برای برنامه‌ریزی آگاهانه سفر.`, path: `/destinations/${country}`, image: cities[0]!.heroImage }) : {};
+  return cities.length ? createMetadata({ title: `راهنمای سفر به ${cities[0]!.country}`, description: `راهنمای شهرها، مسیرهای پرواز و اقامت در ${cities[0]!.country} برای برنامه‌ریزی آگاهانه سفر.`, path: `/destinations/${country}`, image: cities[0]!.heroImage, index: cities.length >= 2 }) : {};
 }
 
 export default async function DestinationArchive({ params }: { params: Promise<{ country: string }> }) {

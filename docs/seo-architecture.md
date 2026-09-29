@@ -29,10 +29,10 @@ Canonical با helper مرکزی `src/seo/metadata.ts` از path تمیز و `SI
 
 خانه به مقصدها، مسیرها، هتل‌ها و مقاله‌های راهبردی لینک دارد. مقصد به مسیر، هتل و مقاله؛ مسیر به مقصد، جست‌وجوی ازپیش‌تنظیم‌شده، هتل و مسیرهای مرتبط؛ مقاله به مقصد و مقاله‌های مرتبط لینک می‌دهد. breadcrumb نیز لینک crawlable با Next Link است.
 
-مدل‌های `SeoDestination`، `SeoRoute`، `SeoHotelLanding` و `SeoArticle` در `src/seo/content.ts` source of truth هستند. قیمت و ظرفیت فقط از نتیجهٔ provider معتبر قابل‌استفاده خواهند بود.
+مدل‌های `SeoDestination`، `SeoRoute`، `SeoHotelLanding`، `SeoTourLanding`، `SeoAirportGuide` و `SeoArticle` در `src/seo/content.ts` source of truth هستند. taxonomy و سیاست هر page type در `src/seo/taxonomy.ts`، رجیستری قابل ممیزی در `src/seo/inventory.ts` و quality gate در `src/seo/quality.ts` قرار دارد. قیمت و ظرفیت فقط از نتیجهٔ provider معتبر قابل‌استفاده خواهند بود.
 
 ## کارایی و امنیت خروجی
 
 SEO pageها حداقل hydration را دارند؛ providerهای React Query/Auth فقط در مرز client قرار دارند و صفحات تراکنشی lazy-load می‌شوند. `next/image` برای heroهای اصلی، `next/font` برای Vazirmatn و ابعاد پایدار برای کنترل LCP/CLS استفاده شده است. اسکریپت بازاریابی یا pixel اضافه نشده است. CSP برای bootstrap inline استاتیک Next فعلاً `unsafe-inline` را فقط در `script-src` پذیرفته؛ script خارجی مجاز نیست و این trade-off باید در مهاجرت nonce/hash آینده بازبینی شود.
 
-تست `npm run seo:check` HTML خام، status، H1، metadata، canonical، robots، JSON-LD، redirect، sitemap و robots.txt را روی build production بررسی می‌کند. Playwright مکمل آن و مسئول route parity و viewportهاست.
+`npm run seo:metadata` کیفیت و یکتایی دادهٔ منبع را بدون سرور بررسی می‌کند. `npm run seo:check` HTML خام، status، H1، metadata، canonical، robots، JSON-LD، redirect، sitemap و robots.txt را روی build production بررسی می‌کند؛ `npm run seo:links` پیوندها و orphan candidateها و `npm run seo:crawl` crawl محدود same-origin را پوشش می‌دهند. Playwright مکمل آن و مسئول route parity و viewportهاست.

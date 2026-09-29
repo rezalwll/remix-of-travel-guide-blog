@@ -5,7 +5,7 @@ import TravelHero from "@/components/media/TravelHero";
 import { ImageCard, MediaRail, OverlayCard, PromoBanner, RailItem, SectionHeader } from "@/components/media/Cards";
 import { routePolicy } from "@/seo/routes";
 import { createMetadata } from "@/seo/metadata";
-import { seoDestinations } from "@/seo/content";
+import { seoDestinations, seoTourLandings } from "@/seo/content";
 import { destinationAsset, photoLibrary, serviceAsset, type MediaAsset } from "@/media/library";
 
 type PageKey =
@@ -24,10 +24,10 @@ type PageKey =
 type LandingLink = { href: string; label: string; text: string };
 
 const content: Record<PageKey, { intro: string; links: LandingLink[] }> = {
-  flights: { intro: "مبدأ، مقصد و تاریخ را وارد کنید و گزینه‌ها را با توجه به زمان، بار مجاز و شرایط تغییر بررسی کنید. قیمت و ظرفیت فقط در نتیجهٔ جست‌وجوی متصل به تأمین‌کننده معتبر است.", links: [{ href: "/flights/tehran-to-mashhad", label: "تهران به مشهد", text: "فرودگاه‌ها، مدت مسیر و نکات انتخاب پرواز" }, { href: "/flights/tehran-to-kish", label: "تهران به کیش", text: "راهنمای مسیر و هماهنگی پرواز با اقامت" }, { href: "/flights/tehran-to-istanbul", label: "تهران به استانبول", text: "نکات مسیر بین‌المللی و مدارک سفر" }] },
+  flights: { intro: "مبدأ، مقصد و تاریخ را وارد کنید و گزینه‌ها را با توجه به زمان، بار مجاز و شرایط تغییر بررسی کنید. قیمت و ظرفیت فقط در نتیجهٔ جست‌وجوی متصل به تأمین‌کننده معتبر است.", links: [{ href: "/flights/tehran-to-mashhad", label: "تهران به مشهد", text: "فرودگاه‌ها، مدت مسیر و نکات انتخاب پرواز" }, { href: "/flights/tehran-to-kish", label: "تهران به کیش", text: "راهنمای مسیر و هماهنگی پرواز با اقامت" }, { href: "/flights/tehran-to-istanbul", label: "تهران به استانبول", text: "نکات مسیر بین‌المللی و مدارک سفر" }, { href: "/airports", label: "راهنمای فرودگاه‌ها", text: "دسترسی، ترمینال و چک‌لیست پیش از حرکت" }] },
   hotels: { intro: "پیش از انتخاب اقامت، محله، فاصله تا نقاط اصلی و شرایط لغو را کنار قیمت نهایی بسنجید.", links: [{ href: "/hotels/kish", label: "هتل‌های کیش", text: "راهنمای محله‌ها و انتخاب اقامت در جزیره" }, { href: "/hotels/mashhad", label: "هتل‌های مشهد", text: "فاصله، دسترسی و نکات رزرو" }, { href: "/hotels/istanbul", label: "هتل‌های استانبول", text: "مقایسهٔ محله‌های اصلی شهر" }] },
   routes: { intro: "مسیرهای پیشنهادی برای ساختن یک برنامهٔ واقع‌بینانه؛ زمان آزاد، جابه‌جایی و فصل مناسب را پیش از رزرو بسنجید.", links: [{ href: "/routes/turkiye-city-coast", label: "استانبول و ساحل اژه", text: "ترکیب شهر و ساحل با ریتم متعادل" }, { href: "/routes/persian-classic", label: "مسیر کلاسیک ایران", text: "تهران، کاشان، اصفهان و شیراز" }] },
-  tours: { intro: "برنامه، خدمات مشمول و غیرمشمول و وضعیت مدارک را شفاف مقایسه کنید. ظرفیت نمایشی به معنی تأیید رزرو نیست.", links: [{ href: "/tours/tour-استانبول-0", label: "نمونه تور استانبول", text: "مشاهدهٔ برنامه و خدمات نمونه" }, { href: "/support", label: "راهنمای خرید", text: "پاسخ پرسش‌های رایج پیش از رزرو" }] },
+  tours: { intro: "برنامه، خدمات مشمول و غیرمشمول و وضعیت مدارک را شفاف مقایسه کنید. ظرفیت نمایشی به معنی تأیید رزرو نیست.", links: seoTourLandings.map((item) => ({ href: `/tours/${item.slug}`, label: `راهنمای تور ${item.destination}`, text: `نکات مقایسه برنامه و خدمات تور ${item.destination}` })) },
   ziyarat: { intro: "نوع جابه‌جایی، محل اقامت، مدارک و خدمات کاروان را پیش از انتخاب برنامه بررسی کنید.", links: [{ href: "/ziyarat/ziyarat-0-0", label: "نمونه نجف و کربلا", text: "برنامه و خدمات نمونهٔ سفر زیارتی" }, { href: "/travel-preparation", label: "آمادگی سفر", text: "چک‌لیست عمومی پیش از حرکت" }] },
   visa: { intro: "اطلاعات این بخش راهنمای عمومی است؛ مدارک، هزینه و زمان رسیدگی را همیشه از مرجع رسمی مقصد کنترل کنید.", links: [{ href: "/visa/canada", label: "ویزای کانادا", text: "انواع درخواست و مدارک عمومی" }, { href: "/visa/schengen", label: "ویزای شنگن", text: "راهنمای اولیهٔ درخواست" }, { href: "/visa/uae", label: "ویزای امارات", text: "اطلاعات عمومی سفر و درخواست" }] },
   trains: { intro: "زمان حرکت، ایستگاه، نوع واگن و قوانین استرداد را در نتیجهٔ معتبر بررسی کنید.", links: [{ href: "/trains/search", label: "جست‌وجوی قطار", text: "مشاهدهٔ گزینه‌های موجود" }] },

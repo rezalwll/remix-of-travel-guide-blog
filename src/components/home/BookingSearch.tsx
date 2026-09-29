@@ -66,7 +66,7 @@ const FieldLabel = ({
   children: React.ReactNode;
 }) => (
   <span className="flex h-5 items-center gap-1.5 text-[11px] font-semibold leading-none text-muted-foreground">
-    {Icon ? <Icon className="size-3.5 shrink-0 text-[#621295]" aria-hidden="true" /> : null}
+    {Icon ? <Icon className="size-3.5 shrink-0 text-[#DF301C]" aria-hidden="true" /> : null}
     {children}
   </span>
 );
@@ -106,7 +106,7 @@ const LocationSelect = ({
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
-        className="travel-field w-full text-start hover:border-[#621295]/60 focus-visible:border-[#621295] focus-visible:ring-4 focus-visible:ring-[#621295]/10"
+        className="travel-field w-full text-start hover:border-[#DF301C]/60 focus-visible:border-[#DF301C] focus-visible:ring-4 focus-visible:ring-[#DF301C]/10"
         aria-expanded={open}
         aria-haspopup="listbox"
       >
@@ -132,20 +132,20 @@ const LocationSelect = ({
       {open ? (
         <div
           className={cn(
-            "absolute top-full z-40 mt-2 w-[min(27rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-[#621295]/20 bg-card p-3 shadow-[0_24px_70px_-24px_rgb(98_18_149/0.38)]",
+            "absolute top-full z-40 mt-2 w-[min(27rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-[#DF301C]/20 bg-card p-3 shadow-[0_24px_70px_-24px_rgb(223_48_28/0.18)]",
             dropdownAlign === "start" ? "start-0" : "end-0",
           )}
         >
           <label className="relative block">
             <span className="sr-only">جست‌وجوی شهر یا فرودگاه</span>
-            <MapPin className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-[#621295]" aria-hidden="true" />
+            <MapPin className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-[#DF301C]" aria-hidden="true" />
             <Search className="absolute end-3 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
             <input
               autoFocus
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="جستجوی شهر یا فرودگاه"
-              className="h-12 w-full rounded-xl border border-border bg-background px-10 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-[#621295]/45 focus:ring-4 focus:ring-[#621295]/10"
+              className="h-12 w-full rounded-xl border border-border bg-background px-10 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-[#DF301C]/45 focus:ring-4 focus:ring-[#DF301C]/10"
             />
           </label>
           <div className="mt-2 max-h-80 overflow-y-auto pe-1" role="listbox">
@@ -162,11 +162,11 @@ const LocationSelect = ({
                     setQuery("");
                   }}
                   className={cn(
-                    "flex min-h-[4.5rem] w-full items-center gap-3 rounded-xl border-b border-border/55 px-3 text-start transition-colors last:border-b-0 hover:bg-[#621295]/[0.06] focus-visible:bg-[#621295]/[0.06]",
-                    value?.id === item.id && "bg-[#621295]/[0.08]",
+                    "flex min-h-[4.5rem] w-full items-center gap-3 rounded-xl border-b border-border/55 px-3 text-start transition-colors last:border-b-0 hover:bg-[#DF301C]/[0.06] focus-visible:bg-[#DF301C]/[0.06]",
+                    value?.id === item.id && "bg-[#DF301C]/[0.08]",
                   )}
                 >
-                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#621295]/10 text-[#621295]">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#DF301C]/10 text-[#DF301C]">
                     {cityOnly ? <MapPin className="size-5" /> : <Plane className="size-5 -rotate-45" />}
                   </span>
                   <span className="min-w-0 flex-1">
@@ -176,7 +176,7 @@ const LocationSelect = ({
                     </span>
                   </span>
                   <span className="flex shrink-0 items-center gap-2">
-                    {value?.id === item.id ? <Check className="size-4 text-[#621295]" aria-hidden="true" /> : null}
+                    {value?.id === item.id ? <Check className="size-4 text-[#DF301C]" aria-hidden="true" /> : null}
                     <span className="ltr-value min-w-9 text-center text-xs font-bold tracking-wide text-muted-foreground">{item.code}</span>
                   </span>
                 </button>
@@ -201,7 +201,7 @@ const DateField = ({
   value: string;
   onChange: (value: string) => void;
   min?: string;
-}) => <PersianDatePicker label={label} value={value} min={min} onChange={onChange} variant="travel" className="booking-purple-calendar" />;
+}) => <PersianDatePicker label={label} value={value} min={min} onChange={onChange} variant="travel" className="booking-red-calendar" />;
 
 const SelectField = ({
   label,
@@ -226,7 +226,7 @@ const SelectField = ({
     <div ref={rootRef} className="relative min-w-0">
       <button
         type="button"
-        className={cn("travel-field w-full text-start", open && "border-[#621295] ring-4 ring-[#621295]/10")}
+        className={cn("travel-field w-full text-start", open && "border-[#DF301C] ring-4 ring-[#DF301C]/10")}
         onClick={() => setOpen((current) => !current)}
         aria-haspopup="listbox"
         aria-expanded={open}
@@ -234,12 +234,12 @@ const SelectField = ({
         <FieldLabel>{label}</FieldLabel>
         <span className="mt-1 flex min-w-0 items-center justify-between gap-2">
           <span className="truncate text-sm font-extrabold leading-5 text-foreground">{value}</span>
-          <ChevronDown className={cn("size-4 shrink-0 text-[#621295] transition-transform", open && "rotate-180")} aria-hidden="true" />
+          <ChevronDown className={cn("size-4 shrink-0 text-[#DF301C] transition-transform", open && "rotate-180")} aria-hidden="true" />
         </span>
       </button>
 
       {open ? (
-        <div className="absolute inset-x-0 top-full z-40 mt-2 min-w-48 overflow-hidden rounded-2xl border border-[#621295]/20 bg-card p-2 shadow-[0_22px_60px_-24px_rgb(98_18_149/0.42)]" role="listbox" aria-label={label}>
+        <div className="absolute inset-x-0 top-full z-40 mt-2 min-w-48 overflow-hidden rounded-2xl border border-[#DF301C]/20 bg-card p-2 shadow-[0_22px_60px_-24px_rgb(223_48_28/0.2)]" role="listbox" aria-label={label}>
           {options.map((option) => {
             const selected = option === value;
             return (
@@ -254,7 +254,7 @@ const SelectField = ({
                 }}
                 className={cn(
                   "flex min-h-12 w-full items-center justify-between gap-3 rounded-xl px-3 text-start transition-colors",
-                  selected ? "bg-[#621295] text-white" : "text-foreground hover:bg-[#621295]/[0.07]",
+                  selected ? "bg-[#DF301C] text-white" : "text-foreground hover:bg-[#DF301C]/[0.07]",
                 )}
               >
                 <span className="min-w-0">
@@ -263,7 +263,7 @@ const SelectField = ({
                     <span className={cn("mt-0.5 block text-[11px]", selected ? "text-white/75" : "text-muted-foreground")}>{flightClassDescriptions[option]}</span>
                   ) : null}
                 </span>
-                <span className={cn("grid size-6 shrink-0 place-items-center rounded-full", selected ? "bg-white/18" : "bg-[#621295]/10 text-[#621295]") }>
+                <span className={cn("grid size-6 shrink-0 place-items-center rounded-full", selected ? "bg-white/18" : "bg-[#DF301C]/10 text-[#DF301C]") }>
                   {selected ? <Check className="size-3.5" /> : <span className="size-1.5 rounded-full bg-current" />}
                 </span>
               </button>
@@ -284,7 +284,7 @@ const NumberField = ({
   value: number;
   onChange: (value: number) => void;
 }) => (
-  <label className="travel-field min-w-0 hover:border-[#621295]/60 focus-within:border-[#621295] focus-within:ring-[#621295]/10">
+  <label className="travel-field min-w-0 hover:border-[#DF301C]/60 focus-within:border-[#DF301C] focus-within:ring-[#DF301C]/10">
     <FieldLabel icon={Users}>{label}</FieldLabel>
     <input
       type="number"
@@ -320,7 +320,7 @@ const Counter = ({
         type="button"
         disabled={value <= min}
         onClick={() => onChange(value - 1)}
-        className="grid size-9 place-items-center rounded-xl border border-border transition-colors hover:border-[#621295] hover:bg-[#621295]/[0.06] hover:text-[#621295] disabled:opacity-35"
+        className="grid size-9 place-items-center rounded-xl border border-border transition-colors hover:border-[#DF301C] hover:bg-[#DF301C]/[0.06] hover:text-[#DF301C] disabled:opacity-35"
         aria-label={`کاهش ${label}`}
       >
         <Minus className="size-3.5" />
@@ -330,7 +330,7 @@ const Counter = ({
         type="button"
         disabled={value >= max}
         onClick={() => onChange(value + 1)}
-        className="grid size-9 place-items-center rounded-xl border border-border transition-colors hover:border-[#621295] hover:bg-[#621295]/[0.06] hover:text-[#621295] disabled:opacity-35"
+        className="grid size-9 place-items-center rounded-xl border border-border transition-colors hover:border-[#DF301C] hover:bg-[#DF301C]/[0.06] hover:text-[#DF301C] disabled:opacity-35"
         aria-label={`افزایش ${label}`}
       >
         <Plus className="size-3.5" />
@@ -356,7 +356,7 @@ const PassengerSelect = ({
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
-        className="travel-field w-full text-start hover:border-[#621295]/60 focus-visible:border-[#621295] focus-visible:ring-4 focus-visible:ring-[#621295]/10"
+        className="travel-field w-full text-start hover:border-[#DF301C]/60 focus-visible:border-[#DF301C] focus-visible:ring-4 focus-visible:ring-[#DF301C]/10"
         aria-expanded={open}
       >
         <FieldLabel icon={Users}>{hotel ? "اتاق و مهمان" : "مسافران"}</FieldLabel>
@@ -366,18 +366,18 @@ const PassengerSelect = ({
               ? `${Math.max(1, counts.children).toLocaleString("fa-IR")} اتاق، ${total.toLocaleString("fa-IR")} مهمان`
               : `${total.toLocaleString("fa-IR")} مسافر`}
           </span>
-          <ChevronDown className="size-4 shrink-0 text-[#621295]" aria-hidden="true" />
+          <ChevronDown className="size-4 shrink-0 text-[#DF301C]" aria-hidden="true" />
         </span>
       </button>
       {open ? (
-        <div className="absolute end-0 top-full z-40 mt-2 w-[min(18rem,calc(100vw-2rem))] rounded-2xl border border-[#621295]/20 bg-card p-4 shadow-[0_22px_60px_-24px_rgb(98_18_149/0.42)]">
+        <div className="absolute end-0 top-full z-40 mt-2 w-[min(18rem,calc(100vw-2rem))] rounded-2xl border border-[#DF301C]/20 bg-card p-4 shadow-[0_22px_60px_-24px_rgb(223_48_28/0.2)]">
           <div className="mb-2 flex items-center justify-between border-b border-border pb-3">
             <span className="font-extrabold">{hotel ? "اتاق و مهمان" : "تعداد مسافران"}</span>
             <button
               type="button"
               onClick={() => setOpen(false)}
               aria-label="بستن"
-              className="grid size-9 place-items-center rounded-xl text-[#621295] hover:bg-[#621295]/[0.07]"
+              className="grid size-9 place-items-center rounded-xl text-[#DF301C] hover:bg-[#DF301C]/[0.07]"
             >
               <X className="size-4" />
             </button>
@@ -411,7 +411,7 @@ const PassengerSelect = ({
               />
             </>
           ) : null}
-          <button type="button" onClick={() => setOpen(false)} className="primary-cta mt-3 w-full bg-[#621295] shadow-[#621295]/20 hover:bg-[#4b0d73]">
+          <button type="button" onClick={() => setOpen(false)} className="primary-cta mt-3 w-full bg-[#DF301C] shadow-[#DF301C]/20 hover:bg-[#c92917]">
             تأیید انتخاب
           </button>
         </div>
@@ -520,10 +520,10 @@ const BookingSearch = () => {
   return (
     <section id="booking" aria-label="جست‌وجوی خدمات سفر" className="booking-search-theme relative z-10 mx-auto -mt-24 w-full max-w-[1280px] px-4 sm:-mt-28 sm:px-6 lg:px-8">
       <div
-        className="rounded-[1.5rem] border border-[#621295]/30 bg-card p-3 sm:p-5"
+        className="rounded-[1.5rem] border border-[#DF301C]/30 bg-card p-3 sm:p-5"
         style={{
-          backgroundImage: "radial-gradient(circle at 88% 12%, rgba(98, 18, 149, 0.27), transparent 31%), radial-gradient(circle at 12% 88%, rgba(137, 46, 191, 0.2), transparent 35%)",
-          boxShadow: "0 28px 76px -28px rgba(98, 18, 149, 0.78), 0 10px 38px -18px rgba(98, 18, 149, 0.58), var(--shadow-float)",
+          backgroundImage: "radial-gradient(circle at 88% 12%, rgba(223, 48, 28, 0.27), transparent 31%), radial-gradient(circle at 12% 88%, rgba(255, 68, 36, 0.2), transparent 35%)",
+          boxShadow: "0 28px 76px -28px rgba(223, 48, 28, 0.78), 0 10px 38px -18px rgba(223, 48, 28, 0.58), var(--shadow-float)",
         }}
       >
         <div className="mb-2 flex justify-end">
@@ -547,8 +547,8 @@ const BookingSearch = () => {
                 className={cn(
                   "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-4 text-sm font-extrabold transition",
                   active === tab.id
-                    ? "bg-[#621295] text-white shadow-lg shadow-[#621295]/20"
-                    : "text-muted-foreground hover:bg-[#621295]/10 hover:text-[#621295]",
+                    ? "bg-[#DF301C] text-white shadow-lg shadow-[#DF301C]/20"
+                    : "text-muted-foreground hover:bg-[#FB6C00]/10 hover:text-[#e55f00]",
                 )}
               >
                 <Icon className="size-4" aria-hidden="true" />
@@ -568,11 +568,11 @@ const BookingSearch = () => {
                     className={cn(
                       "flex min-h-9 cursor-pointer items-center gap-2 rounded-full border px-3 text-xs font-bold transition",
                       tripType === id
-                        ? "border-[#621295]/35 bg-[#621295]/10 text-[#621295]"
-                        : "border-border text-muted-foreground hover:border-[#621295]/45",
+                        ? "border-[#FB6C00]/35 bg-[#FB6C00]/10 text-[#d85600]"
+                        : "border-border text-muted-foreground hover:border-[#FB6C00]/45",
                     )}
                   >
-                    <input type="radio" name="tripType" checked={tripType === id} onChange={() => setTripType(id as typeof tripType)} className="accent-[#621295]" />
+                      <input type="radio" name="tripType" checked={tripType === id} onChange={() => setTripType(id as typeof tripType)} className="accent-[#FB6C00]" />
                     {label}
                   </label>
                 ))}
@@ -586,7 +586,7 @@ const BookingSearch = () => {
                   <button
                     type="button"
                     onClick={swap}
-                    className="absolute start-1/2 top-1/2 z-20 grid size-9 -translate-y-1/2 translate-x-1/2 place-items-center rounded-full border border-[#621295] bg-[#621295] text-white shadow-md shadow-[#621295]/20 transition-colors hover:border-[#4b0d73] hover:bg-[#4b0d73] max-sm:hidden"
+                    className="absolute start-1/2 top-1/2 z-20 grid size-9 -translate-y-1/2 translate-x-1/2 place-items-center rounded-full border border-[#FB6C00] bg-[#FB6C00] text-white shadow-md shadow-[#FB6C00]/20 transition-colors hover:border-[#e55f00] hover:bg-[#e55f00] max-sm:hidden"
                     aria-label="جابجایی مبدا و مقصد"
                   >
                     <ArrowLeftRight className="size-4" />
@@ -642,7 +642,7 @@ const BookingSearch = () => {
             <p className="mt-3 rounded-xl bg-destructive/10 px-3 py-2.5 text-sm font-semibold text-destructive" role="alert">{error}</p>
           ) : null}
           <div className="mt-4 flex justify-end">
-            <button type="button" onClick={onSubmit} className="primary-cta min-w-44 bg-[#621295] shadow-[#621295]/20 hover:bg-[#4b0d73]">
+            <button type="button" onClick={onSubmit} className="primary-cta min-w-44 bg-[#DF301C] shadow-[#DF301C]/20 hover:bg-[#c92917]">
               <Search className="size-4" aria-hidden="true" />
               جست‌وجوی {tabs.find((tab) => tab.id === active)?.label}
             </button>

@@ -1,3 +1,6 @@
+import { scaledAirports, scaledDestinations, scaledHotels, scaledRoutes, scaledTours } from "./scaled-content";
+import type { SeoSource } from "./taxonomy";
+
 export type SeoFaq = { question: string; answer: string };
 
 export type SeoDestination = {
@@ -37,6 +40,7 @@ export type SeoRoute = {
   faq: SeoFaq[];
   relatedRoutes: string[];
   relatedHotelCity?: string;
+  relatedAirports?: string[];
   destinationPath: string;
   updatedAt: string;
   indexable: boolean;
@@ -68,6 +72,39 @@ export type SeoArticle = {
   indexable: boolean;
 };
 
+export type SeoTourLanding = {
+  slug: string;
+  destination: string;
+  country: string;
+  title: string;
+  description: string;
+  summary: string;
+  planningNotes: string[];
+  relatedDestination: string;
+  relatedFlight?: string;
+  updatedAt: string;
+  indexable: boolean;
+};
+
+export type SeoAirportGuide = {
+  slug: string;
+  airport: string;
+  city: string;
+  code: string;
+  title: string;
+  description: string;
+  summary: string;
+  access: string;
+  terminals: string;
+  beforeDeparture: string[];
+  relatedDestination: string;
+  relatedFlights: string[];
+  sources: SeoSource[];
+  reviewedAt: string;
+  updatedAt: string;
+  indexable: boolean;
+};
+
 export const seoDestinations: SeoDestination[] = [
   {
     countrySlug: "iran", citySlug: "kish", country: "ایران", city: "کیش",
@@ -96,6 +133,7 @@ export const seoDestinations: SeoDestination[] = [
     highlights: ["سلطان‌احمد و ایاصوفیه", "بسفر", "کادیکوی", "گالاتا و خیابان استقلال"],
     relatedRoutes: ["tehran-to-istanbul"], relatedHotels: ["istanbul"], relatedArticles: ["best-time-to-visit-istanbul"], updatedAt: "2026-09-12", indexable: true,
   },
+  ...scaledDestinations,
 ];
 
 export const seoRoutes: SeoRoute[] = [
@@ -132,15 +170,20 @@ export const seoRoutes: SeoRoute[] = [
     baggageGuidance: "بار کابین و بار تحویلی به ایرلاین و نرخ وابسته است؛ برای پرواز بین‌المللی شرایط را دقیق بخوانید.", refundGuidance: "نرخ‌های بین‌المللی می‌توانند قوانین تغییر، no-show و استرداد متفاوتی داشته باشند.",
     destinationGuide: "محله اقامت را با برنامه روزانه و دسترسی مترو انتخاب کنید تا رفت‌وآمد ساده‌تر شود.",
     faq: [{ question: "پرواز تهران به استانبول در کدام فرودگاه می‌نشیند؟", answer: "بسته به ایرلاین ممکن است فرودگاه استانبول یا صبیحه گوکچن باشد؛ کد فرودگاه را پیش از خرید بررسی کنید." }],
-    relatedRoutes: ["tehran-to-mashhad", "tehran-to-kish"], relatedHotelCity: "istanbul", destinationPath: "/destinations/turkey/istanbul", updatedAt: "2026-09-15", indexable: true,
+    relatedRoutes: ["tehran-to-mashhad", "tehran-to-kish"], relatedHotelCity: "istanbul", relatedAirports: ["ika", "ist"], destinationPath: "/destinations/turkey/istanbul", updatedAt: "2026-09-15", indexable: true,
   },
+  ...scaledRoutes,
 ];
 
 export const seoHotelLandings: SeoHotelLanding[] = [
   { slug: "kish", city: "کیش", title: "راهنمای هتل‌های کیش", description: "راهنمای انتخاب و جست‌وجوی هتل‌های کیش بر اساس محله، سبک سفر، دسترسی و امکانات؛ بدون ادعای موجودی یا قیمت زنده.", summary: "برای انتخاب اقامت در کیش، نزدیکی به ساحل، مراکز خرید و هزینه رفت‌وآمد را کنار امکانات هتل بسنجید.", neighborhoods: ["مرکز جزیره", "ساحل غربی", "جاده جهان"], tips: ["ساعت ورود و خروج را با پرواز هماهنگ کنید.", "خدمات ساحلی و ترانسفر را مستقیماً در شرایط گزینه بررسی کنید."], destinationPath: "/destinations/iran/kish", updatedAt: "2026-09-12", indexable: true },
   { slug: "mashhad", city: "مشهد", title: "هتل‌های مشهد", description: "راهنمای جست‌وجوی هتل در مشهد با توجه به فاصله، حمل‌ونقل و نوع سفر؛ بدون قیمت یا ظرفیت ساختگی.", summary: "فاصله پیاده، دسترسی حمل‌ونقل و سرویس رفت‌وآمد، سه معیار مهم برای مقایسه اقامت در مشهد هستند.", neighborhoods: ["خیابان امام رضا", "مرکز شهر", "اطراف حرم"], tips: ["فاصله اعلام‌شده را روی نقشه کنترل کنید.", "قوانین پذیرش و مدارک را پیش از پرداخت بخوانید."], destinationPath: "/destinations/iran/mashhad", updatedAt: "2026-09-11", indexable: true },
   { slug: "istanbul", city: "استانبول", title: "هتل‌های استانبول", description: "راهنمای انتخاب هتل استانبول در محله‌های پرطرفدار و دسترسی به حمل‌ونقل؛ بدون ادعای موجودی یا امتیاز ساختگی.", summary: "سلطان‌احمد برای دیدنی‌های تاریخی، تکسیم برای مرکز شهری و کادیکوی برای تجربه بخش آسیایی انتخاب‌های متفاوتی هستند.", neighborhoods: ["سلطان‌احمد", "تکسیم و گالاتا", "بشیکتاش", "کادیکوی"], tips: ["مسیر فرودگاه تا هتل را پیش از رزرو بررسی کنید.", "مالیات و شرایط لغو را در نرخ واقعی کنترل کنید."], destinationPath: "/destinations/turkey/istanbul", updatedAt: "2026-09-13", indexable: true },
+  ...scaledHotels,
 ];
+
+export const seoTourLandings: SeoTourLanding[] = scaledTours;
+export const seoAirportGuides: SeoAirportGuide[] = scaledAirports;
 
 export const seoArticles: SeoArticle[] = [
   {
@@ -164,6 +207,5 @@ export const getDestination = (country: string, city: string) => seoDestinations
 export const getRouteLanding = (slug: string) => seoRoutes.find((item) => item.slug === slug);
 export const getHotelLanding = (slug: string) => seoHotelLandings.find((item) => item.slug === slug);
 export const getSeoArticle = (slug: string) => seoArticles.find((item) => item.slug === slug);
-
-export const isIndexableContent = (item: { indexable: boolean; title: string; description: string }, uniqueSections: number) =>
-  item.indexable && item.title.trim().length >= 12 && item.description.trim().length >= 60 && uniqueSections >= 3;
+export const getTourLanding = (slug: string) => seoTourLandings.find((item) => item.slug === slug);
+export const getAirportGuide = (slug: string) => seoAirportGuides.find((item) => item.slug === slug);

@@ -6,7 +6,8 @@ import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import JsonLd from "@/components/seo/JsonLd";
 import TravelHero from "@/components/media/TravelHero";
 import { ImageCard, PromoBanner, RouteCard, SectionHeader } from "@/components/media/Cards";
-import { getRouteLanding, isIndexableContent, seoRoutes } from "@/seo/content";
+import { getRouteLanding, seoRoutes } from "@/seo/content";
+import { isIndexableSeoPath } from "@/seo/inventory";
 import { absoluteUrl, createMetadata, privateMetadata } from "@/seo/metadata";
 import { mockFlights } from "@/data/flights";
 import { destinationAsset, serviceAsset } from "@/media/library";
@@ -16,7 +17,7 @@ export const revalidate = 43_200;
 export const dynamicParams = false;
 export function generateStaticParams() {
   return [
-    ...seoRoutes.filter((item) => isIndexableContent(item, 5)).map((item) => ({ slug: item.slug })),
+    ...seoRoutes.filter((item) => isIndexableSeoPath(`/flights/${item.slug}`)).map((item) => ({ slug: item.slug })),
     ...mockFlights.map((item) => ({ slug: item.id })),
   ];
 }
@@ -26,7 +27,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const route = getRouteLanding(slug);
   if (route) {
     const media = destinationAsset(route.destinationPath.split("/").at(-1) ?? "destination");
-    return createMetadata({ title: `${route.title} | مقایسه پروازها`, description: route.description, path: `/flights/${slug}`, image: media.kind === "photo" ? media.src : undefined, index: isIndexableContent(route, 5) });
+    return createMetadata({ title: `${route.title} | مقایسه پروازها`, description: route.description, path: `/flights/${slug}`, image: media.kind === "photo" ? media.src : undefined, index: isIndexableSeoPath(`/flights/${slug}`) });
   }
   return mockFlights.some((item) => item.id === slug) ? privateMetadata("گزینهٔ پرواز منقضی‌شده", "این شناسه به نتیجهٔ یک جست‌وجوی قدیمی تعلق دارد.") : {};
 }
@@ -36,7 +37,7 @@ export default async function FlightRoutePage({ params }: { params: Promise<{ sl
   const route = getRouteLanding(slug);
   const legacyFlight = mockFlights.find((item) => item.id === slug);
   if (legacyFlight) permanentRedirect(`/flights/search?from=${legacyFlight.fromCode}&to=${legacyFlight.toCode}&adults=1&trip=oneway`);
-  if (!route || !isIndexableContent(route, 5)) notFound();
+  if (!route || !isIndexableSeoPath(`/flights/${slug}`)) notFound();
 
   const canonical = `/flights/${route.slug}`;
   const destinationSlug = route.destinationPath.split("/").at(-1) ?? route.destinationCode.toLowerCase();
@@ -61,6 +62,8 @@ export default async function FlightRoutePage({ params }: { params: Promise<{ sl
       <div className="container-page pt-7"><Breadcrumbs items={[{ label: "خانه", href: "/" }, { label: "پروازها", href: "/flights" }, { label: `${route.origin} به ${route.destination}`, href: canonical }]} /></div>
 
       <section className="media-section pt-5"><div className="container-page"><SectionHeader title="اطلاعات کاربردی این مسیر" description="زمان، فرودگاه و قوانین نرخ را در گزینهٔ نهایی دوباره کنترل کنید." /><div className="mt-7 grid gap-4 md:grid-cols-2 lg:grid-cols-3"><InfoCard icon={Clock3} title="مدت تقریبی" text={route.duration} /><InfoCard icon={Plane} title="فرودگاه مبدأ" text={route.originAirport} /><InfoCard icon={Plane} title="فرودگاه مقصد" text={route.destinationAirport} /><InfoCard icon={Luggage} title="راهنمای بار" text={route.baggageGuidance} /><InfoCard icon={RefreshCcw} title="تغییر و استرداد" text={route.refundGuidance} /><InfoCard icon={Info} title={`راهنمای کوتاه ${route.destination}`} text={route.destinationGuide} /></div></div></section>
+
+      {route.relatedAirports && route.relatedAirports.length > 0 && <section className="pb-8"><div className="container-page flex flex-wrap gap-3">{route.relatedAirports.map((airport) => <Link key={airport} href={`/airports/${airport}`} className="secondary-cta">راهنمای فرودگاه {airport.toUpperCase()}</Link>)}</div></section>}
 
       <section className="media-section-tinted"><div className="container-page grid gap-5 lg:grid-cols-[1.3fr_.7fr]"><div className="rounded-2xl border bg-card p-6 sm:p-8"><h2 className="text-xl font-black">پرسش‌های کاربردی این مسیر</h2><div className="mt-4 space-y-3">{route.faq.map((item) => <details key={item.question} className="rounded-xl border p-4"><summary className="cursor-pointer font-bold">{item.question}</summary><p className="mt-3 text-sm leading-7 text-muted-foreground">{item.answer}</p></details>)}</div></div><ImageCard href={route.destinationPath} asset={destinationMedia} title={`راهنمای سفر به ${route.destination}`} description={route.destinationGuide} cta="شناخت مقصد" ratio="4/3" /></div></section>
 

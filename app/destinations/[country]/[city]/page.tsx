@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CalendarDays, MapPin, Plane, TramFront } from "lucide-react";
 import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import TravelHero from "@/components/media/TravelHero";
 import { ImageCard, ImageMosaic, PromoBanner, SectionHeader } from "@/components/media/Cards";
-import { getDestination, isIndexableContent, seoDestinations } from "@/seo/content";
+import { getDestination, seoDestinations, seoTourLandings } from "@/seo/content";
+import { isIndexableSeoPath } from "@/seo/inventory";
 import { createMetadata } from "@/seo/metadata";
 import { continents } from "@/data/destinations";
 import { destinationAsset, experienceAsset, legacyAsset, serviceAsset, type MediaAsset } from "@/media/library";
 
 export const revalidate = 86_400;
 export const dynamicParams = false;
-export function generateStaticParams() { return [...seoDestinations.filter((item) => isIndexableContent(item, 4)).map((item) => ({ country: item.countrySlug, city: item.citySlug })), ...continents.flatMap((continent) => continent.countries.map((country) => ({ country: continent.slug, city: country.slug })))]; }
+export function generateStaticParams() { return [...seoDestinations.filter((item) => isIndexableSeoPath(`/destinations/${item.countrySlug}/${item.citySlug}`)).map((item) => ({ country: item.countrySlug, city: item.citySlug })), ...continents.flatMap((continent) => continent.countries.map((country) => ({ country: continent.slug, city: country.slug })))]; }
 
 export async function generateMetadata({ params }: { params: Promise<{ country: string; city: string }> }): Promise<Metadata> {
   const { country, city } = await params;
@@ -20,9 +20,9 @@ export async function generateMetadata({ params }: { params: Promise<{ country: 
   if (!item) {
     const continent = continents.find((value) => value.slug === country);
     const legacy = continent?.countries.find((value) => value.slug === city);
-    return legacy ? createMetadata({ title: `راهنمای سفر به ${legacy.name}`, description: legacy.about, path: `/destinations/${country}/${city}`, image: legacy.heroImage, index: true }) : {};
+    return legacy ? createMetadata({ title: `راهنمای سفر به ${legacy.name}`, description: legacy.about, path: `/destinations/${country}/${city}`, image: legacy.heroImage, index: false }) : {};
   }
-  return createMetadata({ title: item.title, description: item.description, path: `/destinations/${country}/${city}`, image: item.heroImage, index: isIndexableContent(item, 4) });
+  return createMetadata({ title: item.title, description: item.description, path: `/destinations/${country}/${city}`, image: item.heroImage, index: isIndexableSeoPath(`/destinations/${country}/${city}`) });
 }
 
 type DestinationView = {
@@ -47,7 +47,7 @@ export default async function DestinationPage({ params }: { params: Promise<{ co
   let view: DestinationView;
 
   if (item) {
-    if (!isIndexableContent(item, 4)) notFound();
+    if (!isIndexableSeoPath(`/destinations/${country}/${city}`)) notFound();
     view = {
       city: item.city,
       countryLabel: item.country,
@@ -84,6 +84,7 @@ export default async function DestinationPage({ params }: { params: Promise<{ co
   }
 
   const canonical = `/destinations/${country}/${city}`;
+  const relatedTour = seoTourLandings.find((tour) => tour.relatedDestination === canonical);
   return (
     <main id="main-content" className="min-h-[70vh] bg-muted/35">
       <TravelHero asset={view.media} title={view.title} description={view.summary} badges={["زمان سفر", "رفت‌وآمد", "دیدنی‌ها"]} primary={{ href: "#plan", label: "برنامه‌ریزی سفر" }} secondary={{ href: "/flights", label: "جست‌وجوی پرواز" }} />
@@ -94,7 +95,7 @@ export default async function DestinationPage({ params }: { params: Promise<{ co
 
       <section id="plan" className="media-section-tinted scroll-mt-24"><div className="container-page"><SectionHeader title="چیزهایی که تصمیم را ساده‌تر می‌کنند" /><div className="mt-7 grid gap-5 lg:grid-cols-2"><InfoCard icon={CalendarDays} title="بهترین زمان سفر" text={view.bestTime} /><InfoCard icon={TramFront} title="رفت‌وآمد" text={view.transport} /></div><section className="mt-5 rounded-2xl border bg-card p-6"><h2 className="text-xl font-black">چه چیزهایی را در برنامه بگذاریم؟</h2><ul className="mt-4 grid gap-3 sm:grid-cols-2">{view.highlights.map((value) => <li key={value} className="flex gap-2 rounded-xl bg-muted/60 p-4 text-sm"><MapPin className="size-4 shrink-0 text-primary" />{value}</li>)}</ul></section></div></section>
 
-      <section className="media-section"><div className="container-page"><SectionHeader title="از الهام تا رزرو" /><div className="mt-7 grid gap-5 lg:grid-cols-2"><ImageCard href={view.routes[0] ? `/flights/${view.routes[0]}` : "/flights"} asset={serviceAsset("flights", `تصویرسازی پرواز به ${view.city}`)} title={`پرواز به ${view.city}`} description="ساعت، فرودگاه و قوانین بار را در نتیجهٔ واقعی مقایسه کنید." cta="راهنمای پرواز" /><ImageCard href={view.hotels[0] ? `/hotels/${view.hotels[0]}` : "/hotels"} asset={serviceAsset("hotels", `تصویر اقامت در ${view.city}`)} title={`اقامت در ${view.city}`} description="محله، دسترسی و شرایط لغو را کنار هم بسنجید." cta="راهنمای هتل" /></div></div></section>
+      <section className="media-section"><div className="container-page"><SectionHeader title="از الهام تا رزرو" /><div className={`mt-7 grid gap-5 ${relatedTour ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}><ImageCard href={view.routes[0] ? `/flights/${view.routes[0]}` : "/flights"} asset={serviceAsset("flights", `تصویرسازی پرواز به ${view.city}`)} title={`پرواز به ${view.city}`} description="ساعت، فرودگاه و قوانین بار را در نتیجهٔ واقعی مقایسه کنید." cta="راهنمای پرواز" /><ImageCard href={view.hotels[0] ? `/hotels/${view.hotels[0]}` : "/hotels"} asset={serviceAsset("hotels", `تصویر اقامت در ${view.city}`)} title={`اقامت در ${view.city}`} description="محله، دسترسی و شرایط لغو را کنار هم بسنجید." cta="راهنمای هتل" />{relatedTour && <ImageCard href={`/tours/${relatedTour.slug}`} asset={serviceAsset("tours", `تور ${view.city}`)} title={`راهنمای تور ${view.city}`} description="برنامه و خدمات تور را پیش از انتخاب مقایسه کنید." cta="راهنمای تور" />}</div></div></section>
 
       {view.articles.length > 0 && <section className="media-section-tinted"><div className="container-page"><SectionHeader title={`بیشتر دربارهٔ ${view.city} بخوان`} action={{ href: "/blog", label: "همهٔ مقاله‌ها" }} /><div className="media-grid sm:grid-cols-2 lg:grid-cols-3">{view.articles.map((article) => <ImageCard key={article.slug} href={`/blog/${article.slug}`} asset={article.media} title={article.title} description={article.description} cta="خواندن مقاله" />)}</div></div></section>}
 

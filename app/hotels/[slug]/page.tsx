@@ -5,7 +5,8 @@ import { Building2, MapPin, Search, ShieldCheck } from "lucide-react";
 import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import TravelHero from "@/components/media/TravelHero";
 import { ImageCard, ImageMosaic, PromoBanner, SectionHeader } from "@/components/media/Cards";
-import { getHotelLanding, isIndexableContent, seoHotelLandings } from "@/seo/content";
+import { getHotelLanding, seoHotelLandings } from "@/seo/content";
+import { isIndexableSeoPath } from "@/seo/inventory";
 import { createMetadata, privateMetadata } from "@/seo/metadata";
 import { hotels } from "@/data/hotels";
 import LegacyPage from "@/components/next/LegacyPage";
@@ -17,14 +18,14 @@ export const dynamicParams = false;
 const hotelDetailSlugs = new Set(hotels.map((item) => item.slug));
 const landingCollisions = seoHotelLandings.filter((item) => hotelDetailSlugs.has(item.slug));
 if (landingCollisions.length) throw new Error(`Hotel landing/detail slug collision: ${landingCollisions.map((item) => item.slug).join(", ")}`);
-export function generateStaticParams() { return [...seoHotelLandings.filter((item) => isIndexableContent(item, 3)).map((item) => ({ slug: item.slug })), ...hotels.map((item) => ({ slug: item.slug }))]; }
+export function generateStaticParams() { return [...seoHotelLandings.filter((item) => isIndexableSeoPath(`/hotels/${item.slug}`)).map((item) => ({ slug: item.slug })), ...hotels.map((item) => ({ slug: item.slug }))]; }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const item = getHotelLanding(slug);
   if (item) {
     const media = destinationAsset(item.slug);
-    return createMetadata({ title: `${item.title} | مقایسه و رزرو هتل`, description: item.description, path: `/hotels/${slug}`, image: media.kind === "photo" ? media.src : undefined, index: isIndexableContent(item, 3) });
+    return createMetadata({ title: `${item.title} | مقایسه و رزرو هتل`, description: item.description, path: `/hotels/${slug}`, image: media.kind === "photo" ? media.src : undefined, index: isIndexableSeoPath(`/hotels/${slug}`) });
   }
   const hotel = hotels.find((value) => value.slug === slug);
   return hotel ? privateMetadata(hotel.name, "جزئیات نمایشی هتل تا زمان اتصال موجودی معتبر از ایندکس خارج است.") : {};
@@ -37,7 +38,7 @@ export default async function HotelLandingPage({ params }: { params: Promise<{ s
     if (!hotels.some((value) => value.slug === slug)) notFound();
     return <LegacyPage name="HotelDetail" />;
   }
-  if (!isIndexableContent(item, 3)) notFound();
+  if (!isIndexableSeoPath(`/hotels/${slug}`)) notFound();
 
   const destinationMedia = destinationAsset(item.slug, `نمایی از مقصد ${item.city}`);
   return (

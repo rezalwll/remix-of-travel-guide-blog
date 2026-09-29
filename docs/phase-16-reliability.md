@@ -42,7 +42,7 @@ CORS صریح، cookie امن production، SameSite=Lax، session expiry/revocat
 
 orders، wallet transactions، favorites، notifications، support و visa پارامترهای `page/perPage` با سقف ۵۰ دارند و شکل آرایهٔ قبلی برای سازگاری حفظ شده است.
 
-`npm audit fix` بدون force، یافته‌ها را از ۲۵ به ۹ رساند. موارد باقی‌مانده نیازمند major migration هستند: React Router 7، Vite 8، Vitest 5؛ Prisma CLI نیز advisory روی config/deepmerge دارد که fix پیشنهادی npm downgrade ناسازگار 6.12 است. Vite/Vitest/Prisma CLI ابزار build/test هستند؛ React Router runtime است اما برنامه هیچ redirect ورودی untrusted را مستقیماً اجرا نمی‌کند. این ریسک‌ها باید در ارتقای کنترل‌شدهٔ بعدی بسته شوند؛ `--force` اجرا نشده است.
+این بخش snapshot تاریخی زمان فاز ۱۶ است. پس از آن فرانت به Next.js App Router مهاجرت کرده و React Router/Vite از معماری اصلی حذف شده‌اند؛ بنابراین عددها و نسخه‌های این بند وضعیت روز نیستند. Prisma/Vitest و dependencyهای transitive باید با audit تازه همان commit بررسی شوند و `--force` همچنان بدون migration کنترل‌شده مجاز نیست.
 
 ## محدودیت‌های production
 

@@ -36,11 +36,19 @@ export const routePolicies: RoutePolicy[] = [
   publicPage("/insurance", "بیمه سفر", "راهنمای انتخاب پوشش بیمه متناسب با سفر.", 0.6),
   publicPage("/cip", "خدمات CIP فرودگاه", "راهنمای خدمات تشریفات فرودگاهی و فرایند درخواست.", 0.6),
   publicPage("/transfer", "ترانسفر فرودگاهی", "راهنمای رزرو ترانسفر و اطلاعات موردنیاز پرواز.", 0.6),
+  publicPage("/airports", "راهنمای فرودگاه‌ها", "راهنمای دسترسی، ترمینال و آمادگی پیش از حرکت در فرودگاه‌های منتخب.", 0.6),
   publicPage("/support", "مرکز راهنمای کیاشی", "پاسخ پرسش‌های متداول و راه‌های پشتیبانی.", 0.6),
   legacyPublicPage("/help/purchase-guide", "راهنمای خرید", "مراحل جست‌وجو، بررسی و خرید خدمات سفر."),
   legacyPublicPage("/help/refund-guide", "راهنمای استرداد", "مراحل ثبت و پیگیری درخواست استرداد."),
-  ...["about", "contact", "terms", "privacy", "refund-policy", "licenses", "business-travel", "club", "travel-preparation"].map((path) =>
-    legacyPublicPage(`/${path}`, path, `اطلاعات عمومی و راهنمای ${path} در کیاشی.`, 0.4)),
+  legacyPublicPage("/about", "درباره کیاشی", "آشنایی با کیاشی، رویکرد خدمات سفر و اصول انتشار اطلاعات.", 0.4),
+  legacyPublicPage("/contact", "تماس با کیاشی", "راه‌های ارتباط با پشتیبانی و واحدهای پاسخ‌گویی کیاشی.", 0.4),
+  legacyPublicPage("/terms", "شرایط استفاده", "قواعد استفاده از خدمات و مسئولیت‌های کاربر در کیاشی.", 0.4),
+  legacyPublicPage("/privacy", "حریم خصوصی", "نحوه گردآوری، استفاده و نگهداری داده‌های کاربران کیاشی.", 0.4),
+  legacyPublicPage("/refund-policy", "سیاست استرداد", "راهنمای عمومی ثبت و پیگیری درخواست تغییر یا استرداد خدمات سفر.", 0.4),
+  legacyPublicPage("/licenses", "مجوزها و اطلاعات حقوقی", "اطلاعات حقوقی، مجوزها و مراجع مرتبط با فعالیت کیاشی.", 0.4),
+  legacyPublicPage("/business-travel", "خدمات سفر سازمانی", "معرفی فرایند درخواست و پیگیری خدمات سفر برای سازمان‌ها.", 0.4),
+  legacyPublicPage("/club", "باشگاه مشتریان کیاشی", "اطلاعات عمومی عضویت و مزایای باشگاه مشتریان کیاشی.", 0.4),
+  legacyPublicPage("/travel-preparation", "آمادگی پیش از سفر", "چک‌لیست عمومی مدارک، زمان‌بندی و آماده‌سازی پیش از حرکت.", 0.4),
 ];
 
 export const indexableStaticRoutes = routePolicies.filter((route) => route.indexable && route.sitemap);

@@ -1,6 +1,7 @@
 const baseUrl = (process.env.SEO_BASE_URL || "http://127.0.0.1:3000").replace(/\/$/, "");
 const origin = new URL(baseUrl).origin;
 const failures: string[] = [];
+const warnings: string[] = [];
 
 const request = (path: string) => fetch(new URL(path, baseUrl), { redirect: "manual" });
 const sitemapResponse = await request("/sitemap.xml");
@@ -8,6 +9,8 @@ if (!sitemapResponse.ok) throw new Error(`sitemap request failed: ${sitemapRespo
 const sitemapXml = await sitemapResponse.text();
 const sitemapPaths = [...sitemapXml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => new URL(match[1]!).pathname);
 const pages = new Map<string, string>();
+const inbound = new Map(sitemapPaths.map((path) => [path, 0]));
+const anchorTargets = new Map<string, Set<string>>();
 
 for (let offset = 0; offset < sitemapPaths.length; offset += 12) {
   await Promise.all(sitemapPaths.slice(offset, offset + 12).map(async (path) => {
@@ -22,12 +25,21 @@ for (let offset = 0; offset < sitemapPaths.length; offset += 12) {
 }
 
 const links = new Set<string>();
-for (const html of pages.values()) {
+for (const [sourcePath, html] of pages) {
   for (const match of html.matchAll(/<a\b[^>]*\bhref="([^"]+)"/gi)) {
     const href = match[1]!;
     if (href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:") || href.startsWith("javascript:")) continue;
     const url = new URL(href, baseUrl);
-    if (url.origin === origin && !url.pathname.startsWith("/_next/")) links.add(`${url.pathname}${url.search}`);
+    if (url.origin === origin && !url.pathname.startsWith("/_next/")) {
+      links.add(`${url.pathname}${url.search}`);
+      if (url.search === "" && inbound.has(url.pathname) && url.pathname !== sourcePath) inbound.set(url.pathname, (inbound.get(url.pathname) ?? 0) + 1);
+    }
+  }
+  for (const match of html.matchAll(/<a\b[^>]*\bhref="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)) {
+    const url = new URL(match[1]!, baseUrl);
+    if (url.origin !== origin) continue;
+    const anchorText = match[2]!.replace(/<[^>]+>/g, " ").replace(/&[^;]+;/g, " ").replace(/\s+/g, " ").trim();
+    if (anchorText) anchorTargets.set(anchorText, new Set([...(anchorTargets.get(anchorText) ?? []), url.pathname]));
   }
 }
 
@@ -44,5 +56,13 @@ for (let offset = 0; offset < links.size; offset += 12) {
   }));
 }
 
+for (const [path, count] of inbound) {
+  if (path === "/") continue;
+  if (count === 0) warnings.push(`orphan candidate: ${path}`);
+  else if (count === 1) warnings.push(`weakly linked (${count} inbound): ${path}`);
+}
+for (const [anchor, targets] of anchorTargets) if (targets.size >= 6 && anchor.length < 22) warnings.push(`anchor «${anchor}» به ${targets.size} مقصد مختلف اشاره می‌کند`);
+
+if (warnings.length) console.warn(`Internal link warnings:\n- ${warnings.join("\n- ")}`);
 if (failures.length) { console.error(`Internal link check failed:\n- ${failures.join("\n- ")}`); process.exit(1); }
 console.log(`Internal link check passed (${sitemapPaths.length} sitemap URLs, ${links.size} unique internal links).`);

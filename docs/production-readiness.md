@@ -2,7 +2,7 @@
 
 | حوزه | وضعیت | توضیح |
 |---|---|---|
-| React/Vite و Fastify core | READY | build و runtime موجود است |
+| Next.js App Router و Fastify core | READY | build و runtime کانتینری موجود است |
 | PostgreSQL و migration deploy | READY WITH LIMITATION | DB خارجی و backup retention مسئولیت deployment است |
 | container/non-root/graceful shutdown | READY | targetهای API/proxy، کاربر non-root، smoke CI و bounded shutdown اضافه شد |
 | health/version/log redaction | READY | live/ready/version و JSON log موجود است |
@@ -14,6 +14,6 @@
 | payment واقعی | BLOCKED ON EXTERNAL CREDENTIALS | merchant/secret/contract لازم است |
 | flight/hotel supplier واقعی | BLOCKED ON EXTERNAL CONTRACT/API | فقط mock فعال است |
 | CI PostgreSQL integration | READY | service، migration و test API در CI موجود است |
-| API-connected Playwright | READY | CI با PostgreSQL واقعی، migration، seed، API و Vite proxy اجرا می‌کند |
+| API-connected Playwright | READY | CI با PostgreSQL واقعی، migration، seed، API، Next.js web و Nginx اجرا می‌کند |
 | admin panel | DEFERRED / OUT OF SCOPE | عمداً ساخته نمی‌شود |
 | data retention automation | DEFERRED | تا تعیین legal/product policy حذف خودکار نداریم |

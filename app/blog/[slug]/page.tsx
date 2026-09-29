@@ -8,6 +8,7 @@ import MediaFrame from "@/components/media/MediaFrame";
 import { ImageCard, PromoBanner, SectionHeader } from "@/components/media/Cards";
 import { continents, featuredArticles, type Article } from "@/data/destinations";
 import { getSeoArticle, seoArticles } from "@/seo/content";
+import { isIndexableSeoPath } from "@/seo/inventory";
 import { absoluteUrl, createMetadata } from "@/seo/metadata";
 import { destinationAsset, editorialMedia, legacyAsset, serviceAsset } from "@/media/library";
 
@@ -24,7 +25,8 @@ export function generateStaticParams() { return [...seoArticles.map((item) => ({
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const article = findArticle(slug);
-  return article ? createMetadata({ title: article.title, description: article.description, path: `/blog/${article.slug}`, image: article.image, index: article.indexable, type: "article" }) : {};
+  const typed = Boolean(getSeoArticle(slug));
+  return article ? createMetadata({ title: article.title, description: article.description, path: `/blog/${article.slug}`, image: article.image, index: typed && isIndexableSeoPath(`/blog/${article.slug}`), type: "article" }) : {};
 }
 
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
