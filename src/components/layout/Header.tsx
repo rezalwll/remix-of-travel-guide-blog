@@ -62,7 +62,7 @@ const Header = () => {
     );
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#c92917] bg-[#DF301C] text-white shadow-[0_4px_18px_rgb(126_23_11/0.18)]">
+    <header className="sticky top-0 z-50 border-b border-[#d7190a] bg-[#F12613] text-white shadow-[0_5px_24px_rgb(174_24_10/0.28)]">
       <div className="container-page flex h-[72px] items-center justify-between gap-4">
         <Link
           to="/"
@@ -127,7 +127,7 @@ const Header = () => {
           </Link>
           {user ? (
             <div className="hidden items-center gap-1 md:flex">
-              <Link to="/account" className="secondary-cta min-h-10 border-white bg-white px-3 text-[#DF301C] hover:border-white hover:bg-white/90 hover:text-[#DF301C]">
+              <Link to="/account" className="secondary-cta min-h-10 border-white bg-white px-3 text-[#F12613] hover:border-white hover:bg-white/90 hover:text-[#F12613]">
                 <UserRound className="size-4" /> {user.firstName || "حساب من"}
               </Link>
               <button
@@ -139,7 +139,7 @@ const Header = () => {
               </button>
             </div>
           ) : (
-            <Link to="/auth/login" className="secondary-cta hidden min-h-10 border-white bg-white px-3 text-[#DF301C] hover:border-white hover:bg-white/90 hover:text-[#DF301C] md:inline-flex">
+            <Link to="/auth/login" className="secondary-cta hidden min-h-10 border-white bg-white px-3 text-[#F12613] hover:border-white hover:bg-white/90 hover:text-[#F12613] md:inline-flex">
               <UserRound className="size-4" /> ورود / ثبت‌نام
             </Link>
           )}
@@ -156,7 +156,7 @@ const Header = () => {
       </div>
 
       {open && (
-        <div className="border-t border-white/20 bg-[#DF301C] text-white lg:hidden">
+        <div className="border-t border-white/20 bg-[#F12613] text-white lg:hidden">
           <nav className="container-page max-h-[calc(100vh-72px)] overflow-y-auto py-4" aria-label="منوی موبایل">
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {primaryLinks.map((item) => (

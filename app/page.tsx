@@ -69,7 +69,7 @@ const [leadArticle, ...restArticles] = seoArticles;
 
 export default function HomePage() {
   return (
-    <main>
+    <main className="atmospheric-page">
       <TravelHero
         asset={photoLibrary.redMountainLake}
         size="page"

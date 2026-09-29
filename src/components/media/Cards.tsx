@@ -20,7 +20,7 @@ export function SectionHeader({
 }) {
   const muted = tone === "invert" ? "text-white/72" : "text-muted-foreground";
   return (
-    <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+    <div className="section-heading flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
       <div className="max-w-2xl">
         {eyebrow && <p className={`text-xs font-extrabold ${tone === "invert" ? "text-accent" : "text-primary"}`}>{eyebrow}</p>}
         <h2 className="mt-2 text-2xl font-black leading-tight sm:text-3xl">{title}</h2>
@@ -85,7 +85,7 @@ export function OverlayCard({
   className?: string;
 }) {
   return (
-    <Link href={href} className={`group block overflow-hidden rounded-[1.25rem] border border-border/70 shadow-[var(--shadow-xs)] transition-shadow duration-300 hover:shadow-[var(--shadow-card)] ${className}`}>
+    <Link href={href} className={`premium-media-card group block overflow-hidden rounded-[1.25rem] border border-border/70 shadow-[var(--shadow-xs)] transition-shadow duration-300 hover:shadow-[var(--shadow-card)] ${className}`}>
       <MediaFrame asset={asset} ratio={ratio} sizes={sizes} priority={priority} overlay="strong" zoom decorative>
         {badge && <div className="absolute end-3 top-3 z-10">{<Badge>{badge}</Badge>}</div>}
         <div className="absolute inset-x-0 bottom-0 z-10 p-4 text-white sm:p-5">
@@ -124,7 +124,7 @@ export function ImageCard({
   priority?: boolean;
 }) {
   return (
-    <Link href={href} className="group flex h-full flex-col overflow-hidden rounded-[1.25rem] border border-border/70 bg-card shadow-[var(--shadow-xs)] transition-colors duration-300 hover:border-secondary/40 hover:shadow-[var(--shadow-card)]">
+    <Link href={href} className="premium-media-card group flex h-full flex-col overflow-hidden rounded-[1.25rem] border border-border/70 bg-card shadow-[var(--shadow-xs)] transition-colors duration-300 hover:border-secondary/40 hover:shadow-[var(--shadow-card)]">
       <MediaFrame asset={asset} ratio={ratio} sizes={sizes} priority={priority} zoom decorative overlay="soft">
         {badge && <div className="absolute start-3 top-3 z-10">{<Badge>{badge}</Badge>}</div>}
         {meta && <div className="absolute bottom-3 end-3 z-10">{<Badge tone="muted">{meta}</Badge>}</div>}
@@ -171,7 +171,7 @@ export function EditorialCard({
 }) {
   if (featured) {
     return (
-      <Link href={href} className="group relative block overflow-hidden rounded-[1.5rem] border border-border/70 shadow-[var(--shadow-card)]">
+      <Link href={href} className="premium-media-card group relative block overflow-hidden rounded-[1.5rem] border border-border/70 shadow-[var(--shadow-card)]">
         <MediaFrame asset={asset} ratio="16/9" sizes={sizes ?? "(max-width: 1024px) 100vw, 60vw"} priority={priority} overlay="strong" zoom decorative className="min-h-[19rem]">
           <div className="absolute inset-x-0 bottom-0 z-10 p-6 text-white sm:p-9">
             <div className="flex flex-wrap items-center gap-2">
@@ -186,7 +186,7 @@ export function EditorialCard({
     );
   }
   return (
-    <Link href={href} className="group flex h-full gap-4 rounded-2xl border border-border/70 bg-card p-3 transition-colors duration-300 hover:border-secondary/40 hover:shadow-[var(--shadow-card)]">
+    <Link href={href} className="premium-content-card group flex h-full gap-4 rounded-2xl border border-border/70 bg-card p-3 transition-colors duration-300 hover:border-secondary/40 hover:shadow-[var(--shadow-card)]">
       <MediaFrame asset={asset} ratio="1/1" sizes="120px" zoom decorative className="w-24 shrink-0 rounded-xl sm:w-28" />
       <div className="flex min-w-0 flex-1 flex-col justify-center">
         {category && <p className="text-[0.7rem] font-extrabold text-primary">{category}</p>}
@@ -212,11 +212,11 @@ export function ServiceTile({
   icon?: React.ComponentType<{ className?: string }>;
 }) {
   return (
-    <Link href={href} className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card transition-colors duration-300 hover:border-secondary/40 hover:shadow-[var(--shadow-card)]">
+    <Link href={href} className="premium-media-card group relative flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card transition-colors duration-300 hover:border-secondary/40 hover:shadow-[var(--shadow-card)]">
       <MediaFrame asset={asset} ratio="16/9" sizes="(max-width: 768px) 45vw, 18vw" zoom decorative overlay="soft" />
       <div className="flex items-center gap-2.5 p-3.5">
         {Icon && (
-          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-secondary/10 text-secondary">
+          <span className="service-icon-halo grid size-9 shrink-0 place-items-center rounded-xl bg-secondary/10 text-secondary">
             <Icon className="size-4.5" />
           </span>
         )}
@@ -248,7 +248,7 @@ export function RouteCard({
   badge?: string;
 }) {
   return (
-    <Link href={href} className="group flex h-full flex-col overflow-hidden rounded-[1.25rem] border border-border/70 bg-card shadow-[var(--shadow-xs)] transition-colors duration-300 hover:border-secondary/40 hover:shadow-[var(--shadow-card)]">
+    <Link href={href} className="premium-media-card group flex h-full flex-col overflow-hidden rounded-[1.25rem] border border-border/70 bg-card shadow-[var(--shadow-xs)] transition-colors duration-300 hover:border-secondary/40 hover:shadow-[var(--shadow-card)]">
       <div className="relative grid grid-cols-2 gap-0.5">
         <MediaFrame asset={originAsset} ratio="4/3" sizes="(max-width: 768px) 40vw, 18vw" zoom decorative overlay="soft" />
         <MediaFrame asset={destinationAsset} ratio="4/3" sizes="(max-width: 768px) 40vw, 18vw" zoom decorative overlay="soft" />
@@ -289,7 +289,7 @@ export function PromoBanner({
   priority?: boolean;
 }) {
   return (
-    <Link href={href} className="group relative block overflow-hidden rounded-[1.5rem] border border-border/60 shadow-[var(--shadow-card)]">
+    <Link href={href} className="premium-promo group relative block overflow-hidden rounded-[1.5rem] border border-border/60 shadow-[var(--shadow-card)]">
       <MediaFrame asset={asset} ratio="21/9" sizes="(max-width: 1024px) 100vw, 1200px" overlay="side" zoom decorative priority={priority} className="min-h-[15rem]">
         <div className={`absolute inset-0 z-10 flex flex-col justify-center gap-3 p-6 text-white sm:p-12 ${align === "center" ? "items-center text-center" : "items-start max-w-xl"}`}>
           {eyebrow && <Badge tone="accent">{eyebrow}</Badge>}
@@ -327,7 +327,7 @@ export function ImageMosaic({
   label: string;
 }) {
   return (
-    <figure aria-label={label} className="grid gap-2 overflow-hidden rounded-[1.5rem] sm:grid-cols-2 sm:grid-rows-2">
+    <figure aria-label={label} className="premium-media-card grid gap-2 overflow-hidden rounded-[1.5rem] sm:grid-cols-2 sm:grid-rows-2">
       <MediaFrame
         asset={assets[0]}
         ratio="4/3"

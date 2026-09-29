@@ -86,7 +86,7 @@ export function PublicLanding({ page }: { page: PageKey }) {
   const showDestinations = ["flights", "hotels", "tours", "routes", "ziyarat"].includes(page);
 
   return (
-    <main>
+    <main className="atmospheric-page">
       <TravelHero
         asset={serviceAsset(page, `تصویر معرفی ${serviceLabel[page]}`)}
         title={policy.title}
@@ -155,7 +155,7 @@ export function PublicLanding({ page }: { page: PageKey }) {
               <Link
                 key={related}
                 href={`/${related}`}
-                className="group flex items-center justify-between gap-3 rounded-2xl border bg-card p-5 transition-colors hover:border-secondary/40"
+                className="premium-content-card group flex items-center justify-between gap-3 rounded-2xl border bg-card p-5 transition-colors hover:border-secondary/40"
               >
                 <span>
                   <span className="block font-extrabold group-hover:text-primary">{serviceLabel[related]}</span>
@@ -170,17 +170,17 @@ export function PublicLanding({ page }: { page: PageKey }) {
 
       <section className="media-section">
         <div className="container-page grid gap-5 lg:grid-cols-3">
-          <div className="rounded-2xl border bg-card p-6">
+          <div className="premium-content-card rounded-2xl border bg-card p-6">
             <ShieldCheck className="size-6 text-secondary" />
             <h2 className="mt-3 font-black">پرداخت و نشست امن</h2>
             <p className="mt-2 text-sm leading-7 text-muted-foreground">نشست با کوکی HttpOnly نگه داشته می‌شود و مالکیت سفارش سمت سرور کنترل می‌شود.</p>
           </div>
-          <div className="rounded-2xl border bg-card p-6">
+          <div className="premium-content-card rounded-2xl border bg-card p-6">
             <Compass className="size-6 text-secondary" />
             <h2 className="mt-3 font-black">اطلاعات بدون اغراق</h2>
             <p className="mt-2 text-sm leading-7 text-muted-foreground">محتوای راهنما از موجودی و نرخ واقعی تأمین‌کننده جدا نگه داشته می‌شود.</p>
           </div>
-          <div className="rounded-2xl border bg-card p-6">
+          <div className="premium-content-card rounded-2xl border bg-card p-6">
             <Headphones className="size-6 text-secondary" />
             <h2 className="mt-3 font-black">پیگیری سفارش</h2>
             <p className="mt-2 text-sm leading-7 text-muted-foreground">وضعیت سفارش، استرداد و پشتیبانی در حساب کاربری قابل پیگیری است.</p>
