@@ -1,6 +1,6 @@
 export const seoAuditManifest = {
   indexable: [
-    { path: "/", h1: "سفر را انتخاب کن", jsonLd: false },
+    { path: "/", h1: "سفر بعدی‌ات را", jsonLd: false },
     { path: "/destinations/iran/kish", h1: "راهنمای سفر به کیش", jsonLd: false },
     { path: "/flights/tehran-to-mashhad", h1: "بلیط هواپیما تهران به مشهد", jsonLd: true },
     { path: "/hotels/kish", h1: "هتل‌های کیش", jsonLd: false },

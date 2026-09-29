@@ -71,7 +71,10 @@ export function generateStaticParams() {
 
 function resolveRoute(path: string): Entry | undefined {
   if (staticRoutes[path]) return staticRoutes[path];
-  if (/^routes\/[^/]+$/.test(path)) return { name: "RouteDetailPage", title: "برنامه مسیر سفر", index: true };
+  if (/^routes\/[^/]+$/.test(path)) {
+    const route = travelRoutes.find((item) => `routes/${item.id}` === path);
+    return route ? { name: "RouteDetailPage", title: route.title, description: route.description, index: true } : undefined;
+  }
   if (/^shop\/[^/]+$/.test(path)) return { name: "ProductDetailPage", title: "محصول سفر", index: false };
   if (/^tours\/[^/]+$/.test(path)) return { name: "TourDetail", title: "جزئیات تور", index: false };
   if (/^ziyarat\/[^/]+$/.test(path)) return { name: "ZiyaratDetail", title: "جزئیات سفر زیارتی", index: false };

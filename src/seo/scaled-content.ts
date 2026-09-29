@@ -120,7 +120,7 @@ const hotelTips: Record<string, [string, string]> = {
 export const scaledHotels: SeoHotelLanding[] = hotelSeeds.map(([slug, city, destinationPath, neighborhoods]) => ({
   slug,
   city,
-  title: `هتل‌های ${city}`,
+  title: `راهنمای هتل‌های ${city}`,
   description: `راهنمای انتخاب و جست‌وجوی هتل در ${city} بر اساس محله، دسترسی و سبک سفر؛ بدون ادعای قیمت، امتیاز یا موجودی زنده.`,
   summary: `در ${city} محل اقامت را با برنامهٔ روزانه، دسترسی حمل‌ونقل و شرایط لغو هماهنگ کنید و اطلاعات تجاری را فقط در نتیجهٔ واقعی بسنجید.`,
   neighborhoods: [...neighborhoods],
