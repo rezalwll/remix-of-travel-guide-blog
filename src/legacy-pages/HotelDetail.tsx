@@ -24,23 +24,13 @@ import {
 import Layout from "@/components/layout/Layout";
 import { useAuth } from "@/context/AuthContext";
 import { useFavorite } from "@/services/account";
-import { calculateNights, hotelService } from "@/services/hotelService";
+import { calculateNights, hotelService, resolveHotelDestination } from "@/services/hotelService";
 import { writeBookingDraft } from "@/store/booking";
 import type { HotelBookingDraft } from "@/types/checkout";
 import type { HotelRatePlan, HotelSearchParams } from "@/types/hotel";
 import { formatPrice } from "@/utils/flight";
 import { recordRecentlyViewed } from "@/services/recentlyViewed";
 
-const cityNames: Record<string, string> = {
-  THR: "تهران",
-  MHD: "مشهد",
-  KIH: "کیش",
-  SYZ: "شیراز",
-  IFN: "اصفهان",
-  IST: "استانبول",
-  DXB: "دبی",
-  NJF: "نجف",
-};
 const icons: Record<string, React.ComponentType<{ className?: string }>> = {
   وای‌فای: Wifi,
   پارکینگ: ParkingCircle,
@@ -56,7 +46,7 @@ const parseStay = (
 ): HotelSearchParams => {
   const raw = query.get("destination") || fallbackCity;
   return {
-    destination: cityNames[raw.toUpperCase()] || raw,
+    destination: resolveHotelDestination(raw),
     checkIn: query.get("checkin") || query.get("checkIn") || "2026-10-12",
     checkOut: query.get("checkout") || query.get("checkOut") || "2026-10-16",
     rooms: Math.max(1, Number(query.get("rooms") || 1)),
@@ -246,7 +236,7 @@ const HotelDetail = () => {
                     {hotel.rating.toLocaleString("fa-IR")}
                   </strong>
                   <p className="text-[10px]">
-                    {hotel.reviewCount.toLocaleString("fa-IR")} نظر نمونه
+                    {hotel.reviewCount.toLocaleString("fa-IR")} بازخورد مرجع
                   </p>
                 </div>
               </div>
@@ -297,6 +287,12 @@ const HotelDetail = () => {
                     className={`size-3 ${showMore ? "rotate-180" : ""}`}
                   />
                 </button>
+                {hotel.source && (
+                  <div className="mt-4 rounded-xl border border-secondary/20 bg-secondary/5 p-3 text-xs leading-6 text-muted-foreground">
+                    <p><strong className="text-foreground">شفافیت اطلاعات:</strong> {hotel.source.note}</p>
+                    <a href={hotel.source.url} target="_blank" rel="noreferrer" className="mt-1 inline-flex font-bold text-secondary">مشاهده منبع معرفی هتل · بررسی‌شده در {hotel.source.checkedAt}</a>
+                  </div>
+                )}
               </section>
               <section
                 id="rooms"

@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { hotels } from '@/data/hotels';
 import { calculateNights, filterHotels, getHotelStartingPrice, hotelService, resolveHotelDestination, sortHotels } from '@/services/hotelService';
 import type { HotelFilters } from '@/types/hotel';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const baseFilters: HotelFilters = { minPrice: 0, maxPrice: 50000000, stars: [], minRating: 0, area: [], amenities: [], mealPlan: 'all', refundable: 'all', tags: [] };
 
@@ -12,5 +14,19 @@ describe('hotel service', () => {
     expect(resolveHotelDestination('mashhad')).toBe('مشهد');
     expect(resolveHotelDestination('MHD')).toBe('مشهد');
     expect(hotelService.searchHotels({ destination: 'mashhad', checkIn: '2026-09-30', checkOut: '2026-11-03', rooms: 1, adults: 1, children: 0 }).length).toBeGreaterThan(0);
+  });
+  it('keeps a substantial, source-backed catalog for every supported Iranian destination', () => {
+    const cities = ['تهران', 'مشهد', 'کیش', 'شیراز', 'اصفهان', 'قشم', 'یزد', 'تبریز', 'رشت'];
+    for (const city of cities) {
+      const cityHotels = hotels.filter((hotel) => hotel.city === city);
+      expect(cityHotels.length, city).toBeGreaterThanOrEqual(5);
+      expect(cityHotels.every((hotel) => hotel.source?.url && hotel.reviewCount > 0), city).toBe(true);
+    }
+  });
+  it('serves a local, non-placeholder hero image for every Iranian hotel', () => {
+    for (const hotel of hotels) {
+      expect(hotel.images[0]).toMatch(/^\/media\/hotels\//);
+      expect(fs.existsSync(path.join(process.cwd(), 'public', hotel.images[0]))).toBe(true);
+    }
   });
 });

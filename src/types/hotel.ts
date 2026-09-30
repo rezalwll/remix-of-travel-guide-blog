@@ -55,6 +55,12 @@ export interface Hotel {
   featured?: boolean;
   tags: string[];
   rooms: HotelRoom[];
+  source?: {
+    provider: string;
+    url: string;
+    checkedAt: string;
+    note: string;
+  };
 }
 
 export interface HotelSearchParams {

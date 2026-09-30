@@ -1,70 +1,100 @@
 import type { Hotel } from '../types/hotel.js';
 
-// `new URL(..., import.meta.url)` is transformed by Vite for the web build and
-// gets a stable public fallback when this shared catalog is loaded by the Node
-// API. Importing the binary files directly would make Node execute a JPG.
-const isNodeRuntime = typeof document === 'undefined';
-const morocco = isNodeRuntime ? '/morocco.jpg' : new URL('../assets/morocco.jpg', import.meta.url).href;
-const heroGreece = isNodeRuntime ? '/hero-greece.jpg' : new URL('../assets/hero-greece.jpg', import.meta.url).href;
-const heroCamping = isNodeRuntime ? '/hero-camping.jpg' : new URL('../assets/hero-camping.jpg', import.meta.url).href;
-const travelBooks = isNodeRuntime ? '/travel-books.jpg' : new URL('../assets/travel-books.jpg', import.meta.url).href;
-const hotelTehranPremium = isNodeRuntime ? '/hotel-tehran-premium.webp' : new URL('../assets/hotel-tehran-premium.webp', import.meta.url).href;
-const hotelIstanbulPremium = isNodeRuntime ? '/hotel-istanbul-premium.webp' : new URL('../assets/hotel-istanbul-premium.webp', import.meta.url).href;
-const heroKishPremium = isNodeRuntime ? '/hero-kish-premium.webp' : new URL('../assets/hero-kish-premium.webp', import.meta.url).href;
+type HotelSeed = [id: string, name: string, city: string, address: string, area: string, stars: number, rating: number, reviews: number, image: string, nightly: number, distance: number];
 
-const photos = {
-  palace: hotelTehranPremium,
-  lobby: hotelIstanbulPremium,
-  room: travelBooks,
-  sea: heroKishPremium,
-  resort: morocco,
-  pool: heroGreece,
-  nature: heroCamping,
+const checkedAt = '۱۴۰۵/۰۷/۰۷';
+const fallbackRoom = '/media/hotel-room.webp';
+const fallbackPool = '/media/hotel-pool.webp';
+const citySources: Record<string, string> = {
+  تهران: 'https://www.iranhotelonline.com/fa/state/8/تهران/hotelgrades/5/5/',
+  مشهد: 'https://www.iranhotelonline.com/blog/luxe-mashhad-hotels/',
+  کیش: 'https://www.iranhotelonline.com/fa/state/29/هرمزگان/hotelgrades/5/5/',
+  شیراز: 'https://www.iranhotelonline.com/fa/city/37/شیراز/',
+  اصفهان: 'https://www.iranhotelonline.com/fa/city/5/اصفهان/hotelgrades/5/5-star/',
+  قشم: 'https://www.iranhotelonline.com/qeshm-hotels/',
+  یزد: 'https://www.iranhotelonline.com/yazd-hotels/',
+  تبریز: 'https://www.iranhotelonline.com/fa/state/1/آذربایجان-شرقی/hotelgrades/5/5/',
+  رشت: 'https://www.iranhotelonline.com/rasht-hotels/',
 };
 
-const roomImages = [photos.room, photos.lobby, photos.sea];
-
-const makeRooms = (hotelId: string, base: number, style: string) => [
+const makeRooms = (hotelId: string, base: number, hero: string) => [
   {
-    id: `${hotelId}-standard`, hotelId, name: `اتاق دبل ${style}`, description: 'اتاقی روشن و آرام با تخت دبل و امکانات کامل برای اقامتی راحت.', capacity: 2, bedType: 'یک تخت دبل', size: 28, images: roomImages, amenities: ['وای‌فای رایگان', 'تلویزیون هوشمند', 'چای‌ساز'],
+    id: `${hotelId}-double`, hotelId, name: 'اتاق دو تخته', description: 'اتاق دو تخته با چیدمان استاندارد؛ ظرفیت و موجودی این بخش برای نمایش فرایند رزرو شبیه‌سازی شده است.', capacity: 2, bedType: 'یک تخت دبل یا دو تخت سینگل', size: 28, images: [hero, fallbackRoom], amenities: ['وای‌فای رایگان', 'تلویزیون', 'چای‌ساز'],
     ratePlans: [
-      { id: `${hotelId}-standard-breakfast`, title: 'نرخ با صبحانه', mealPlan: 'صبحانه' as const, refundable: true, cancellationSummary: 'استرداد رایگان تا ۴۸ ساعت قبل از ورود', nightlyPrice: base, originalNightlyPrice: base + 950000, currency: 'IRR' as const, taxesIncluded: true, remainingRooms: 4 },
-      { id: `${hotelId}-standard-room-only`, title: 'نرخ اقامتی', mealPlan: 'بدون وعده' as const, refundable: false, cancellationSummary: 'غیرقابل استرداد', nightlyPrice: base - 650000, currency: 'IRR' as const, taxesIncluded: true, remainingRooms: 6 },
+      { id: `${hotelId}-double-breakfast`, title: 'اقامت با صبحانه', mealPlan: 'صبحانه' as const, refundable: true, cancellationSummary: 'لغو رایگان تا ۴۸ ساعت قبل از ورود (نمایشی)', nightlyPrice: base, originalNightlyPrice: base + 900000, currency: 'IRR' as const, taxesIncluded: true, remainingRooms: 4 },
+      { id: `${hotelId}-double-room-only`, title: 'نرخ اقتصادی', mealPlan: 'بدون وعده' as const, refundable: false, cancellationSummary: 'غیرقابل استرداد (نمایشی)', nightlyPrice: Math.max(2500000, base - 600000), currency: 'IRR' as const, taxesIncluded: true, remainingRooms: 6 },
     ],
   },
   {
-    id: `${hotelId}-suite`, hotelId, name: `سوئیت ${style}`, description: 'سوئیت بزرگ‌تر با فضای نشیمن جدا و چشم‌انداز شهری.', capacity: 3, bedType: 'یک تخت دبل و یک کاناپه تخت‌خواب‌شو', size: 45, images: [photos.palace, photos.room], amenities: ['نشیمن جدا', 'وای‌فای رایگان', 'مینی‌بار'],
-    ratePlans: [{ id: `${hotelId}-suite-breakfast`, title: 'سوئیت با صبحانه', mealPlan: 'صبحانه' as const, refundable: true, cancellationSummary: 'استرداد رایگان تا ۷۲ ساعت قبل از ورود', nightlyPrice: base + 2400000, currency: 'IRR' as const, taxesIncluded: true, remainingRooms: 2 }],
+    id: `${hotelId}-suite`, hotelId, name: 'سوئیت یک‌خوابه', description: 'سوئیت جادار با فضای نشیمن؛ نوع تخت و موجودی در نسخه دمو شبیه‌سازی شده است.', capacity: 3, bedType: 'تخت دبل و مبل تخت‌خواب‌شو', size: 44, images: [hero, fallbackPool], amenities: ['فضای نشیمن', 'وای‌فای رایگان', 'مینی‌بار'],
+    ratePlans: [{ id: `${hotelId}-suite-breakfast`, title: 'سوئیت با صبحانه', mealPlan: 'صبحانه' as const, refundable: true, cancellationSummary: 'لغو رایگان تا ۷۲ ساعت قبل از ورود (نمایشی)', nightlyPrice: base + 2400000, currency: 'IRR' as const, taxesIncluded: true, remainingRooms: 2 }],
   },
 ];
 
-const makeHotel = (input: Omit<Hotel, 'rooms'> & { base: number; style: string }): Hotel => {
-  const { base, style, ...hotel } = input;
-  return { ...hotel, rooms: makeRooms(hotel.id, base, style) };
-};
+const makeHotel = ([id, name, city, address, area, stars, rating, reviewCount, image, base, distanceFromCenter]: HotelSeed): Hotel => ({
+  id, slug: id, name, city, country: 'ایران', address, area, stars, rating, reviewCount,
+  images: [image, fallbackRoom, fallbackPool],
+  description: `${name} یکی از اقامتگاه‌های شناخته‌شده ${city} است. نام، موقعیت، درجه، تصویر و امتیاز مرجع گردآوری شده‌اند؛ نرخ و موجودی این دمو واقعی نیست.`,
+  amenities: stars === 5 ? ['وای‌فای', 'صبحانه', 'رستوران', 'استخر', 'پارکینگ', 'باشگاه'] : ['وای‌فای', 'صبحانه', 'رستوران', 'پارکینگ'],
+  neighborhood: area, distanceFromCenter, checkInTime: '۱۴:۰۰', checkOutTime: '۱۲:۰۰',
+  policies: [
+    { title: 'مدارک پذیرش', description: 'ارائه مدارک شناسایی معتبر همه مهمانان در زمان پذیرش الزامی است.' },
+    { title: 'نرخ و موجودی', description: 'قیمت‌ها، ظرفیت اتاق‌ها و قوانین لغو در این نسخه صرفاً نمایشی‌اند و هنگام اتصال به تأمین‌کننده جایگزین می‌شوند.' },
+  ],
+  featured: stars === 5 && rating >= 4.4,
+  tags: stars === 5 ? ['لوکس', 'مناسب خانواده'] : ['مناسب خانواده', 'اقتصادی'],
+  rooms: makeRooms(id, base, image),
+  source: { provider: 'ایران هتل آنلاین', url: citySources[city], checkedAt, note: 'مشخصات و تصویر مرجع؛ نرخ، ظرفیت و اتاق‌های قابل فروش در کیاشی نمایشی هستند.' },
+});
 
-export const hotels: Hotel[] = [
-  makeHotel({ id: 'espinas-palace', slug: 'espinas-palace', name: 'هتل اسپیناس پالاس', city: 'تهران', country: 'ایران', address: 'سعادت‌آباد، میدان بهرود', area: 'سعادت‌آباد', stars: 5, rating: 4.8, reviewCount: 1240, images: [photos.palace, photos.lobby, photos.room, photos.pool], description: 'هتلی پنج‌ستاره با چشم‌انداز شهر، رستوران‌های متنوع و دسترسی مناسب به شمال تهران.', amenities: ['وای‌فای', 'استخر', 'پارکینگ', 'صبحانه', 'باشگاه', 'رستوران'], neighborhood: 'شمال تهران', distanceFromCenter: 9.2, checkInTime: '۱۴:۰۰', checkOutTime: '۱۲:۰۰', policies: [{ title: 'ساعت ورود و خروج', description: 'ورود از ساعت ۱۴ و خروج تا ساعت ۱۲ انجام می‌شود.' }, { title: 'سیاست کودک', description: 'اقامت کودک زیر ۶ سال در تخت موجود رایگان است.' }], tags: ['لوکس', 'مناسب خانواده'], featured: true, base: 12500000, style: 'دلوکس' }),
-  makeHotel({ id: 'darvishi-grand', slug: 'darvishi-grand', name: 'هتل مجلل درویشی', city: 'مشهد', country: 'ایران', address: 'خیابان امام رضا، نبش امام رضا ۲۴', area: 'مرکز شهر', stars: 5, rating: 4.7, reviewCount: 980, images: [photos.resort, photos.lobby, photos.room, photos.pool], description: 'اقامتی لوکس نزدیک حرم با مجموعه آبی و رستوران‌های باکیفیت.', amenities: ['وای‌فای', 'استخر', 'پارکینگ', 'صبحانه', 'اسپا', 'ترانسفر'], neighborhood: 'اطراف حرم', distanceFromCenter: 1.1, checkInTime: '۱۴:۰۰', checkOutTime: '۱۲:۰۰', policies: [{ title: 'پذیرش مهمان', description: 'پذیرش با کارت شناسایی معتبر انجام می‌شود.' }], tags: ['لوکس', 'مناسب خانواده'], featured: true, base: 9800000, style: 'رویال' }),
-  makeHotel({ id: 'toranj-kish', slug: 'toranj-kish', name: 'هتل ترنج کیش', city: 'کیش', country: 'ایران', address: 'جاده جهان، مجموعه دریایی ترنج', area: 'جاده جهان', stars: 5, rating: 4.6, reviewCount: 760, images: [photos.sea, photos.resort, photos.room, photos.pool], description: 'سوئیت‌های روی آب با منظره خلیج فارس و تجربه‌ای متفاوت از اقامت در جزیره.', amenities: ['وای‌فای', 'استخر', 'صبحانه', 'رستوران', 'ترانسفر'], neighborhood: 'ساحل غربی', distanceFromCenter: 12, checkInTime: '۱۵:۰۰', checkOutTime: '۱۲:۰۰', policies: [{ title: 'شرایط آب‌وهوا', description: 'برخی خدمات فضای باز در شرایط نامساعد جوی محدود می‌شوند.' }], tags: ['لوکس', 'نزدیک ساحل'], base: 14800000, style: 'روی آب' }),
-  makeHotel({ id: 'shayan-kish', slug: 'shayan-kish', name: 'هتل شایان کیش', city: 'کیش', country: 'ایران', address: 'میدان ساحل، بلوار ساحل', area: 'مرکز جزیره', stars: 4, rating: 4.3, reviewCount: 410, images: [photos.sea, photos.lobby, photos.room], description: 'هتلی خانوادگی در نزدیکی مراکز خرید و اسکله تفریحی کیش.', amenities: ['وای‌فای', 'پارکینگ', 'صبحانه', 'رستوران'], neighborhood: 'مرکز جزیره', distanceFromCenter: 2.4, checkInTime: '۱۴:۰۰', checkOutTime: '۱۲:۰۰', policies: [{ title: 'پذیرش', description: 'پذیرش شبانه‌روزی در لابی انجام می‌شود.' }], tags: ['مناسب خانواده', 'اقتصادی'], base: 6200000, style: 'استاندارد' }),
-  makeHotel({ id: 'shiraz-grand', slug: 'shiraz-grand', name: 'هتل بزرگ شیراز', city: 'شیراز', country: 'ایران', address: 'دروازه قرآن، بلوار قرآن', area: 'دروازه قرآن', stars: 5, rating: 4.5, reviewCount: 690, images: [photos.palace, photos.lobby, photos.room, photos.pool], description: 'هتلی مدرن بر فراز شیراز با دسترسی عالی به جاذبه‌های تاریخی.', amenities: ['وای‌فای', 'استخر', 'پارکینگ', 'صبحانه', 'باشگاه', 'اسپا'], neighborhood: 'دروازه قرآن', distanceFromCenter: 3.5, checkInTime: '۱۴:۰۰', checkOutTime: '۱۲:۰۰', policies: [{ title: 'پارکینگ', description: 'پارکینگ سرپوشیده برای مهمانان رایگان است.' }], tags: ['لوکس', 'نزدیک مرکز'], base: 8600000, style: 'پانوراما' }),
-  makeHotel({ id: 'shiraz-narenjestan', slug: 'shiraz-narenjestan', name: 'هتل نارنجستان شیراز', city: 'شیراز', country: 'ایران', address: 'خیابان زند، کوچه نارنجستان', area: 'مرکز شهر', stars: 3, rating: 4.1, reviewCount: 250, images: [photos.lobby, photos.room, photos.sea], description: 'انتخابی اقتصادی و دنج برای سفرهای شهری و خانوادگی.', amenities: ['وای‌فای', 'پارکینگ', 'صبحانه'], neighborhood: 'مرکز شهر', distanceFromCenter: 1.4, checkInTime: '۱۴:۰۰', checkOutTime: '۱۲:۰۰', policies: [{ title: 'قوانین رزرو', description: 'تغییر نام مهمان تا ۲۴ ساعت قبل از ورود ممکن است.' }], tags: ['اقتصادی', 'مناسب خانواده'], base: 4200000, style: 'اقتصادی' }),
-  makeHotel({ id: 'abbasi-isfahan', slug: 'abbasi-isfahan', name: 'هتل عباسی اصفهان', city: 'اصفهان', country: 'ایران', address: 'خیابان چهارباغ عباسی، کوچه باغ گلدسته', area: 'چهارباغ', stars: 5, rating: 4.7, reviewCount: 1100, images: [photos.palace, photos.lobby, photos.room, photos.pool], description: 'هتلی تاریخی در یکی از زیباترین باغ‌های اصفهان با معماری اصیل ایرانی.', amenities: ['وای‌فای', 'پارکینگ', 'صبحانه', 'رستوران', 'اسپا'], neighborhood: 'چهارباغ', distanceFromCenter: 0.8, checkInTime: '۱۴:۰۰', checkOutTime: '۱۲:۰۰', policies: [{ title: 'ساختمان تاریخی', description: 'چیدمان برخی اتاق‌ها به دلیل معماری تاریخی متفاوت است.' }], tags: ['لوکس', 'نزدیک مرکز'], featured: true, base: 9200000, style: 'باغ' }),
-  makeHotel({ id: 'istanbul-bosphorus', slug: 'istanbul-bosphorus', name: 'هتل بسفر استانبول', city: 'استانبول', country: 'ترکیه', address: 'منطقه بشیکتاش، خیابان ساحلی', area: 'بشیکتاش', stars: 5, rating: 4.8, reviewCount: 1560, images: [photos.sea, photos.palace, photos.lobby, photos.room], description: 'هتلی شیک در کنار بسفر با دسترسی سریع به مراکز خرید و دیدنی‌های شهر.', amenities: ['وای‌فای', 'استخر', 'صبحانه', 'باشگاه', 'اسپا', 'ترانسفر'], neighborhood: 'بشیکتاش', distanceFromCenter: 4.1, checkInTime: '۱۴:۰۰', checkOutTime: '۱۲:۰۰', policies: [{ title: 'مالیات شهری', description: 'مالیات شهری در قیمت نمایشی لحاظ شده است.' }], tags: ['لوکس', 'نزدیک مرکز'], featured: true, base: 11200000, style: 'بسفر' }),
-  makeHotel({ id: 'istanbul-sultanahmet', slug: 'istanbul-sultanahmet', name: 'هتل سلطان احمد سوئیت', city: 'استانبول', country: 'ترکیه', address: 'محله سلطان احمد، خیابان آراستا', area: 'سلطان احمد', stars: 4, rating: 4.4, reviewCount: 830, images: [photos.lobby, photos.room, photos.sea], description: 'اقامتگاهی دنج در قلب منطقه تاریخی استانبول، چند قدم تا ایاصوفیه.', amenities: ['وای‌فای', 'صبحانه', 'رستوران', 'ترانسفر'], neighborhood: 'سلطان احمد', distanceFromCenter: 0.6, checkInTime: '۱۴:۰۰', checkOutTime: '۱۲:۰۰', policies: [{ title: 'پذیرش', description: 'پذیرش انگلیسی‌زبان در تمام ساعات فعال است.' }], tags: ['مناسب خانواده', 'نزدیک مرکز'], base: 7300000, style: 'تاریخی' }),
-  makeHotel({ id: 'dubai-marina', slug: 'dubai-marina', name: 'هتل مارینا دبی', city: 'دبی', country: 'امارات', address: 'دبی مارینا، خیابان ساحلی', area: 'مارینا', stars: 5, rating: 4.6, reviewCount: 1320, images: [photos.resort, photos.pool, photos.room, photos.lobby], description: 'هتلی مدرن در مارینا با استخر روباز و چشم‌انداز خلیج.', amenities: ['وای‌فای', 'استخر', 'پارکینگ', 'صبحانه', 'باشگاه', 'ترانسفر'], neighborhood: 'دبی مارینا', distanceFromCenter: 22, checkInTime: '۱۵:۰۰', checkOutTime: '۱۲:۰۰', policies: [{ title: 'ودیعه', description: 'ودیعه احتمالی در زمان ورود در هتل دریافت می‌شود.' }], tags: ['لوکس', 'نزدیک ساحل'], base: 13400000, style: 'مارینا' }),
-  makeHotel({ id: 'dubai-deira', slug: 'dubai-deira', name: 'هتل دیره سنتر', city: 'دبی', country: 'امارات', address: 'دیره، خیابان الرقه', area: 'دیره', stars: 3, rating: 4.0, reviewCount: 470, images: [photos.lobby, photos.room, photos.pool], description: 'گزینه‌ای اقتصادی با دسترسی مناسب به مترو و بازارهای قدیمی دبی.', amenities: ['وای‌فای', 'استخر', 'صبحانه', 'ترانسفر'], neighborhood: 'دیره', distanceFromCenter: 8.5, checkInTime: '۱۴:۰۰', checkOutTime: '۱۲:۰۰', policies: [{ title: 'حمل‌ونقل', description: 'ایستگاه مترو در فاصله ۱۰ دقیقه‌ای هتل است.' }], tags: ['اقتصادی', 'مناسب خانواده'], base: 5800000, style: 'سیتی' }),
-  makeHotel({ id: 'najaf-ibn-aqeel', slug: 'najaf-ibn-aqeel', name: 'هتل ابن عقیل نجف', city: 'نجف', country: 'عراق', address: 'خیابان رسول، نزدیک حرم امیرالمؤمنین', area: 'مرکز نجف', stars: 4, rating: 4.2, reviewCount: 360, images: [photos.lobby, photos.room, photos.sea], description: 'هتلی آرام با فاصله کم از حرم و خدمات مناسب زائران.', amenities: ['وای‌فای', 'صبحانه', 'رستوران', 'ترانسفر'], neighborhood: 'نزدیک حرم', distanceFromCenter: 0.9, checkInTime: '۱۴:۰۰', checkOutTime: '۱۲:۰۰', policies: [{ title: 'ترانسفر حرم', description: 'ترانسفر رفت‌وبرگشت در ساعات مشخص به‌صورت نمایشی ارائه می‌شود.' }], tags: ['مناسب خانواده', 'نزدیک مرکز'], base: 5100000, style: 'زائر' }),
-  makeHotel({ id: 'azadi-tehran', slug: 'azadi-tehran', name: 'هتل پارسیان آزادی', city: 'تهران', country: 'ایران', address: 'بزرگراه چمران، تقاطع یادگار امام', area: 'اوین', stars: 4, rating: 4.2, reviewCount: 540, images: [photos.lobby, photos.room, photos.pool], description: 'هتلی شهری با دسترسی مناسب به نمایشگاه بین‌المللی و شمال تهران.', amenities: ['وای‌فای', 'پارکینگ', 'صبحانه', 'استخر'], neighborhood: 'اوین', distanceFromCenter: 8.4, checkInTime: '۱۴:۰۰', checkOutTime: '۱۲:۰۰', policies: [{ title: 'پارکینگ', description: 'پارکینگ مهمانان در فضای هتل در دسترس است.' }], tags: ['مناسب خانواده'], base: 7200000, style: 'شهری' }),
-  makeHotel({ id: 'shahr-mashhad', slug: 'shahr-mashhad', name: 'هتل شهر مشهد', city: 'مشهد', country: 'ایران', address: 'خیابان امام رضا، کوچه ۱۸', area: 'مرکز شهر', stars: 3, rating: 4.0, reviewCount: 310, images: [photos.room, photos.lobby, photos.sea], description: 'هتلی اقتصادی برای سفرهای زیارتی با دسترسی آسان به حرم.', amenities: ['وای‌فای', 'صبحانه', 'ترانسفر'], neighborhood: 'اطراف حرم', distanceFromCenter: 1.6, checkInTime: '۱۴:۰۰', checkOutTime: '۱۲:۰۰', policies: [{ title: 'پذیرش زائر', description: 'ترانسفر نمایشی به حرم در زمان‌های مشخص انجام می‌شود.' }], tags: ['اقتصادی', 'نزدیک مرکز'], base: 3900000, style: 'زائر' }),
-  makeHotel({ id: 'aria-kish', slug: 'aria-kish', name: 'هتل آریا کیش', city: 'کیش', country: 'ایران', address: 'بلوار داریوش، میدان ساحل', area: 'مرکز جزیره', stars: 4, rating: 4.1, reviewCount: 280, images: [photos.sea, photos.room, photos.lobby], description: 'اقامتگاهی آرام نزدیک ساحل و مراکز خرید جزیره.', amenities: ['وای‌فای', 'پارکینگ', 'صبحانه', 'استخر'], neighborhood: 'مرکز جزیره', distanceFromCenter: 2.1, checkInTime: '۱۴:۰۰', checkOutTime: '۱۲:۰۰', policies: [{ title: 'ساحل', description: 'دسترسی ساحلی در فاصله کوتاهی از هتل قرار دارد.' }], tags: ['مناسب خانواده', 'نزدیک ساحل'], base: 6700000, style: 'جزیره' }),
-  makeHotel({ id: 'persepolis-shiraz', slug: 'persepolis-shiraz', name: 'هتل پرسپولیس شیراز', city: 'شیراز', country: 'ایران', address: 'خیابان حافظ، روبه‌روی باغ جهان‌نما', area: 'مرکز شهر', stars: 4, rating: 4.3, reviewCount: 470, images: [photos.palace, photos.room, photos.lobby], description: 'هتلی خوش‌موقعیت در قلب شیراز برای سفرهای فرهنگی و خانوادگی.', amenities: ['وای‌فای', 'پارکینگ', 'صبحانه', 'رستوران'], neighborhood: 'مرکز شهر', distanceFromCenter: 1.1, checkInTime: '۱۴:۰۰', checkOutTime: '۱۲:۰۰', policies: [{ title: 'بازدید شهری', description: 'باغ‌های تاریخی و بازار در فاصله کوتاهی از هتل هستند.' }], tags: ['نزدیک مرکز', 'مناسب خانواده'], base: 5900000, style: 'حافظ' }),
-  makeHotel({ id: 'zayandeh-isfahan', slug: 'zayandeh-isfahan', name: 'هتل زاینده‌رود اصفهان', city: 'اصفهان', country: 'ایران', address: 'خیابان هشت‌بهشت، جنب پل خواجو', area: 'چهارباغ', stars: 4, rating: 4.4, reviewCount: 520, images: [photos.lobby, photos.room, photos.sea], description: 'هتلی دنج نزدیک پل‌های تاریخی و مراکز پیاده‌روی اصفهان.', amenities: ['وای‌فای', 'پارکینگ', 'صبحانه', 'رستوران'], neighborhood: 'چهارباغ', distanceFromCenter: 1.3, checkInTime: '۱۴:۰۰', checkOutTime: '۱۲:۰۰', policies: [{ title: 'دسترسی شهری', description: 'ایستگاه تاکسی در ورودی هتل قرار دارد.' }], tags: ['نزدیک مرکز', 'اقتصادی'], base: 5400000, style: 'زاینده‌رود' }),
-  makeHotel({ id: 'galata-istanbul', slug: 'galata-istanbul', name: 'هتل گالاتا استانبول', city: 'استانبول', country: 'ترکیه', address: 'محله گالاتا، خیابان بانک', area: 'گالاتا', stars: 4, rating: 4.5, reviewCount: 610, images: [photos.room, photos.lobby, photos.sea], description: 'بوتیک‌هتلی هنری در نزدیکی برج گالاتا و خیابان استقلال.', amenities: ['وای‌فای', 'صبحانه', 'رستوران', 'ترانسفر'], neighborhood: 'گالاتا', distanceFromCenter: 1.8, checkInTime: '۱۴:۰۰', checkOutTime: '۱۲:۰۰', policies: [{ title: 'ساختمان بوتیک', description: 'برخی اتاق‌ها چشم‌انداز خیابان تاریخی دارند.' }], tags: ['نزدیک مرکز', 'اقتصادی'], base: 8100000, style: 'گالاتا' }),
-  makeHotel({ id: 'downtown-dubai', slug: 'downtown-dubai', name: 'هتل داون‌تاون دبی', city: 'دبی', country: 'امارات', address: 'بلوار شیخ محمد بن راشد', area: 'داون‌تاون', stars: 4, rating: 4.4, reviewCount: 740, images: [photos.palace, photos.pool, photos.room], description: 'هتلی مدرن نزدیک برج خلیفه و مراکز خرید معروف دبی.', amenities: ['وای‌فای', 'استخر', 'صبحانه', 'باشگاه'], neighborhood: 'داون‌تاون', distanceFromCenter: 1.4, checkInTime: '۱۵:۰۰', checkOutTime: '۱۲:۰۰', policies: [{ title: 'موقعیت', description: 'دسترسی پیاده به مراکز خرید و مترو فراهم است.' }], tags: ['لوکس', 'نزدیک مرکز'], base: 11800000, style: 'داون‌تاون' }),
-  makeHotel({ id: 'kowsar-najaf', slug: 'kowsar-najaf', name: 'هتل کوثر نجف', city: 'نجف', country: 'عراق', address: 'خیابان امام علی، نزدیک حرم', area: 'نزدیک حرم', stars: 3, rating: 3.9, reviewCount: 190, images: [photos.room, photos.lobby, photos.sea], description: 'هتلی ساده و اقتصادی برای اقامت کوتاه زائران نجف.', amenities: ['وای‌فای', 'صبحانه', 'ترانسفر'], neighborhood: 'نزدیک حرم', distanceFromCenter: 0.7, checkInTime: '۱۴:۰۰', checkOutTime: '۱۲:۰۰', policies: [{ title: 'خدمات زائر', description: 'خدمات ترانسفر در ساعات مشخص و به‌صورت نمایشی ارائه می‌شود.' }], tags: ['اقتصادی', 'نزدیک مرکز'], base: 3500000, style: 'اقتصادی' }),
+const iranianSeeds: HotelSeed[] = [
+  ['golden-palace-mashhad', 'هتل گلدن پالاس مشهد', 'مشهد', 'خیابان امام رضا، بین امام رضا ۳۴ و ۳۶', 'خیابان امام رضا', 5, 4.5, 697, '/media/hotels/mashhad/golden-palace.webp', 12600000, 2.1],
+  ['darvishi-mashhad', 'هتل مجلل درویشی مشهد', 'مشهد', 'خیابان امام رضا، بین امام رضا ۲۴ و ۲۶', 'خیابان امام رضا', 5, 4.4, 980, '/media/hotels/mashhad/darvishi.webp', 11900000, 1.4],
+  ['almas-2-mashhad', 'هتل الماس ۲ مشهد', 'مشهد', 'خیابان امام رضا، امام رضا ۲۰', 'خیابان امام رضا', 5, 4.4, 736, '/media/hotels/mashhad/almas-2.webp', 10800000, 1.3],
+  ['homa-2-mashhad', 'هتل هما ۲ مشهد', 'مشهد', 'بلوار خیام، میدان جانباز', 'بلوار خیام', 5, 4.2, 439, '/media/hotels/mashhad/homa-2.webp', 9200000, 6.2],
+  ['javad-mashhad', 'هتل جواد مشهد', 'مشهد', 'خیابان امام رضا، امام رضا ۳', 'اطراف حرم', 4, 4.3, 421, '/media/hotels/mashhad/javad.webp', 7900000, 0.7],
+  ['espinas-palace-tehran', 'هتل اسپیناس پالاس تهران', 'تهران', 'سعادت‌آباد، میدان بهرود', 'سعادت‌آباد', 5, 4.4, 1240, '/media/hotels/tehran/espinas-palace.webp', 15800000, 9.2],
+  ['parsian-azadi-tehran', 'هتل پارسیان آزادی تهران', 'تهران', 'بزرگراه چمران، تقاطع یادگار امام', 'اوین', 5, 4.4, 924, '/media/hotels/tehran/parsian-azadi.webp', 13200000, 8.4],
+  ['espinas-boulevard-tehran', 'هتل اسپیناس بلوار تهران', 'تهران', 'بلوار کشاورز، بین فلسطین و نادری', 'بلوار کشاورز', 5, 4.3, 680, '/media/hotels/tehran/espinas-boulevard.webp', 12900000, 2.8],
+  ['esteghlal-tehran', 'هتل پارسیان استقلال تهران', 'تهران', 'تقاطع بزرگراه چمران و ولیعصر', 'پارک‌وی', 5, 3.8, 1110, '/media/hotels/tehran/esteghlal.webp', 11500000, 7.4],
+  ['persian-plaza-tehran', 'هتل پرشین پلازا تهران', 'تهران', 'خیابان سهروردی شمالی، خیابان میرزای زینالی', 'سهروردی', 5, 4.2, 312, '/media/hotels/tehran/persian-plaza.webp', 10600000, 4.1],
+  ['toranj-kish', 'هتل ترنج کیش', 'کیش', 'میدان جاسک، جاده جهان', 'ساحل غربی', 5, 4.3, 760, '/media/hotels/kish/toranj.webp', 17800000, 12],
+  ['aria-kish', 'هتل آریا باستان کیش', 'کیش', 'میدان هور، بلوار جهان', 'میدان هور', 5, 4.1, 198, '/media/hotels/kish/aria.webp', 14200000, 8.7],
+  ['dariush-kish', 'هتل داریوش کیش', 'کیش', 'میدان داریوش', 'شرق جزیره', 5, 4.2, 1120, '/media/hotels/kish/dariush.webp', 16500000, 4.5],
+  ['parmis-kish', 'هتل پارمیس کیش', 'کیش', 'میدان پردیس', 'پردیس', 5, 3.9, 640, '/media/hotels/kish/parmis.webp', 10800000, 1.7],
+  ['aramis-plus-kish', 'هتل آرامیس پلاس کیش', 'کیش', 'میدان پردیس', 'پردیس', 5, 4.0, 326, '/media/hotels/kish/aramis-plus.webp', 11700000, 1.8],
+  ['grand-shiraz', 'هتل بزرگ شیراز', 'شیراز', 'دروازه قرآن', 'دروازه قرآن', 5, 4.6, 614, '/media/hotels/shiraz/grand.webp', 12400000, 3.5],
+  ['zandiyeh-shiraz', 'هتل زندیه شیراز', 'شیراز', 'خیابان هجرت، پشت ارگ کریم‌خان', 'مرکز تاریخی', 5, 4.6, 217, '/media/hotels/shiraz/zandiyeh.webp', 11800000, 1.1],
+  ['chamran-shiraz', 'هتل چمران شیراز', 'شیراز', 'بلوار چمران', 'بلوار چمران', 5, 4.1, 281, '/media/hotels/shiraz/chamran.webp', 10200000, 5.2],
+  ['persepolis-shiraz', 'هتل پرسپولیس شیراز', 'شیراز', 'خیابان آزادی، حدفاصل میدان اطلسی و حافظیه', 'حافظیه', 5, 4.0, 242, '/media/hotels/shiraz/persepolis.webp', 8900000, 2.2],
+  ['karim-khan-shiraz', 'هتل کریم‌خان شیراز', 'شیراز', 'خیابان رودکی', 'مرکز شهر', 3, 4.2, 162, '/media/hotels/shiraz/karim-khan.webp', 6200000, 1.3],
+  ['abbasi-isfahan', 'هتل عباسی اصفهان', 'اصفهان', 'خیابان چهارباغ عباسی، خیابان آمادگاه', 'چهارباغ', 5, 4.3, 1280, '/media/hotels/isfahan/abbasi.webp', 13900000, 0.8],
+  ['parsian-kowsar-isfahan', 'هتل پارسیان کوثر اصفهان', 'اصفهان', 'بلوار ملت، مقابل سی‌وسه‌پل', 'سی‌وسه‌پل', 5, 4.2, 726, '/media/hotels/isfahan/parsian-kowsar.webp', 12100000, 1.2],
+  ['chaharbagh-isfahan', 'هتل چهارباغ اصفهان', 'اصفهان', 'خیابان چهارباغ عباسی', 'چهارباغ', 5, 4.7, 186, '/media/hotels/isfahan/chaharbagh.webp', 12700000, 0.6],
+  ['pirouzi-isfahan', 'هتل پیروزی اصفهان', 'اصفهان', 'میدان امام حسین، ابتدای چهارباغ پایین', 'میدان امام حسین', 4, 4.1, 172, '/media/hotels/isfahan/pirouzi.webp', 7900000, 1],
+  ['safir-isfahan', 'هتل سفیر اصفهان', 'اصفهان', 'خیابان آمادگاه، مقابل هتل عباسی', 'آمادگاه', 4, 3.8, 59, '/media/hotels/isfahan/safir.webp', 6900000, 0.9],
+  ['arakta-qeshm', 'هتل آراکتا قشم', 'قشم', 'بلوار پیامبر اعظم، نخل زرین', 'نخل زرین', 5, 4.5, 122, '/media/hotels/qeshm/arakta.webp', 11200000, 2.4],
+  ['arta-qeshm', 'هتل آرتا قشم', 'قشم', 'بلوار شهید بهشتی', 'مرکز قشم', 4, 4.0, 80, '/media/hotels/qeshm/arta.webp', 8300000, 1.8],
+  ['irman-qeshm', 'هتل بوتیک ایرمان قشم', 'قشم', 'نخل زرین، خیابان پژوهش', 'نخل زرین', 4, 4.6, 172, '/media/hotels/qeshm/irman.webp', 8900000, 2.1],
+  ['ataman-qeshm', 'هتل آتامان قشم', 'قشم', 'میدان حافظ، به سمت میدان امام قلی خان', 'بلوار گلستان', 4, 4.1, 93, '/media/hotels/qeshm/ataman.webp', 7600000, 2.7],
+  ['eram-qeshm', 'هتل ارم قشم', 'قشم', 'بلوار آزادگان، روبه‌روی شیلات', 'بلوار آزادگان', 4, 3.6, 56, '/media/hotels/qeshm/eram.webp', 6800000, 3.1],
+  ['dad-yazd', 'هتل داد یزد', 'یزد', 'خیابان دهم فروردین', 'مرکز تاریخی', 4, 4.5, 447, '/media/hotels/yazd/dad.webp', 9200000, 1.2],
+  ['moshir-yazd', 'هتل باغ مشیرالممالک یزد', 'یزد', 'خیابان انقلاب، بلوار مشیر', 'باغ مشیر', 4, 4.3, 231, '/media/hotels/yazd/moshir.webp', 8800000, 3.2],
+  ['safaiyeh-yazd', 'هتل پارسیان صفائیه یزد', 'یزد', 'میدان امام حسن، خیابان تیمسار فلاحی', 'صفائیه', 5, 4.3, 454, '/media/hotels/yazd/safaiyeh.webp', 10800000, 4.6],
+  ['sib-o-nar-yazd', 'هتل سیب و نار یزد', 'یزد', 'بلوار شهیدان اشرف', 'صفائیه', 4, 4.4, 25, '/media/hotels/yazd/sib-o-nar.webp', 7600000, 4.9],
+  ['laleh-yazd', 'هتل لاله یزد', 'یزد', 'بلوار بسیج، کنار آب‌انبار گلشن', 'بافت تاریخی', 3, 4.0, 187, '/media/hotels/yazd/laleh.webp', 6100000, 1.5],
+  ['laleh-park-tabriz', 'هتل لاله پارک تبریز', 'تبریز', 'میدان شهید فهمیده، جنب مجتمع لاله پارک', 'رشدیه', 5, 4.7, 421, '/media/hotels/tabriz/laleh-park.webp', 12900000, 8.1],
+  ['pars-el-goli-tabriz', 'هتل پارس ائل‌گلی تبریز', 'تبریز', 'جاده ائل‌گلی، جنب پارک ائل‌گلی', 'ائل‌گلی', 5, 4.2, 360, '/media/hotels/tabriz/pars-el-goli.webp', 11200000, 7.4],
+  ['shahriar-tabriz', 'هتل شهریار تبریز', 'تبریز', 'ابتدای جاده ائل‌گلی', 'ائل‌گلی', 5, 3.8, 189, '/media/hotels/tabriz/shahriar.webp', 9800000, 6.3],
+  ['laleh-kandovan', 'هتل صخره‌ای لاله کندوان', 'تبریز', 'روستای تاریخی کندوان', 'کندوان', 5, 4.4, 266, '/media/hotels/tabriz/laleh-kandovan.webp', 10500000, 55],
+  ['international-tabriz', 'هتل بین‌المللی تبریز', 'تبریز', 'خیابان امام خمینی، میدان دانشگاه', 'مرکز شهر', 4, 4.2, 169, '/media/hotels/tabriz/international.webp', 7200000, 2.6],
+  ['kadus-rasht', 'هتل بزرگ کادوس رشت', 'رشت', 'بلوار منظریه', 'منظریه', 5, 3.8, 344, '/media/hotels/rasht/kadus.webp', 9600000, 2.8],
+  ['shabestan-rasht', 'هتل شبستان رشت', 'رشت', 'چهارراه گلسار، ابتدای بلوار بنت‌الهدی', 'گلسار', 4, 3.6, 50, '/media/hotels/rasht/shabestan.webp', 7100000, 3.4],
+  ['pamchal-rasht', 'هتل پامچال رشت', 'رشت', 'بلوار امام خمینی، میدان مصلی', 'مرکز شهر', 3, 3.6, 208, '/media/hotels/rasht/pamchal.webp', 5200000, 1.7],
+  ['sabouri-rasht', 'هتل آپارتمان صبوری رشت', 'رشت', 'بلوار گلسار، خیابان ۱۲۳', 'گلسار', 3, 3.6, 60, '/media/hotels/rasht/sabouri.webp', 4800000, 3.7],
+  ['iran-rasht', 'هتل ایران رشت', 'رشت', 'میدان شهرداری', 'میدان شهرداری', 3, 3.9, 134, '/media/hotels/rasht/iran.webp', 5600000, 0.3],
 ];
 
-export const hotelAmenities = ['صبحانه', 'استخر', 'پارکینگ', 'وای‌فای', 'باشگاه', 'اسپا', 'ترانسفر'];
+export const hotels: Hotel[] = iranianSeeds.map(makeHotel);
+export const hotelAmenities = ['صبحانه', 'استخر', 'پارکینگ', 'وای‌فای', 'باشگاه', 'اسپا', 'ترانسفر', 'رستوران'];
 export const hotelAreas = Array.from(new Set(hotels.map((hotel) => hotel.area)));
