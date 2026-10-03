@@ -4,10 +4,19 @@ import { DomainError, forbidden, notFound } from "../domain/errors.js";
 import { MONEY_CURRENCY } from "../domain/money.js";
 import { assertTransition, type BookingAttemptState, type OrderBookingState, type PaymentIntentState } from "../domain/states.js";
 import { sanitizeProviderPayload } from "../providers/redaction.js";
+import { assertDepartureSaleable, calculatePackageTotal, capacitySnapshot, effectiveDepartureStatus, type DepartureSaleStatus } from "../programs/domain.js";
 
 const hash = (value: string) => createHash("sha256").update(value).digest("hex");
 const asJson = (value: unknown): Prisma.InputJsonValue => value as Prisma.InputJsonValue;
 const mobilePattern = /^09\d{9}$/;
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const recordOf = (value: unknown) => value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+const managedIds = (service: unknown) => {
+  const value = recordOf(service); const offer = recordOf(value.offer); const departure = recordOf(value.departure); const pack = recordOf(value.package);
+  const ids = { programId: typeof offer.id === "string" ? offer.id : "", departureId: typeof departure.id === "string" ? departure.id : "", packageId: typeof pack.id === "string" ? pack.id : "" };
+  return Object.values(ids).every((id) => uuidPattern.test(id)) ? ids : null;
+};
+const bookedCounts = (orders: Array<{ travelers: unknown; paymentStatus: string; bookingStatus: string }>) => orders.reduce((result, order) => { const count = Array.isArray(order.travelers) ? Math.max(1, order.travelers.length) : 1; if (order.paymentStatus === "paid" && ["confirmed", "paid_booking_pending", "manual_review_required", "compensation_pending"].includes(order.bookingStatus)) { result.bookedTravelers += count; if (order.bookingStatus === "confirmed") result.confirmedTravelers += count; } return result; }, { bookedTravelers: 0, confirmedTravelers: 0 });
 const servicePrices = {
   flight: 8_900_000,
   hotel: 5_500_000,
@@ -232,13 +241,30 @@ export class PrismaRuntimeRepository {
 
   async createCheckout(userId: string | undefined, input: CheckoutInput) {
     const quantity = Math.max(1, Math.min(9, Math.trunc(input.quantity)));
-    const base = servicePrices[input.serviceType];
+    let base: number = servicePrices[input.serviceType];
+    let managedPricing = false;
+    let service: Record<string, unknown> = input.service ?? { offer: `${input.serviceType}-demo` };
+    const ids = (input.serviceType === "tour" || input.serviceType === "ziyarat") ? managedIds(service) : null;
+    if (ids) {
+      const program = await this.prisma.travelProgram.findFirst({ where: { id: ids.programId, type: input.serviceType === "tour" ? "TOUR" : "ZIYARAT", status: "ACTIVE", publicationStatus: "PUBLISHED" }, include: { destinations: { orderBy: { sortOrder: "asc" } }, media: { orderBy: [{ isCover: "desc" }, { sortOrder: "asc" }] }, departures: { where: { id: ids.departureId }, include: { orders: { select: { travelers: true, paymentStatus: true, bookingStatus: true } } } }, packages: { where: { id: ids.packageId, status: "ACTIVE" }, include: { orders: { select: { travelers: true, paymentStatus: true, bookingStatus: true } } } } } });
+      const departure = program?.departures[0]; const pack = program?.packages[0];
+      if (!program || !departure || !pack || (pack.departureId && pack.departureId !== departure.id)) throw new DomainError("PROGRAM_SELECTION_INVALID", "انتخاب برنامه، حرکت یا پکیج معتبر نیست", 409);
+      const counts = bookedCounts(departure.orders); const capacity = capacitySnapshot({ totalCapacity: departure.totalCapacity, heldCapacity: departure.heldCapacity, ...counts });
+      const status = effectiveDepartureStatus(departure.saleStatus as DepartureSaleStatus, capacity.remaining, capacity.totalCapacity);
+      assertDepartureSaleable({ status, remaining: capacity.remaining, salesStartAt: departure.salesStartAt, salesEndAt: departure.salesEndAt });
+      const travelers = input.travelers?.length ? input.travelers : Array.from({ length: quantity }, () => ({ ageCategory: "adult" }));
+      if (travelers.length > capacity.remaining) throw new DomainError("PROGRAM_CAPACITY_EXCEEDED", "ظرفیت کافی برای تعداد مسافران وجود ندارد", 409);
+      if (pack.capacity !== null) { const packageBooked = bookedCounts(pack.orders).bookedTravelers; if (travelers.length > Math.max(0, pack.capacity - packageBooked)) throw new DomainError("PACKAGE_CAPACITY_EXCEEDED", "ظرفیت این پکیج تکمیل شده است", 409); }
+      base = calculatePackageTotal(pack, travelers);
+      managedPricing = true;
+      service = { managed: true, sourceType: program.sourceType, offer: { id: program.id, slug: program.slug, type: input.serviceType, title: program.title, origin: program.origin, destinations: program.destinations.map((item) => item.label), durationDays: program.durationDays, durationNights: program.durationNights, images: program.media.map((item) => item.url), description: program.description }, departure: { id: departure.id, startDate: departure.startDate.toISOString(), endDate: departure.endDate.toISOString(), transport: departure.transportType, status: status.toLowerCase(), availableMock: capacity.remaining, basePrice: pack.adultPrice }, package: { id: pack.id, name: pack.name, hotel: pack.hotelName ?? "", hotelStars: pack.hotelStars ?? 0, roomType: pack.roomType ?? "", mealPlan: pack.mealPlan ?? "", pricePerAdult: pack.adultPrice, pricePerChild: pack.childPrice, pricePerInfant: pack.infantPrice, currency: "IRR" }, searchUrl: typeof service.searchUrl === "string" ? service.searchUrl : `/${input.serviceType}` };
+    }
     const addOns = (input.addOns ?? []).filter((item) => addOnPrices[item.code]).map((item) => ({ code: item.code, quantity: Math.max(1, Math.min(9, Math.trunc(item.quantity ?? 1))), unitPrice: addOnPrices[item.code] }));
-    const subtotal = base * quantity + addOns.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+    const subtotal = (managedPricing ? base : base * quantity) + addOns.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
     const discount = input.coupon?.toUpperCase() === "DEMO10" ? Math.floor(subtotal * 0.1) : 0;
     const total = subtotal - discount;
     const guestMobile = input.guestMobile && mobilePattern.test(input.guestMobile) ? input.guestMobile : undefined;
-    return this.prisma.checkoutSession.create({ data: { userId, guestMobile, serviceType: input.serviceType, service: asJson(input.service ?? { offer: `${input.serviceType}-demo` }), buyer: asJson(input.buyer ?? { mobile: guestMobile }), travelers: asJson(input.travelers ?? []), addOns: asJson(addOns), coupon: input.coupon, pricing: asJson({ base, quantity, addOns, subtotal, discount, total }), total, currency: MONEY_CURRENCY, status: "ready_for_payment", expiresAt: new Date(Date.now() + 30 * 60_000) } });
+    return this.prisma.checkoutSession.create({ data: { userId, guestMobile, serviceType: input.serviceType, service: asJson(service), buyer: asJson(input.buyer ?? { mobile: guestMobile }), travelers: asJson(input.travelers ?? []), addOns: asJson(addOns), coupon: input.coupon, pricing: asJson({ base, quantity, addOns, subtotal, discount, total }), total, currency: MONEY_CURRENCY, status: "ready_for_payment", expiresAt: new Date(Date.now() + 30 * 60_000) } });
   }
 
   getCheckout(id: string, userId: string) { return this.prisma.checkoutSession.findFirst({ where: { id, userId } }); }
@@ -287,7 +313,19 @@ export class PrismaRuntimeRepository {
         const reference = `PAY-${randomUUID().replaceAll("-", "").slice(0, 16).toUpperCase()}`;
         const trackingCode = `TRK-${randomUUID().replaceAll("-", "").slice(0, 12).toUpperCase()}`;
         const internalService = checkout.serviceType === "tour" || checkout.serviceType === "ziyarat";
-        const order = await tx.order.create({ data: { userId, checkoutSessionId: checkout.id, orderNumber, trackingCode, guestMobile: checkout.guestMobile ?? checkout.user?.mobile, serviceType: checkout.serviceType, summary: asJson({ serviceType: checkout.serviceType }), buyer: checkout.buyer, travelers: checkout.travelers, serviceSnapshot: checkout.service, pricingSnapshot: checkout.pricing, paymentSnapshot: asJson({ method, reference, walletAmount, onlineAmount, metadata: metadata ?? {}, provider: providerData?.provider ?? "mock", externalReference: providerData?.externalReference }), total: checkout.total, currency: MONEY_CURRENCY, paymentStatus: "paid", bookingStatus: internalService ? "confirmed" : "paid_booking_pending", providerName: internalService ? "internal-mock" : undefined } });
+        const ids = internalService ? managedIds(checkout.service) : null;
+        let managed: { organizationId: string; programId: string; departureId: string; packageId: string; title: string; startDate: Date; sourceType: string } | null = null;
+        if (ids) {
+          const program = await tx.travelProgram.findFirst({ where: { id: ids.programId, status: "ACTIVE", publicationStatus: "PUBLISHED" }, include: { departures: { where: { id: ids.departureId }, include: { orders: { select: { travelers: true, paymentStatus: true, bookingStatus: true } } } }, packages: { where: { id: ids.packageId, status: "ACTIVE" }, include: { orders: { select: { travelers: true, paymentStatus: true, bookingStatus: true } } } } } });
+          const departure = program?.departures[0]; const pack = program?.packages[0];
+          if (!program || !departure || !pack || (pack.departureId && pack.departureId !== departure.id)) throw new DomainError("PROGRAM_SELECTION_INVALID", "انتخاب برنامه دیگر معتبر نیست", 409);
+          const capacity = capacitySnapshot({ totalCapacity: departure.totalCapacity, heldCapacity: departure.heldCapacity, ...bookedCounts(departure.orders) }); const status = effectiveDepartureStatus(departure.saleStatus as DepartureSaleStatus, capacity.remaining, capacity.totalCapacity); const requested = Array.isArray(checkout.travelers) ? Math.max(1, checkout.travelers.length) : 1;
+          assertDepartureSaleable({ status, remaining: capacity.remaining, salesStartAt: departure.salesStartAt, salesEndAt: departure.salesEndAt });
+          if (requested > capacity.remaining) throw new DomainError("PROGRAM_CAPACITY_EXCEEDED", "ظرفیت حرکت در زمان پرداخت تکمیل شده است", 409);
+          if (pack.capacity !== null && requested > Math.max(0, pack.capacity - bookedCounts(pack.orders).bookedTravelers)) throw new DomainError("PACKAGE_CAPACITY_EXCEEDED", "ظرفیت پکیج در زمان پرداخت تکمیل شده است", 409);
+          managed = { organizationId: program.organizationId, programId: program.id, departureId: departure.id, packageId: pack.id, title: program.title, startDate: departure.startDate, sourceType: program.sourceType };
+        }
+        const order = await tx.order.create({ data: { userId, checkoutSessionId: checkout.id, orderNumber, trackingCode, guestMobile: checkout.guestMobile ?? checkout.user?.mobile, serviceType: checkout.serviceType, merchantOrganizationId: managed?.organizationId, travelProgramId: managed?.programId, travelProgramDepartureId: managed?.departureId, travelProgramPackageId: managed?.packageId, summary: asJson(managed ? { serviceType: checkout.serviceType, title: managed.title, managed: true, sourceType: managed.sourceType } : { serviceType: checkout.serviceType }), buyer: checkout.buyer, travelers: checkout.travelers, serviceSnapshot: checkout.service, pricingSnapshot: checkout.pricing, paymentSnapshot: asJson({ method, reference, walletAmount, onlineAmount, metadata: metadata ?? {}, provider: providerData?.provider ?? "mock", externalReference: providerData?.externalReference }), total: checkout.total, currency: MONEY_CURRENCY, paymentStatus: "paid", bookingStatus: internalService ? "confirmed" : "paid_booking_pending", providerName: managed ? (managed.sourceType === "DEMO" ? "managed-demo" : "direct-managed") : internalService ? "internal-mock" : undefined, relevantDate: managed?.startDate } });
         const completed = await tx.paymentAttempt.update({ where: { id: payment.id }, data: { orderId: order.id, status: "succeeded", reference, completedAt: new Date() } });
         await tx.transaction.create({ data: { orderId: order.id, walletId: walletAmount ? wallet?.id : undefined, type: "payment", status: "succeeded", amount: checkout.total, currency: MONEY_CURRENCY, reference } });
         await tx.checkoutSession.update({ where: { id: checkout.id }, data: { status: "completed" } });
