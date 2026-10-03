@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { Building2, MapPin, Search, ShieldCheck } from "lucide-react";
 import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import TravelHero from "@/components/media/TravelHero";
@@ -12,9 +11,10 @@ import { hotels } from "@/data/hotels";
 import LegacyPage from "@/components/next/LegacyPage";
 import { destinationAsset, serviceAsset, stayMedia } from "@/media/library";
 import { PersianDatePicker } from "@/components/ui/PersianDatePicker";
+import { ManagedHotelDetail } from "@/components/hotel/ManagedHotelCatalog";
 
 export const revalidate = 43_200;
-export const dynamicParams = false;
+export const dynamicParams = true;
 const hotelDetailSlugs = new Set(hotels.map((item) => item.slug));
 const landingCollisions = seoHotelLandings.filter((item) => hotelDetailSlugs.has(item.slug));
 if (landingCollisions.length) throw new Error(`Hotel landing/detail slug collision: ${landingCollisions.map((item) => item.slug).join(", ")}`);
@@ -35,8 +35,8 @@ export default async function HotelLandingPage({ params }: { params: Promise<{ s
   const { slug } = await params;
   const item = getHotelLanding(slug);
   if (!item) {
-    if (!hotels.some((value) => value.slug === slug)) notFound();
-    return <LegacyPage name="HotelDetail" />;
+    if (hotels.some((value) => value.slug === slug)) return <LegacyPage name="HotelDetail" />;
+    return <ManagedHotelDetail slug={slug} />;
   }
   const destinationMedia = destinationAsset(item.slug, `نمایی از مقصد ${item.city}`);
   return (
