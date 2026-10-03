@@ -23,6 +23,11 @@ export const permissionCatalog = [
   "backoffice.reports.view",
   "backoffice.finance.view",
   "backoffice.finance.manage",
+  "backoffice.programs.read",
+  "backoffice.programs.manage",
+  "backoffice.programs.approve",
+  "backoffice.registrations.read",
+  "backoffice.participants.read",
   "merchant.dashboard.view",
   "merchant.orders.read",
   "merchant.bookings.read",
@@ -35,6 +40,11 @@ export const permissionCatalog = [
   "merchant.team.manage",
   "merchant.profile.manage",
   "merchant.reports.view",
+  "merchant.programs.read",
+  "merchant.programs.manage",
+  "merchant.departures.manage",
+  "merchant.registrations.read",
+  "merchant.participants.read",
 ] as const;
 
 export type PermissionCode = (typeof permissionCatalog)[number];
@@ -59,6 +69,11 @@ export const defaultRolePermissions = {
     "backoffice.reconciliation.run",
     "backoffice.merchants.read",
     "backoffice.reports.view",
+    "backoffice.programs.read",
+    "backoffice.programs.manage",
+    "backoffice.programs.approve",
+    "backoffice.registrations.read",
+    "backoffice.participants.read",
   ],
   FINANCE: [
     "backoffice.dashboard.view",
@@ -71,6 +86,8 @@ export const defaultRolePermissions = {
     "backoffice.reports.view",
     "backoffice.finance.view",
     "backoffice.finance.manage",
+    "backoffice.registrations.read",
+    "backoffice.participants.read",
   ],
   SUPPORT: [
     "backoffice.dashboard.view",
@@ -92,6 +109,8 @@ export const defaultRolePermissions = {
     "backoffice.audit.read",
     "backoffice.reports.view",
     "backoffice.finance.view",
+    "backoffice.programs.read",
+    "backoffice.registrations.read",
   ],
   READONLY: [
     "backoffice.dashboard.view",
@@ -102,6 +121,9 @@ export const defaultRolePermissions = {
     "backoffice.visa.read",
     "backoffice.providers.read",
     "backoffice.merchants.read",
+    "backoffice.programs.read",
+    "backoffice.registrations.read",
+    "backoffice.participants.read",
   ],
   MERCHANT_OWNER: allMerchant,
   MERCHANT_MANAGER: [
@@ -117,6 +139,11 @@ export const defaultRolePermissions = {
     "merchant.team.manage",
     "merchant.profile.manage",
     "merchant.reports.view",
+    "merchant.programs.read",
+    "merchant.programs.manage",
+    "merchant.departures.manage",
+    "merchant.registrations.read",
+    "merchant.participants.read",
   ],
   MERCHANT_FINANCE: [
     "merchant.dashboard.view",
@@ -124,6 +151,7 @@ export const defaultRolePermissions = {
     "merchant.finance.view",
     "merchant.settlements.read",
     "merchant.reports.view",
+    "merchant.registrations.read",
   ],
   MERCHANT_OPERATOR: [
     "merchant.dashboard.view",
@@ -132,6 +160,11 @@ export const defaultRolePermissions = {
     "merchant.customers.read_limited",
     "merchant.inventory.read",
     "merchant.inventory.manage",
+    "merchant.programs.read",
+    "merchant.programs.manage",
+    "merchant.departures.manage",
+    "merchant.registrations.read",
+    "merchant.participants.read",
   ],
   MERCHANT_READONLY: [
     "merchant.dashboard.view",
@@ -139,6 +172,9 @@ export const defaultRolePermissions = {
     "merchant.bookings.read",
     "merchant.inventory.read",
     "merchant.team.read",
+    "merchant.programs.read",
+    "merchant.registrations.read",
+    "merchant.participants.read",
   ],
 } as const satisfies Record<string, readonly PermissionCode[]>;
 
