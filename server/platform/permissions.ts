@@ -1,0 +1,169 @@
+import { DomainError } from "../domain/errors.js";
+
+export const permissionCatalog = [
+  "backoffice.dashboard.view",
+  "backoffice.users.read",
+  "backoffice.users.manage",
+  "backoffice.orders.read",
+  "backoffice.orders.manage",
+  "backoffice.payments.read",
+  "backoffice.refunds.read",
+  "backoffice.refunds.manage",
+  "backoffice.wallets.read",
+  "backoffice.support.read",
+  "backoffice.support.manage",
+  "backoffice.visa.read",
+  "backoffice.visa.manage",
+  "backoffice.providers.read",
+  "backoffice.reconciliation.run",
+  "backoffice.merchants.read",
+  "backoffice.merchants.manage",
+  "backoffice.roles.manage",
+  "backoffice.audit.read",
+  "backoffice.reports.view",
+  "backoffice.finance.view",
+  "merchant.dashboard.view",
+  "merchant.orders.read",
+  "merchant.bookings.read",
+  "merchant.customers.read_limited",
+  "merchant.inventory.read",
+  "merchant.inventory.manage",
+  "merchant.finance.view",
+  "merchant.settlements.read",
+  "merchant.team.read",
+  "merchant.team.manage",
+  "merchant.profile.manage",
+  "merchant.reports.view",
+] as const;
+
+export type PermissionCode = (typeof permissionCatalog)[number];
+export type RoleScope = "INTERNAL" | "MERCHANT";
+
+const allInternal = permissionCatalog.filter((permission) => permission.startsWith("backoffice."));
+const allMerchant = permissionCatalog.filter((permission) => permission.startsWith("merchant."));
+
+export const defaultRolePermissions = {
+  SUPER_ADMIN: allInternal,
+  OPERATIONS: [
+    "backoffice.dashboard.view",
+    "backoffice.orders.read",
+    "backoffice.orders.manage",
+    "backoffice.payments.read",
+    "backoffice.refunds.read",
+    "backoffice.support.read",
+    "backoffice.support.manage",
+    "backoffice.visa.read",
+    "backoffice.visa.manage",
+    "backoffice.providers.read",
+    "backoffice.reconciliation.run",
+    "backoffice.merchants.read",
+    "backoffice.reports.view",
+  ],
+  FINANCE: [
+    "backoffice.dashboard.view",
+    "backoffice.orders.read",
+    "backoffice.payments.read",
+    "backoffice.refunds.read",
+    "backoffice.refunds.manage",
+    "backoffice.wallets.read",
+    "backoffice.merchants.read",
+    "backoffice.reports.view",
+    "backoffice.finance.view",
+  ],
+  SUPPORT: [
+    "backoffice.dashboard.view",
+    "backoffice.users.read",
+    "backoffice.orders.read",
+    "backoffice.payments.read",
+    "backoffice.refunds.read",
+    "backoffice.support.read",
+    "backoffice.support.manage",
+    "backoffice.visa.read",
+  ],
+  ANALYST: [
+    "backoffice.dashboard.view",
+    "backoffice.orders.read",
+    "backoffice.payments.read",
+    "backoffice.refunds.read",
+    "backoffice.wallets.read",
+    "backoffice.merchants.read",
+    "backoffice.audit.read",
+    "backoffice.reports.view",
+    "backoffice.finance.view",
+  ],
+  READONLY: [
+    "backoffice.dashboard.view",
+    "backoffice.orders.read",
+    "backoffice.payments.read",
+    "backoffice.refunds.read",
+    "backoffice.support.read",
+    "backoffice.visa.read",
+    "backoffice.providers.read",
+    "backoffice.merchants.read",
+  ],
+  MERCHANT_OWNER: allMerchant,
+  MERCHANT_MANAGER: [
+    "merchant.dashboard.view",
+    "merchant.orders.read",
+    "merchant.bookings.read",
+    "merchant.customers.read_limited",
+    "merchant.inventory.read",
+    "merchant.inventory.manage",
+    "merchant.finance.view",
+    "merchant.settlements.read",
+    "merchant.team.read",
+    "merchant.team.manage",
+    "merchant.profile.manage",
+    "merchant.reports.view",
+  ],
+  MERCHANT_FINANCE: [
+    "merchant.dashboard.view",
+    "merchant.orders.read",
+    "merchant.finance.view",
+    "merchant.settlements.read",
+    "merchant.reports.view",
+  ],
+  MERCHANT_OPERATOR: [
+    "merchant.dashboard.view",
+    "merchant.orders.read",
+    "merchant.bookings.read",
+    "merchant.customers.read_limited",
+    "merchant.inventory.read",
+    "merchant.inventory.manage",
+  ],
+  MERCHANT_READONLY: [
+    "merchant.dashboard.view",
+    "merchant.orders.read",
+    "merchant.bookings.read",
+    "merchant.inventory.read",
+    "merchant.team.read",
+  ],
+} as const satisfies Record<string, readonly PermissionCode[]>;
+
+export type DefaultRoleCode = keyof typeof defaultRolePermissions;
+
+export const defaultRoleScopes: Record<DefaultRoleCode, RoleScope> = {
+  SUPER_ADMIN: "INTERNAL",
+  OPERATIONS: "INTERNAL",
+  FINANCE: "INTERNAL",
+  SUPPORT: "INTERNAL",
+  ANALYST: "INTERNAL",
+  READONLY: "INTERNAL",
+  MERCHANT_OWNER: "MERCHANT",
+  MERCHANT_MANAGER: "MERCHANT",
+  MERCHANT_FINANCE: "MERCHANT",
+  MERCHANT_OPERATOR: "MERCHANT",
+  MERCHANT_READONLY: "MERCHANT",
+};
+
+export function hasPermission(granted: Iterable<string>, required: PermissionCode) {
+  for (const permission of granted) if (permission === required) return true;
+  return false;
+}
+
+export function requirePermission(granted: Iterable<string>, required: PermissionCode) {
+  if (!hasPermission(granted, required)) {
+    throw new DomainError("PERMISSION_DENIED", "دسترسی لازم برای این عملیات را ندارید", 403);
+  }
+}
+
