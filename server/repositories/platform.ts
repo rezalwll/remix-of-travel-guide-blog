@@ -120,6 +120,10 @@ export class PlatformRepository {
     });
   }
 
+  recordSystemAudit(input: { action: string; resourceType: string; requestId: string; metadata?: unknown }) {
+    return this.prisma.auditLog.create({ data: { action: input.action, resourceType: input.resourceType, requestId: input.requestId, metadata: input.metadata === undefined ? undefined : asJson(sanitizeProviderPayload(input.metadata)) } });
+  }
+
   async listBackofficeOrders(filters: OrderFilters, page: PageInput) {
     const where = this.orderWhere(filters);
     const [items, total] = await Promise.all([
