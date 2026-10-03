@@ -17,6 +17,8 @@ import { sanitizeProviderPayload } from "./providers/redaction.js";
 import { BookingService, type BookingOrder } from "./services/booking-service.js";
 import { ProviderExecutor } from "./providers/execute.js";
 import { CompensationService } from "./services/compensation-service.js";
+import { PlatformRepository } from "./repositories/platform.js";
+import { registerPlatformRoutes } from "./routes/platform.js";
 
 const sessionCookie = "kiashi_session";
 const mobileSchema = z.string().regex(/^09\d{9}$/);
@@ -25,10 +27,11 @@ const supplierKindSchema = z.enum(["flight", "hotel", "train", "bus", "insurance
 const paymentMethodSchema = z.enum(["online_mock", "wallet", "combined", "installment_mock", "organizational_credit_mock", "voucher_mock"]);
 const errorResponse = (reply: FastifyReply, status: number, code: string, message: string, details?: Record<string, unknown>) => reply.code(status).send({ error: { code, message, ...(details ? { details } : {}), requestId: reply.request.id } });
 
-export type AppOptions = { repository?: PrismaRuntimeRepository; env?: Partial<typeof config>; providers?: ProviderRegistry };
+export type AppOptions = { repository?: PrismaRuntimeRepository; platformRepository?: PlatformRepository; env?: Partial<typeof config>; providers?: ProviderRegistry };
 
 export async function buildApp(options: AppOptions = {}) {
   const repository = options.repository ?? new PrismaRuntimeRepository(getPrismaClient());
+  const platformRepository = options.platformRepository ?? new PlatformRepository(getPrismaClient());
   const env = { ...config, ...options.env };
   const providers = options.providers ?? createProviderRegistry(env);
   const app = Fastify({ logger: env.NODE_ENV === "test" ? false : { level: env.LOG_LEVEL, redact: { paths: ["req.headers.authorization", "req.headers.cookie", "res.headers['set-cookie']", "password", "otp", "token", "secret", "signature", "passport", "nationalId", "cardNumber", "cvv"], censor: "[REDACTED]" }, serializers: { req: (request: { id?: string; method?: string; url?: string }) => ({ id: request.id, method: request.method, path: request.url?.split("?", 1)[0] }) } }, requestIdHeader: false, genReqId: () => randomUUID(), bodyLimit: 1_048_576, trustProxy: env.TRUST_PROXY });
@@ -97,6 +100,14 @@ export async function buildApp(options: AppOptions = {}) {
     }
     return { ...result, order };
   };
+
+  await registerPlatformRoutes(app, {
+    repository: platformRepository,
+    env: { WEB_ORIGIN: env.WEB_ORIGIN!, BACKOFFICE_ENABLED: env.BACKOFFICE_ENABLED, MERCHANT_PORTAL_ENABLED: env.MERCHANT_PORTAL_ENABLED },
+    currentUser,
+    enforceRate,
+    errorResponse,
+  });
 
   app.get("/health", async () => ({ ok: true, service: "kiashi-api" }));
   app.get("/health/live", async () => ({ ok: true }));
