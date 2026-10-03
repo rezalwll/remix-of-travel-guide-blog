@@ -233,8 +233,8 @@ export class PlatformRepository {
     ]);
     const ledger = Object.fromEntries(ledgerTotals.map((entry) => [entry.type, numeric(entry._sum.amount)]));
     const organizationClause = merchantOrganizationId ? Prisma.sql`AND "merchantOrganizationId" = CAST(${merchantOrganizationId} AS UUID)` : Prisma.empty;
-    const series = await this.prisma.$queryRaw<Array<{ bucket: Date; orders: bigint; grossAmount: bigint }>>(Prisma.sql`
-      SELECT date_trunc('day', "createdAt") AS bucket,
+    const series = await this.prisma.$queryRaw<Array<{ bucket: string; orders: bigint; grossAmount: bigint }>>(Prisma.sql`
+      SELECT to_char(date_trunc('day', "createdAt" AT TIME ZONE 'Asia/Tehran'), 'YYYY-MM-DD') AS bucket,
              COUNT(*)::bigint AS orders,
              COALESCE(SUM(CASE WHEN "paymentStatus" = 'paid' THEN total ELSE 0 END), 0)::bigint AS "grossAmount"
       FROM "Order"
@@ -244,7 +244,7 @@ export class PlatformRepository {
     return {
       range: { from: range.from.toISOString(), to: range.to.toISOString(), timezone: reportingTimezone },
       totals: { orders, completedOrders, grossAmount: numeric(gross._sum.total), paymentSucceeded, paymentFailed, bookingSucceeded, bookingFailed, refunds, refundAmount: numeric(refundAmount._sum.amount), manualReview, commissionAmount: ledger.COMMISSION ?? 0, merchantPayable: ledger.MERCHANT_PAYABLE ?? 0 },
-      series: series.map((entry) => ({ bucket: entry.bucket.toISOString(), orders: numeric(entry.orders), grossAmount: numeric(entry.grossAmount) })),
+      series: series.map((entry) => ({ bucket: entry.bucket, orders: numeric(entry.orders), grossAmount: numeric(entry.grossAmount) })),
       dimensions: {
         serviceType: byServiceType.map((entry) => ({ key: entry.serviceType, count: entry._count._all, amount: numeric(entry._sum.total) })),
         paymentStatus: byPaymentStatus.map((entry) => ({ key: entry.paymentStatus, count: entry._count._all, amount: numeric(entry._sum.total) })),

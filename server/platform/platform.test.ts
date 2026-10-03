@@ -61,5 +61,7 @@ describe("reporting definitions", () => {
     const range = reportRange("7d", new Date("2026-10-03T12:00:00.000Z"));
     expect(range.from.toISOString()).toBe("2026-09-26T12:00:00.000Z");
     expect(range.timezone).toBe("Asia/Tehran");
+    expect(reportRange("today", new Date("2026-10-03T01:00:00.000Z")).from.toISOString()).toBe("2026-10-02T20:30:00.000Z");
+    expect(reportRange("current_month", new Date("2026-10-03T01:00:00.000Z")).from.toISOString()).toBe("2026-09-30T20:30:00.000Z");
   });
 });
