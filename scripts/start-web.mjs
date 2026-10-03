@@ -25,5 +25,17 @@ const child = spawn(process.execPath, [resolve(standalone, "server.js")], {
   },
 });
 
-for (const signal of ["SIGINT", "SIGTERM"]) process.on(signal, () => child.kill(signal));
-child.on("exit", (code, signal) => process.exitCode = signal ? 1 : (code ?? 1));
+let requestedShutdown = false;
+for (const signal of ["SIGINT", "SIGTERM"]) {
+  process.once(signal, () => {
+    if (requestedShutdown) return;
+    requestedShutdown = true;
+    const timeout = setTimeout(() => process.exit(1), 10_000);
+    timeout.unref();
+    child.once("exit", () => process.exit(0));
+    if (!child.killed) child.kill(signal);
+  });
+}
+child.on("exit", (code, signal) => {
+  if (!requestedShutdown) process.exit(signal ? 1 : (code ?? 1));
+});
