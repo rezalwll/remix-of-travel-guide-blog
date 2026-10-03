@@ -118,6 +118,49 @@ async function seedMerchantFinance() {
   }
 }
 
+async function seedManagedPrograms() {
+  const fixtures = [
+    {
+      id: "aa000000-0000-4000-8000-000000000001", type: "TOUR", slug: "managed-kish-autumn", title: "تور پاییزی کیش با پرواز مستقیم",
+      shortDescription: "چهار شب اقامت نمایشی با پرواز رفت‌وبرگشت و ترانسفر فرودگاهی.", description: "برنامهٔ مدیریت‌شدهٔ نمونه برای نمایش چرخه واقعی ایجاد، بررسی، انتشار، ظرفیت و ثبت‌نام تور.",
+      origin: "تهران", durationDays: 5, durationNights: 4, destination: { city: "کیش", country: "ایران", label: "جزیره کیش" },
+      startDate: "2026-11-08T04:30:00.000Z", endDate: "2026-11-12T18:30:00.000Z", transportType: "پرواز رفت‌وبرگشت",
+      totalCapacity: 28, packageName: "هتل پنج‌ستاره با صبحانه", hotelName: "هتل شایگان کیش", adultPrice: 32_800_000, childPrice: 24_600_000,
+      media: "/hero-kish-premium.webp", cancellation: "تا ۱۴ روز پیش از حرکت طبق قرارداد دمو؛ پس از آن هزینه خدمات کسر می‌شود.",
+    },
+    {
+      id: "aa000000-0000-4000-8000-000000000002", type: "ZIYARAT", slug: "managed-najaf-karbala-air", title: "کاروان هوایی نجف و کربلا",
+      shortDescription: "هفت شب برنامه زیارتی نمایشی با مدیر کاروان و اقامت در نجف و کربلا.", description: "برنامهٔ مدیریت‌شدهٔ نمونه برای نمایش عملیات زیارت، حرکت، پکیج و ظرفیت قابل فروش.",
+      origin: "تهران", durationDays: 8, durationNights: 7, destination: { city: "کربلا", country: "عراق", label: "نجف و کربلا" },
+      startDate: "2026-11-22T03:45:00.000Z", endDate: "2026-11-29T19:00:00.000Z", transportType: "پرواز و اتوبوس بین‌شهری",
+      totalCapacity: 36, packageName: "اتاق دو تخته با صبحانه و شام", hotelName: "هتل‌های منتخب نجف و کربلا", adultPrice: 47_500_000, childPrice: 35_500_000,
+      media: "/media/ziyarat/karbala-hero.webp", cancellation: "شرایط لغو بر اساس زمان صدور بلیت و رزرو هتل محاسبه و پیش از پرداخت اعلام می‌شود.",
+    },
+  ] as const;
+  for (const fixture of fixtures) {
+    const common = { organizationId: platformIds.tourOrganization, type: fixture.type, slug: fixture.slug, title: fixture.title, shortDescription: fixture.shortDescription, description: fixture.description, origin: fixture.origin, durationDays: fixture.durationDays, durationNights: fixture.durationNights, sourceType: "DEMO", status: "ACTIVE", publicationStatus: "PUBLISHED", featured: true, futureSalePolicy: false, cancellationPolicy: fixture.cancellation, guideNote: "این داده صرفاً برای نمایش محصول است.", submittedAt: at("2026-10-01T08:00:00.000Z"), publishedAt: at("2026-10-02T08:00:00.000Z") };
+    await prisma.travelProgram.upsert({ where: { id: fixture.id }, update: common, create: { id: fixture.id, ...common } });
+    await prisma.travelProgramDestination.deleteMany({ where: { programId: fixture.id } });
+    await prisma.travelProgramItineraryDay.deleteMany({ where: { programId: fixture.id } });
+    await prisma.travelProgramContentItem.deleteMany({ where: { programId: fixture.id } });
+    await prisma.travelProgramMedia.deleteMany({ where: { programId: fixture.id } });
+    await prisma.travelProgramDestination.create({ data: { programId: fixture.id, ...fixture.destination } });
+    await prisma.travelProgramItineraryDay.createMany({ data: [
+      { programId: fixture.id, dayNumber: 1, title: "حرکت و پذیرش", description: "پذیرش مسافران و اجرای برنامه انتقال به محل اقامت.", sortOrder: 1 },
+      { programId: fixture.id, dayNumber: 2, title: "برنامه اصلی سفر", description: "اجرای برنامه اعلام‌شده با زمان آزاد و همراهی راهنما.", sortOrder: 2 },
+    ] });
+    await prisma.travelProgramContentItem.createMany({ data: [
+      { programId: fixture.id, kind: "INCLUDED_SERVICE", title: "اقامت، حمل‌ونقل و راهنمای برنامه", sortOrder: 1 },
+      { programId: fixture.id, kind: "REQUIRED_DOCUMENT", title: "مدرک هویتی معتبر", sortOrder: 2 },
+    ] });
+    await prisma.travelProgramMedia.create({ data: { programId: fixture.id, url: fixture.media, altText: fixture.title, isCover: true } });
+    const departureData = { programId: fixture.id, startDate: at(fixture.startDate), endDate: at(fixture.endDate), transportType: fixture.transportType, totalCapacity: fixture.totalCapacity, heldCapacity: 2, saleStatus: "OPEN", salesStartAt: at("2026-09-01T00:00:00.000Z"), salesEndAt: at(fixture.startDate) };
+    const departure = await prisma.travelProgramDeparture.upsert({ where: { id: fixture.id.replace("aa", "ab") }, update: departureData, create: { id: fixture.id.replace("aa", "ab"), ...departureData } });
+    const packageData = { programId: fixture.id, departureId: departure.id, name: fixture.packageName, hotelName: fixture.hotelName, hotelStars: 5, roomType: "دو تخته", mealPlan: "صبحانه", transport: fixture.transportType, adultPrice: fixture.adultPrice, childPrice: fixture.childPrice, infantPrice: 0, singleSupplement: 6_000_000, capacity: fixture.totalCapacity, status: "ACTIVE", metadata: { synthetic: true } };
+    await prisma.travelProgramPackage.upsert({ where: { id: fixture.id.replace("aa", "ac") }, update: packageData, create: { id: fixture.id.replace("aa", "ac"), ...packageData } });
+  }
+}
+
 type DemoOrderFixture = {
   key: string;
   type: string;
@@ -277,6 +320,7 @@ async function main() {
   });
 
   await seedMerchantFinance();
+  await seedManagedPrograms();
 
   console.log(`Seeded ${user.mobile}: ${orderFixtures.length} orders, ${walletEntries.length} wallet entries, ${tickets.length} support threads, balance ${wallet.balance} TOMAN`);
 }
