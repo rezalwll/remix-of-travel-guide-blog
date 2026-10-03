@@ -31,6 +31,8 @@ model User {
   refunds                 RefundRequest[]
   organizationMemberships OrganizationMembership[]
   auditLogs               AuditLog[]               @relation("AuditActorUser")
+  programModerationEvents TravelProgramModerationEvent[]
+  registrationNotes       TravelRegistrationNote[]
 }
 
 model Organization {
@@ -57,6 +59,8 @@ model Organization {
   supplierBookings BookingAttempt[]         @relation("SupplierBookingAttempts")
   auditActorLogs   AuditLog[]               @relation("AuditActorOrganization")
   auditTargetLogs  AuditLog[]               @relation("AuditTargetOrganization")
+  travelPrograms   TravelProgram[]
+  programModerationEvents TravelProgramModerationEvent[]
 
   @@index([type, status])
 }
@@ -275,6 +279,13 @@ model Order {
   transactions           Transaction[]
   bookingAttempts        BookingAttempt[]
   merchantLedgerEntries  MerchantLedgerEntry[]
+  travelProgram          TravelProgram?        @relation(fields: [travelProgramId], references: [id], onDelete: SetNull)
+  travelProgramDeparture TravelProgramDeparture? @relation(fields: [travelProgramDepartureId], references: [id], onDelete: SetNull)
+  travelProgramPackage   TravelProgramPackage? @relation(fields: [travelProgramPackageId], references: [id], onDelete: SetNull)
+  registrationNotes      TravelRegistrationNote[]
+  travelProgramId          String?               @db.Uuid
+  travelProgramDepartureId String?               @db.Uuid
+  travelProgramPackageId   String?               @db.Uuid
 
   @@index([userId, createdAt])
   @@index([guestMobile, createdAt])
@@ -285,6 +296,9 @@ model Order {
   @@index([bookingStatus, createdAt])
   @@index([merchantOrganizationId, createdAt])
   @@index([supplierOrganizationId, createdAt])
+  @@index([travelProgramId, createdAt])
+  @@index([travelProgramDepartureId, createdAt])
+  @@index([travelProgramPackageId, createdAt])
 }
 
 model PaymentAttempt {
@@ -524,6 +538,179 @@ model BookingAttempt {
   @@index([provider, status])
   @@index([merchantOrganizationId, createdAt])
   @@index([supplierOrganizationId, createdAt])
+}
+
+model TravelProgram {
+  id                 String                         @id @default(uuid()) @db.Uuid
+  organizationId     String                         @db.Uuid
+  type               String
+  slug               String                         @unique
+  title              String
+  shortDescription   String?
+  description        String
+  origin             String
+  durationDays       Int
+  durationNights     Int
+  sourceType         String                         @default("DIRECT")
+  status             String                         @default("ACTIVE")
+  publicationStatus  String                         @default("DRAFT")
+  featured           Boolean                        @default(false)
+  futureSalePolicy   Boolean                        @default(false)
+  visaNote           String?
+  cancellationPolicy String
+  guideNote          String?
+  submittedAt        DateTime?
+  publishedAt        DateTime?
+  archivedAt         DateTime?
+  createdAt          DateTime                       @default(now())
+  updatedAt          DateTime                       @updatedAt
+  organization       Organization                   @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  destinations       TravelProgramDestination[]
+  departures         TravelProgramDeparture[]
+  packages           TravelProgramPackage[]
+  itinerary          TravelProgramItineraryDay[]
+  contentItems       TravelProgramContentItem[]
+  media              TravelProgramMedia[]
+  moderationEvents   TravelProgramModerationEvent[]
+  orders             Order[]
+
+  @@index([organizationId, type, publicationStatus])
+  @@index([type, publicationStatus, featured])
+  @@index([status, updatedAt])
+}
+
+model TravelProgramDestination {
+  id        String        @id @default(uuid()) @db.Uuid
+  programId String        @db.Uuid
+  city      String
+  country   String
+  label     String
+  sortOrder Int           @default(0)
+  program   TravelProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@index([programId, sortOrder])
+  @@index([city, country])
+}
+
+model TravelProgramDeparture {
+  id               String                 @id @default(uuid()) @db.Uuid
+  programId        String                 @db.Uuid
+  startDate        DateTime
+  endDate          DateTime
+  transportType    String
+  transportDetails String?
+  totalCapacity    Int
+  heldCapacity     Int                    @default(0)
+  saleStatus       String                 @default("DRAFT")
+  salesStartAt     DateTime?
+  salesEndAt       DateTime?
+  notes            String?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  program          TravelProgram          @relation(fields: [programId], references: [id], onDelete: Cascade)
+  packages         TravelProgramPackage[]
+  orders           Order[]
+
+  @@index([programId, startDate])
+  @@index([saleStatus, startDate])
+}
+
+model TravelProgramPackage {
+  id               String                  @id @default(uuid()) @db.Uuid
+  programId        String                  @db.Uuid
+  departureId      String?                 @db.Uuid
+  name             String
+  hotelName        String?
+  hotelStars       Int?
+  roomType         String?
+  mealPlan         String?
+  transport        String?
+  adultPrice       Int
+  childPrice       Int
+  infantPrice      Int                     @default(0)
+  singleSupplement Int                     @default(0)
+  capacity         Int?
+  status           String                  @default("ACTIVE")
+  metadata         Json?
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+  program          TravelProgram           @relation(fields: [programId], references: [id], onDelete: Cascade)
+  departure        TravelProgramDeparture? @relation(fields: [departureId], references: [id], onDelete: Cascade)
+  orders           Order[]
+
+  @@index([programId, status])
+  @@index([departureId, status])
+}
+
+model TravelProgramItineraryDay {
+  id            String        @id @default(uuid()) @db.Uuid
+  programId     String        @db.Uuid
+  dayNumber     Int
+  title         String
+  description   String
+  accommodation String?
+  meals         String?
+  transportNote String?
+  activityNote  String?
+  sortOrder     Int           @default(0)
+  program       TravelProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, dayNumber])
+  @@index([programId, sortOrder])
+}
+
+model TravelProgramContentItem {
+  id        String        @id @default(uuid()) @db.Uuid
+  programId String        @db.Uuid
+  kind      String
+  title     String
+  detail    String?
+  sortOrder Int           @default(0)
+  program   TravelProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@index([programId, kind, sortOrder])
+}
+
+model TravelProgramMedia {
+  id        String        @id @default(uuid()) @db.Uuid
+  programId String        @db.Uuid
+  url       String
+  altText   String
+  isCover   Boolean       @default(false)
+  sortOrder Int           @default(0)
+  program   TravelProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@index([programId, sortOrder])
+}
+
+model TravelProgramModerationEvent {
+  id                  String        @id @default(uuid()) @db.Uuid
+  programId           String        @db.Uuid
+  actorUserId         String        @db.Uuid
+  actorOrganizationId String        @db.Uuid
+  action              String
+  fromStatus          String?
+  toStatus            String
+  reason              String?
+  createdAt           DateTime      @default(now())
+  program             TravelProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  actorUser           User          @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+  actorOrganization   Organization  @relation(fields: [actorOrganizationId], references: [id], onDelete: Restrict)
+
+  @@index([programId, createdAt])
+  @@index([toStatus, createdAt])
+}
+
+model TravelRegistrationNote {
+  id          String   @id @default(uuid()) @db.Uuid
+  orderId     String   @db.Uuid
+  actorUserId String   @db.Uuid
+  body        String
+  createdAt   DateTime @default(now())
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  actorUser   User     @relation(fields: [actorUserId], references: [id], onDelete: Restrict)
+
+  @@index([orderId, createdAt])
 }
 
 model CommissionRule {
