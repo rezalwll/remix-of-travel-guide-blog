@@ -28,6 +28,9 @@ export const permissionCatalog = [
   "backoffice.programs.approve",
   "backoffice.registrations.read",
   "backoffice.participants.read",
+  "backoffice.hotels.read",
+  "backoffice.hotels.manage",
+  "backoffice.customers.read",
   "merchant.dashboard.view",
   "merchant.orders.read",
   "merchant.bookings.read",
@@ -45,6 +48,9 @@ export const permissionCatalog = [
   "merchant.departures.manage",
   "merchant.registrations.read",
   "merchant.participants.read",
+  "merchant.hotels.read",
+  "merchant.hotels.manage",
+  "merchant.guests.read",
 ] as const;
 
 export type PermissionCode = (typeof permissionCatalog)[number];
@@ -74,6 +80,9 @@ export const defaultRolePermissions = {
     "backoffice.programs.approve",
     "backoffice.registrations.read",
     "backoffice.participants.read",
+    "backoffice.hotels.read",
+    "backoffice.hotels.manage",
+    "backoffice.customers.read",
   ],
   FINANCE: [
     "backoffice.dashboard.view",
@@ -98,6 +107,8 @@ export const defaultRolePermissions = {
     "backoffice.support.read",
     "backoffice.support.manage",
     "backoffice.visa.read",
+    "backoffice.customers.read",
+    "backoffice.hotels.read",
   ],
   ANALYST: [
     "backoffice.dashboard.view",
@@ -124,6 +135,7 @@ export const defaultRolePermissions = {
     "backoffice.programs.read",
     "backoffice.registrations.read",
     "backoffice.participants.read",
+    "backoffice.hotels.read",
   ],
   MERCHANT_OWNER: allMerchant,
   MERCHANT_MANAGER: [
@@ -144,6 +156,9 @@ export const defaultRolePermissions = {
     "merchant.departures.manage",
     "merchant.registrations.read",
     "merchant.participants.read",
+    "merchant.hotels.read",
+    "merchant.hotels.manage",
+    "merchant.guests.read",
   ],
   MERCHANT_FINANCE: [
     "merchant.dashboard.view",
@@ -165,6 +180,9 @@ export const defaultRolePermissions = {
     "merchant.departures.manage",
     "merchant.registrations.read",
     "merchant.participants.read",
+    "merchant.hotels.read",
+    "merchant.hotels.manage",
+    "merchant.guests.read",
   ],
   MERCHANT_READONLY: [
     "merchant.dashboard.view",
@@ -175,6 +193,8 @@ export const defaultRolePermissions = {
     "merchant.programs.read",
     "merchant.registrations.read",
     "merchant.participants.read",
+    "merchant.hotels.read",
+    "merchant.guests.read",
   ],
 } as const satisfies Record<string, readonly PermissionCode[]>;
 

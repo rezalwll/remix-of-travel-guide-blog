@@ -33,6 +33,7 @@ model User {
   auditLogs               AuditLog[]               @relation("AuditActorUser")
   programModerationEvents TravelProgramModerationEvent[]
   registrationNotes       TravelRegistrationNote[]
+  supportMessages         SupportMessage[]         @relation("SupportMessageAuthor")
 }
 
 model Organization {
@@ -61,6 +62,8 @@ model Organization {
   auditTargetLogs  AuditLog[]               @relation("AuditTargetOrganization")
   travelPrograms   TravelProgram[]
   programModerationEvents TravelProgramModerationEvent[]
+  properties       Property[]
+  supportTickets   SupportTicket[]
 
   @@index([type, status])
 }
@@ -283,9 +286,16 @@ model Order {
   travelProgramDeparture TravelProgramDeparture? @relation(fields: [travelProgramDepartureId], references: [id], onDelete: SetNull)
   travelProgramPackage   TravelProgramPackage? @relation(fields: [travelProgramPackageId], references: [id], onDelete: SetNull)
   registrationNotes      TravelRegistrationNote[]
+  supportTickets         SupportTicket[]
+  property               Property?             @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  roomType               RoomType?             @relation(fields: [roomTypeId], references: [id], onDelete: SetNull)
+  ratePlan               RatePlan?             @relation(fields: [ratePlanId], references: [id], onDelete: SetNull)
   travelProgramId          String?               @db.Uuid
   travelProgramDepartureId String?               @db.Uuid
   travelProgramPackageId   String?               @db.Uuid
+  propertyId                String?               @db.Uuid
+  roomTypeId                String?               @db.Uuid
+  ratePlanId                String?               @db.Uuid
 
   @@index([userId, createdAt])
   @@index([guestMobile, createdAt])
@@ -299,6 +309,9 @@ model Order {
   @@index([travelProgramId, createdAt])
   @@index([travelProgramDepartureId, createdAt])
   @@index([travelProgramPackageId, createdAt])
+  @@index([propertyId, relevantDate])
+  @@index([roomTypeId, relevantDate])
+  @@index([ratePlanId, relevantDate])
 }
 
 model PaymentAttempt {
@@ -468,12 +481,20 @@ model SupportTicket {
   userId    String?          @db.Uuid
   subject   String
   status    String           @default("open")
+  orderId   String?          @db.Uuid
+  organizationId String?     @db.Uuid
+  category  String           @default("general")
+  internalNote String?
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
   user      User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  order     Order?           @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   messages  SupportMessage[]
 
   @@index([userId, createdAt])
+  @@index([organizationId, status, updatedAt])
+  @@index([orderId])
 }
 
 model SupportMessage {
@@ -481,10 +502,104 @@ model SupportMessage {
   ticketId   String        @db.Uuid
   authorType String
   body       String
+  authorUserId String?      @db.Uuid
+  internal   Boolean       @default(false)
   createdAt  DateTime      @default(now())
   ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorUser User?         @relation("SupportMessageAuthor", fields: [authorUserId], references: [id], onDelete: SetNull)
 
   @@index([ticketId, createdAt])
+}
+
+model Property {
+  id                String       @id @default(uuid()) @db.Uuid
+  organizationId    String       @db.Uuid
+  slug              String       @unique
+  name              String
+  city              String
+  country           String       @default("ایران")
+  address            String
+  area               String?
+  latitude           Decimal?    @db.Decimal(9, 6)
+  longitude          Decimal?    @db.Decimal(9, 6)
+  stars              Int
+  description        String
+  checkInTime        String       @default("14:00")
+  checkOutTime       String       @default("12:00")
+  sourceType         String       @default("DIRECT")
+  supplierCode       String?
+  publicationStatus String       @default("DRAFT")
+  operationalStatus String       @default("ACTIVE")
+  amenities          Json?
+  policies           Json?
+  images             Json?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  roomTypes          RoomType[]
+  orders             Order[]
+
+  @@index([organizationId, publicationStatus])
+  @@index([city, publicationStatus, operationalStatus])
+  @@index([sourceType, operationalStatus])
+}
+
+model RoomType {
+  id          String           @id @default(uuid()) @db.Uuid
+  propertyId  String           @db.Uuid
+  name        String
+  description String
+  capacity    Int
+  bedType     String
+  sizeSqm     Int?
+  amenities   Json?
+  images      Json?
+  status      String           @default("ACTIVE")
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  property    Property         @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  ratePlans   RatePlan[]
+  orders      Order[]
+
+  @@unique([propertyId, name])
+  @@index([propertyId, status])
+}
+
+model RatePlan {
+  id                 String           @id @default(uuid()) @db.Uuid
+  roomTypeId         String           @db.Uuid
+  title              String
+  mealPlan           String
+  refundable         Boolean          @default(false)
+  cancellationPolicy String
+  baseRate           Int
+  currency           String           @default("TOMAN")
+  taxesIncluded      Boolean          @default(true)
+  status             String           @default("ACTIVE")
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  roomType           RoomType         @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+  inventory          DailyInventory[]
+  orders             Order[]
+
+  @@unique([roomTypeId, title])
+  @@index([roomTypeId, status])
+}
+
+model DailyInventory {
+  id             String   @id @default(uuid()) @db.Uuid
+  ratePlanId     String   @db.Uuid
+  date           DateTime @db.Date
+  availableRooms Int
+  priceOverride  Int?
+  closed         Boolean  @default(false)
+  minimumStay    Int      @default(1)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ratePlan       RatePlan @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
+
+  @@unique([ratePlanId, date])
+  @@index([date, closed])
 }
 
 model VisaApplication {
