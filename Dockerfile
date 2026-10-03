@@ -3,6 +3,8 @@ FROM node:20-bookworm-slim AS build
 ARG SITE_URL
 ENV SITE_URL=$SITE_URL
 WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends openssl \
+    && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
