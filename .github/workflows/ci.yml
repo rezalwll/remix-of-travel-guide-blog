@@ -87,7 +87,12 @@ jobs:
         run: |
           PREVIOUS_DIR="$RUNNER_TEMP/kiashi-previous"
           git worktree add --detach "$PREVIOUS_DIR" HEAD^
-          docker build --build-arg SITE_URL=https://example.test --target api --tag kiashi:previous "$PREVIOUS_DIR"
+          # Exercise the previous application revision with the current, production-certified
+          # image recipe. A broken historical Dockerfile must not make application rollback
+          # compatibility impossible to certify after an image-runtime hotfix.
+          docker build --file "$GITHUB_WORKSPACE/Dockerfile" \
+            --build-arg SITE_URL=https://example.test \
+            --target api --tag kiashi:previous "$PREVIOUS_DIR"
           docker run --detach --name kiashi-rollback --network host \
             --env NODE_ENV=production \
             --env DATABASE_URL="$DATABASE_URL" \
