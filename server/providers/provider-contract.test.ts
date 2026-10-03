@@ -25,9 +25,10 @@ describe("provider HTTP boundary", () => {
     await expect(client.request({ path: "/sms/send", method: "POST", requestId: "contract-malformed", operation: "send", headers: { "x-stub-scenario": "malformed" }, body: {} })).rejects.toMatchObject({ category: "MALFORMED_RESPONSE" });
   });
   it("normalizes timeout and rate limiting", async () => {
-    const client = new ProviderHttpClient({ provider: "stub", baseUrl, timeoutMs: 20, maxAttempts: 1 });
-    await expect(client.request({ path: "/payments", method: "POST", requestId: "contract-timeout", operation: "createPayment", headers: { "x-stub-scenario": "timeout" }, body: {} })).rejects.toMatchObject({ category: "TIMEOUT" });
-    await expect(client.request({ path: "/travel/search", method: "POST", requestId: "contract-rate", operation: "search", headers: { "x-stub-scenario": "rate-limit" }, body: {} })).rejects.toMatchObject({ category: "RATE_LIMIT" });
+    const timeoutClient = new ProviderHttpClient({ provider: "stub", baseUrl, timeoutMs: 20, maxAttempts: 1 });
+    const responseClient = new ProviderHttpClient({ provider: "stub", baseUrl, timeoutMs: 1_000, maxAttempts: 1 });
+    await expect(timeoutClient.request({ path: "/payments", method: "POST", requestId: "contract-timeout", operation: "createPayment", headers: { "x-stub-scenario": "timeout" }, body: {} })).rejects.toMatchObject({ category: "TIMEOUT" });
+    await expect(responseClient.request({ path: "/travel/search", method: "POST", requestId: "contract-rate", operation: "search", headers: { "x-stub-scenario": "rate-limit" }, body: {} })).rejects.toMatchObject({ category: "RATE_LIMIT" });
   });
 });
 
