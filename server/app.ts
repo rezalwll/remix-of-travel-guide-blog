@@ -21,6 +21,8 @@ import { PlatformRepository } from "./repositories/platform.js";
 import { ProgramRepository } from "./repositories/programs.js";
 import { registerPlatformRoutes } from "./routes/platform.js";
 import { registerProgramRoutes } from "./routes/programs.js";
+import { HotelRepository } from "./repositories/hotels.js";
+import { registerHotelRoutes } from "./routes/hotels.js";
 
 const sessionCookie = "kiashi_session";
 const mobileSchema = z.string().regex(/^09\d{9}$/);
@@ -29,12 +31,13 @@ const supplierKindSchema = z.enum(["flight", "hotel", "train", "bus", "insurance
 const paymentMethodSchema = z.enum(["online_mock", "wallet", "combined", "installment_mock", "organizational_credit_mock", "voucher_mock"]);
 const errorResponse = (reply: FastifyReply, status: number, code: string, message: string, details?: Record<string, unknown>) => reply.code(status).send({ error: { code, message, ...(details ? { details } : {}), requestId: reply.request.id } });
 
-export type AppOptions = { repository?: PrismaRuntimeRepository; platformRepository?: PlatformRepository; programRepository?: ProgramRepository; env?: Partial<typeof config>; providers?: ProviderRegistry };
+export type AppOptions = { repository?: PrismaRuntimeRepository; platformRepository?: PlatformRepository; programRepository?: ProgramRepository; hotelRepository?: HotelRepository; env?: Partial<typeof config>; providers?: ProviderRegistry };
 
 export async function buildApp(options: AppOptions = {}) {
   const repository = options.repository ?? new PrismaRuntimeRepository(getPrismaClient());
   const platformRepository = options.platformRepository ?? new PlatformRepository(getPrismaClient());
   const programRepository = options.programRepository ?? new ProgramRepository(getPrismaClient());
+  const hotelRepository = options.hotelRepository ?? new HotelRepository(getPrismaClient());
   const env = { ...config, ...options.env };
   const providers = options.providers ?? createProviderRegistry(env);
   const app = Fastify({ logger: env.NODE_ENV === "test" ? false : { level: env.LOG_LEVEL, redact: { paths: ["req.headers.authorization", "req.headers.cookie", "res.headers['set-cookie']", "password", "otp", "token", "secret", "signature", "passport", "nationalId", "cardNumber", "cvv"], censor: "[REDACTED]" }, serializers: { req: (request: { id?: string; method?: string; url?: string }) => ({ id: request.id, method: request.method, path: request.url?.split("?", 1)[0] }) } }, requestIdHeader: false, genReqId: () => randomUUID(), bodyLimit: 1_048_576, trustProxy: env.TRUST_PROXY });
@@ -113,6 +116,14 @@ export async function buildApp(options: AppOptions = {}) {
   });
   await registerProgramRoutes(app, {
     repository: programRepository,
+    platformRepository,
+    env: { WEB_ORIGIN: env.WEB_ORIGIN!, BACKOFFICE_ENABLED: env.BACKOFFICE_ENABLED, MERCHANT_PORTAL_ENABLED: env.MERCHANT_PORTAL_ENABLED },
+    currentUser,
+    enforceRate,
+    errorResponse,
+  });
+  await registerHotelRoutes(app, {
+    repository: hotelRepository,
     platformRepository,
     env: { WEB_ORIGIN: env.WEB_ORIGIN!, BACKOFFICE_ENABLED: env.BACKOFFICE_ENABLED, MERCHANT_PORTAL_ENABLED: env.MERCHANT_PORTAL_ENABLED },
     currentUser,
