@@ -22,6 +22,7 @@ export const permissionCatalog = [
   "backoffice.audit.read",
   "backoffice.reports.view",
   "backoffice.finance.view",
+  "backoffice.finance.manage",
   "merchant.dashboard.view",
   "merchant.orders.read",
   "merchant.bookings.read",
@@ -69,6 +70,7 @@ export const defaultRolePermissions = {
     "backoffice.merchants.read",
     "backoffice.reports.view",
     "backoffice.finance.view",
+    "backoffice.finance.manage",
   ],
   SUPPORT: [
     "backoffice.dashboard.view",
@@ -166,4 +168,3 @@ export function requirePermission(granted: Iterable<string>, required: Permissio
     throw new DomainError("PERMISSION_DENIED", "دسترسی لازم برای این عملیات را ندارید", 403);
   }
 }
-

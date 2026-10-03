@@ -48,6 +48,9 @@ const envSchema = z.object({
   BUILD_TIME: z.string().max(80).default("unknown"),
   RATE_LIMIT_STORE: z.enum(["memory"]).default("memory"),
   E2E_OTP_CODE: z.string().regex(/^\d{5}$/).optional(),
+  BACKOFFICE_ENABLED: z.enum(["true", "false"]).optional().transform((value) => value === undefined ? undefined : value === "true"),
+  MERCHANT_PORTAL_ENABLED: z.enum(["true", "false"]).optional().transform((value) => value === undefined ? undefined : value === "true"),
+  REPORTING_TIMEZONE: z.string().min(1).default("Asia/Tehran"),
 }).superRefine((value, ctx) => {
   if (value.NODE_ENV !== "production") return;
   if (!value.WEB_ORIGIN.startsWith("https://")) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["WEB_ORIGIN"], message: "WEB_ORIGIN must use HTTPS in production" });
@@ -70,11 +73,16 @@ export function parseConfig(source: NodeJS.ProcessEnv = process.env) {
     PAYMENT_PROVIDER_MODE: source.PAYMENT_PROVIDER_MODE, PAYMENT_PROVIDER_BASE_URL: source.PAYMENT_PROVIDER_BASE_URL, PAYMENT_PROVIDER_MERCHANT_ID: source.PAYMENT_PROVIDER_MERCHANT_ID, PAYMENT_PROVIDER_SECRET: source.PAYMENT_PROVIDER_SECRET,
     TRAVEL_PROVIDER_MODE: source.TRAVEL_PROVIDER_MODE, TRAVEL_PROVIDER_BASE_URL: source.TRAVEL_PROVIDER_BASE_URL, TRAVEL_PROVIDER_API_KEY: source.TRAVEL_PROVIDER_API_KEY,
     LOG_LEVEL: source.LOG_LEVEL, APP_VERSION: source.APP_VERSION, GIT_SHA: source.GIT_SHA, BUILD_TIME: source.BUILD_TIME, RATE_LIMIT_STORE: source.RATE_LIMIT_STORE, E2E_OTP_CODE: source.E2E_OTP_CODE,
+    BACKOFFICE_ENABLED: source.BACKOFFICE_ENABLED, MERCHANT_PORTAL_ENABLED: source.MERCHANT_PORTAL_ENABLED, REPORTING_TIMEZONE: source.REPORTING_TIMEZONE,
   });
   if (parsed.NODE_ENV === "production") {
     for (const name of ["DATABASE_URL", "WEB_ORIGIN", "API_PUBLIC_URL", "TRUST_PROXY", "APP_VERSION", "GIT_SHA", "BUILD_TIME"] as const) if (!source[name]) throw new Error(`${name} must be explicitly configured in production`);
   }
-  return parsed;
+  return {
+    ...parsed,
+    BACKOFFICE_ENABLED: parsed.BACKOFFICE_ENABLED ?? parsed.NODE_ENV !== "production",
+    MERCHANT_PORTAL_ENABLED: parsed.MERCHANT_PORTAL_ENABLED ?? parsed.NODE_ENV !== "production",
+  };
 }
 
 export const config = parseConfig();

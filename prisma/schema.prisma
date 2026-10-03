@@ -559,9 +559,9 @@ model MerchantLedgerEntry {
   metadata          Json?
   createdAt         DateTime         @default(now())
   organization      Organization     @relation(fields: [organizationId], references: [id], onDelete: Restrict)
-  order             Order?           @relation(fields: [orderId], references: [id], onDelete: SetNull)
-  bookingAttempt    BookingAttempt?  @relation(fields: [bookingAttemptId], references: [id], onDelete: SetNull)
-  settlementBatch   SettlementBatch? @relation(fields: [settlementBatchId], references: [id], onDelete: SetNull)
+  order             Order?           @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  bookingAttempt    BookingAttempt?  @relation(fields: [bookingAttemptId], references: [id], onDelete: Restrict)
+  settlementBatch   SettlementBatch? @relation(fields: [settlementBatchId], references: [id], onDelete: Restrict)
 
   @@index([organizationId, createdAt])
   @@index([organizationId, type, createdAt])

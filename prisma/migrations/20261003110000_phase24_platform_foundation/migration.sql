@@ -243,9 +243,9 @@ ALTER TABLE "BookingAttempt" ADD CONSTRAINT "BookingAttempt_supplierOrganization
 ALTER TABLE "CommissionRule" ADD CONSTRAINT "CommissionRule_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 ALTER TABLE "SettlementBatch" ADD CONSTRAINT "SettlementBatch_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "MerchantLedgerEntry" ADD CONSTRAINT "MerchantLedgerEntry_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-ALTER TABLE "MerchantLedgerEntry" ADD CONSTRAINT "MerchantLedgerEntry_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-ALTER TABLE "MerchantLedgerEntry" ADD CONSTRAINT "MerchantLedgerEntry_bookingAttemptId_fkey" FOREIGN KEY ("bookingAttemptId") REFERENCES "BookingAttempt"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-ALTER TABLE "MerchantLedgerEntry" ADD CONSTRAINT "MerchantLedgerEntry_settlementBatchId_fkey" FOREIGN KEY ("settlementBatchId") REFERENCES "SettlementBatch"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "MerchantLedgerEntry" ADD CONSTRAINT "MerchantLedgerEntry_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "MerchantLedgerEntry" ADD CONSTRAINT "MerchantLedgerEntry_bookingAttemptId_fkey" FOREIGN KEY ("bookingAttemptId") REFERENCES "BookingAttempt"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "MerchantLedgerEntry" ADD CONSTRAINT "MerchantLedgerEntry_settlementBatchId_fkey" FOREIGN KEY ("settlementBatchId") REFERENCES "SettlementBatch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "MerchantDocument" ADD CONSTRAINT "MerchantDocument_organizationId_fkey" FOREIGN KEY ("organizationId") REFERENCES "Organization"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- Audit and merchant ledgers are append-only. Corrections are new records.
