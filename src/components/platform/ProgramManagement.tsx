@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { CalendarPlus, Copy, Plus, Send, ShieldCheck } from "lucide-react";
 
@@ -11,8 +11,8 @@ export default function ProgramManagement({ scope }: { scope: Scope }) {
   const [programs, setPrograms] = useState<Program[]>([]); const [error, setError] = useState(""); const [busy, setBusy] = useState("");
   const [draft, setDraft] = useState({ type: "TOUR", title: "", slug: "" });
   const base = `/api/${scope}/programs`;
-  const load = () => fetch(base, { credentials: "include", cache: "no-store" }).then(async (response) => { const body = await response.json(); if (!response.ok) throw new Error(body.error?.message); setPrograms(body.programs ?? []); }).catch((reason) => setError(reason.message ?? "خطا در دریافت برنامه‌ها"));
-  useEffect(() => { void load(); }, [base]);
+  const load = useCallback(() => fetch(base, { credentials: "include", cache: "no-store" }).then(async (response) => { const body = await response.json(); if (!response.ok) throw new Error(body.error?.message); setPrograms(body.programs ?? []); }).catch((reason) => setError(reason.message ?? "خطا در دریافت برنامه‌ها")), [base]);
+  useEffect(() => { void load(); }, [load]);
   const mutate = async (url: string, body: unknown) => { setBusy(url); setError(""); try { const response = await fetch(url, { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }); const result = await response.json(); if (!response.ok) throw new Error(result.error?.message); await load(); } catch (reason) { setError(reason instanceof Error ? reason.message : "عملیات ناموفق بود"); } finally { setBusy(""); } };
   const create = async () => { if (!draft.title || !draft.slug) return setError("عنوان و slug الزامی است."); await mutate(base, scope === "backoffice" ? { ...draft, organizationId: prompt("شناسه UUID پذیرنده") } : draft); setDraft({ type: "TOUR", title: "", slug: "" }); };
   return <div className="space-y-5">
