@@ -1,4 +1,4 @@
-const privatePrefixes = ["/account", "/auth", "/checkout", "/orders"] as const;
+const privatePrefixes = ["/account", "/auth", "/checkout", "/orders", "/backoffice", "/merchant"] as const;
 const privateExactPaths = new Set([
   "/cart",
   "/track-order",

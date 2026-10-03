@@ -20,6 +20,8 @@ describe("SEO route policy", () => {
   it("keeps search and transactional prefixes out of the index", () => {
     expect(noindexExact).toContain("/flights/search");
     expect(noindexPrefixes).toContain("/checkout");
+    expect(noindexPrefixes).toContain("/backoffice");
+    expect(noindexPrefixes).toContain("/merchant");
   });
 
   it("prevents hotel SEO and detail slug collisions", () => {

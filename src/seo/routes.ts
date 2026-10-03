@@ -54,7 +54,7 @@ export const routePolicies: RoutePolicy[] = [
 export const indexableStaticRoutes = routePolicies.filter((route) => route.indexable && route.sitemap);
 export const routePolicy = (path: string) => routePolicies.find((route) => route.path === path);
 
-export const noindexPrefixes = ["/account", "/auth", "/checkout", "/orders", "/track-order", "/api"] as const;
+export const noindexPrefixes = ["/account", "/auth", "/checkout", "/orders", "/track-order", "/api", "/backoffice", "/merchant"] as const;
 export const noindexExact = ["/flights/search", "/hotels/search", "/trains/search", "/buses/search"] as const;
 
 export function assertRoutePolicyIntegrity() {

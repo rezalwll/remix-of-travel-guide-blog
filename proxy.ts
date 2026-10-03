@@ -17,6 +17,8 @@ export const config = {
     "/auth/:path*",
     "/checkout/:path*",
     "/orders/:path*",
+    "/backoffice/:path*",
+    "/merchant/:path*",
     "/cart",
     "/track-order",
     "/flights/search",

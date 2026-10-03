@@ -8,6 +8,8 @@ describe("private route cache policy", () => {
     "/auth/login",
     "/checkout/review",
     "/orders/KIA-123",
+    "/backoffice/orders",
+    "/merchant/finance",
     "/cart",
     "/track-order",
     "/flights/search",
