@@ -27,8 +27,7 @@
 | `/visa/:country/apply` | همان | خیر | SSG محدود/client | ندارد | منتقل‌شده |
 | `/trains`, `/buses`, `/insurance`, `/cip`, `/transfer` | همان | بله | SSG | ندارد | Server Component |
 | `/trains/search`, `/buses/search` | همان | خیر | SSG محدود/client | ندارد | منتقل‌شده |
-| `/fast-track`, `/esim`, `/city-tours` | همان | بله | SSG | ندارد | Server Component |
-| `/experiences` | `/city-tours` | بله | 308 | دائمی | پیاده‌سازی‌شده |
+| `/fast-track`, `/esim`, `/city-tours`, `/experiences` | حذف‌شده | خیر | 404 | محصول از دامنهٔ فعال خارج شده | عمداً بازگردانده نشده |
 | `/transfers` | `/transfer` | بله | 308 | دائمی | پیاده‌سازی‌شده |
 | `/checkout/*`, `/cart` | همان | خیر | client/noindex | ندارد | منتقل‌شده |
 | `/orders/:id`, `/account/orders/:id` | همان | خیر | SSR/client | ندارد | منتقل‌شده |

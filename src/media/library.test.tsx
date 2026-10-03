@@ -4,7 +4,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { MediaRail, PromoBanner, RailItem } from "@/components/media/Cards";
 import MediaFrame from "@/components/media/MediaFrame";
-import { destinationAsset, mediaRegistry, photoLibrary } from "@/media/library";
+import { destinationAsset, mediaRegistry, photoLibrary, serviceAsset } from "@/media/library";
 
 describe("travel media registry", () => {
   it("keeps every registered photograph local and present", () => {
@@ -44,6 +44,11 @@ describe("travel media registry", () => {
     expect(destinationAsset("najaf")).toMatchObject({ src: "/media/destinations/najaf.webp" });
     expect(destinationAsset("karbala")).toMatchObject({ src: "/media/ziyarat/karbala-hero.webp" });
     expect(destinationAsset("najaf-karbala")).toMatchObject({ src: "/media/ziyarat/karbala-hero.webp" });
+  });
+
+  it("uses the current travel-planning photograph for support surfaces", () => {
+    expect(serviceAsset("support")).toMatchObject({ src: "/media/phone.webp" });
+    expect(serviceAsset("support")).not.toMatchObject({ src: "/media/support.webp" });
   });
 
   it("exposes content alt text and hides decorative photographs", () => {

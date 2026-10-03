@@ -7,7 +7,7 @@ This checklist is the stable route inventory for the image-rich UI lockdown. Run
 - `/` — cinematic hero, attached booking search, service discovery, route cards, destinations, stays, experiences, editorial and support banner.
 - `/flights` and `/flights/tehran-to-mashhad` — aviation hero, search, destination context and route cross-sell.
 - `/hotels`, `/hotels/kish`, and demo hotel detail routes — photo-first discovery, stable gallery and search cards.
-- `/tours`, `/ziyarat`, `/trains`, `/buses`, `/insurance`, `/cip`, `/transfer`, `/visa`, `/fast-track`, `/esim`, `/city-tours` — service-specific hero and relevant media, not interchangeable stock imagery.
+- `/tours`, `/ziyarat`, `/trains`, `/buses`, `/insurance`, `/cip`, `/transfer`, `/visa` — service-specific hero and relevant media, not interchangeable stock imagery. Retired product routes (`/fast-track`, `/esim`, `/city-tours`) intentionally remain 404 and are not part of the active visual inventory.
 - `/destinations`, `/destinations/iran/kish` — image-first index, themed collections, detail mosaic and booking cross-sell.
 - `/blog`, `/blog/kish-travel-guide` — editorial hierarchy, cover media, contextual image and destination CTA.
 - `/support` — warm support hero, scannable help categories, searchable FAQ and tracking CTA.

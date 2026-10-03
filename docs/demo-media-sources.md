@@ -34,7 +34,6 @@
 | `media/road.webp` | 1008155 | مسافر در فرودگاه |
 | `media/phone.webp` | 3769138 | نقشه، ویزا و ارتباط |
 | `media/passport.webp` | 723589 | طبیعت مه‌آلود |
-| `media/support.webp` | 3183150 | پشتیبانی و کار تیمی |
 | `media/mountain.webp` | 417074 | کوهستان و دریاچه |
 | `media/city.webp` | 450597 | شهر و گشت شهری |
 | `media/lake.webp` | 346885 | سفر جهانی و بیمه |

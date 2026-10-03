@@ -37,7 +37,7 @@ test('mobile navigation and complementary service pages are reachable', async ({
   await page.getByRole('button', { name: 'باز کردن منو' }).click();
   const mobileMenu = page.getByRole('navigation', { name: 'منوی موبایل' });
   await expect(mobileMenu.getByRole('link', { name: 'پیگیری خرید' })).toBeVisible();
-  await mobileMenu.getByRole('link', { name: 'eSIM' }).click();
-  await expect(page.getByRole('heading', { name: 'eSIM سفر' })).toBeVisible();
+  await mobileMenu.getByRole('link', { name: 'بیمه سفر' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'بیمه سفر', exact: true })).toBeVisible();
   await expect(page.locator('body')).not.toHaveCSS('overflow-x', 'scroll');
 });

@@ -97,7 +97,6 @@ export const photoLibrary = {
   airportTraveller: pexelsPhoto("1008155", "road.webp", 1200, 798, "مسافر با چمدان در ترمینال فرودگاه", "hero"),
   mapAndPlane: pexelsPhoto("3769138", "phone.webp", 1200, 786, "نقشهٔ جهان و هواپیمای کوچک برای برنامه‌ریزی سفر"),
   forestMist: pexelsPhoto("723589", "passport.webp", 1200, 675, "جنگل مه‌آلود در سفر طبیعت", "hero"),
-  travelTeam: pexelsPhoto("3183150", "support.webp", 1200, 801, "تیم برنامه‌ریزی سفر پشت میز", "editorial"),
   mountainLake: pexelsPhoto("417074", "mountain.webp", 1200, 808, "دریاچهٔ کوهستانی و قله‌های بلند", "hero"),
   cityBridge: pexelsPhoto("450597", "city.webp", 1200, 848, "پل شهری و خط آسمان در سفر", "hero"),
   globeInHand: pexelsPhoto("346885", "lake.webp", 1200, 800, "کرهٔ زمین در دست مسافر", "editorial"),
@@ -160,7 +159,7 @@ export const serviceMedia: Record<string, MediaAsset> = {
   cip: photoLibrary.airportTraveller,
   transfer: photoLibrary.airportTraveller,
   visa: photoLibrary.mapAndPlane,
-  support: photoLibrary.travelTeam,
+  support: photoLibrary.mapAndPlane,
 };
 
 /** Stay categories used by hotel discovery blocks. */

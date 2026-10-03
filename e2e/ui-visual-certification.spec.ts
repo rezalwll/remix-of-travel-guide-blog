@@ -6,6 +6,8 @@ const routeChecklist = [
   "/flights/tehran-to-mashhad",
   "/hotels",
   "/hotels/kish",
+  "/hotels/search?destination=mashhad&checkIn=2026-10-30&checkOut=2026-11-03",
+  "/hotels/almas-2-mashhad?destination=mashhad&checkin=2026-10-30&checkout=2026-11-03&rooms=1&adults=2&children=0",
   "/tours",
   "/ziyarat",
   "/trains",
@@ -14,11 +16,10 @@ const routeChecklist = [
   "/cip",
   "/transfer",
   "/visa",
-  "/fast-track",
-  "/esim",
-  "/city-tours",
   "/destinations",
   "/destinations/iran/kish",
+  "/routes",
+  "/shop",
   "/blog",
   "/blog/kish-travel-guide",
   "/support",
@@ -41,6 +42,11 @@ test("priority visual routes render without broken images or horizontal overflow
     expect(result.overflow, `${route} horizontal overflow`).toBeLessThanOrEqual(1);
     expect(result.brokenImages, `${route} broken images`).toEqual([]);
   }
+});
+
+test("home hero exposes a readable accessible heading", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { level: 1, name: "سفر بعدی‌ات را همین‌جا پیدا کن" })).toBeVisible();
 });
 
 test("representative visual review screenshots are emitted as test artifacts", async ({ page }, testInfo) => {

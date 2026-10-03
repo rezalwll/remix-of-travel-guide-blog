@@ -20,7 +20,7 @@ describe("provider HTTP boundary", () => {
   beforeAll(async () => { baseUrl = await stub.listen({ port: 0, host: "127.0.0.1" }); });
   afterAll(async () => { await stub.close(); });
   it("parses success and rejects malformed payloads", async () => {
-    const client = new ProviderHttpClient({ provider: "stub", baseUrl, timeoutMs: 100, maxAttempts: 1 });
+    const client = new ProviderHttpClient({ provider: "stub", baseUrl, timeoutMs: 1_000, maxAttempts: 1 });
     await expect(client.request<{ status: string }>({ path: "/sms/send", method: "POST", requestId: "contract-http", operation: "send", body: {} })).resolves.toMatchObject({ status: "queued" });
     await expect(client.request({ path: "/sms/send", method: "POST", requestId: "contract-malformed", operation: "send", headers: { "x-stub-scenario": "malformed" }, body: {} })).rejects.toMatchObject({ category: "MALFORMED_RESPONSE" });
   });

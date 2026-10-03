@@ -18,8 +18,24 @@ test("legacy aliases redirect once and private routes are noindex", async ({ pag
   const response = await page.goto("/help");
   expect(response?.status()).toBe(200);
   await expect(page).toHaveURL(/\/support$/);
-  await page.goto("/auth/login");
+  const privateResponse = await page.goto("/auth/login");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+  expect(privateResponse?.headers()["cache-control"]).toContain("private");
+  expect(privateResponse?.headers()["cache-control"]).toContain("no-store");
+});
+
+test("search and checkout surfaces cannot be stored in a shared cache", async ({ request }) => {
+  for (const route of [
+    "/flights/search?from=THR&to=MHD",
+    "/hotels/search?destination=mashhad",
+    "/checkout/review",
+    "/track-order",
+  ]) {
+    const response = await request.get(route);
+    expect(response.status(), route).toBe(200);
+    expect(response.headers()["cache-control"], route).toContain("private");
+    expect(response.headers()["cache-control"], route).toContain("no-store");
+  }
 });
 
 test("unknown route has a real 404 response", async ({ page }) => {
