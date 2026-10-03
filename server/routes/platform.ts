@@ -1,7 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { DomainError } from "../domain/errors.js";
-import { requirePermission, type PermissionCode } from "../platform/permissions.js";
+import { permissionCatalog, requirePermission, type PermissionCode } from "../platform/permissions.js";
 import { reportRange, type ReportPreset } from "../platform/reporting.js";
 import type { PlatformAccessContext } from "../repositories/platform.js";
 import { PlatformRepository } from "../repositories/platform.js";
@@ -226,6 +226,30 @@ export async function registerPlatformRoutes(app: FastifyInstance, dependencies:
     return { membership: await repository.setMembershipRoles(request.params.merchantId, request.params.membershipId, parsed.data.roles, actorFrom(request, context)) };
   });
 
+  app.put<{ Params: { roleId: string } }>("/api/backoffice/roles/:roleId/permissions", async (request, reply) => {
+    const context = await contextFor(request, reply, "INTERNAL", "backoffice.roles.manage"); if (!context) return;
+    protectMutation(request, context, "permission-change");
+    const parsed = z.object({ permissions: z.array(z.enum(permissionCatalog)).max(permissionCatalog.length) }).safeParse(request.body);
+    if (!uuid.safeParse(request.params.roleId).success || !parsed.success) return errorResponse(reply, 400, "VALIDATION_ERROR", "مجوزها معتبر نیستند");
+    return { role: await repository.setRolePermissions(request.params.roleId, parsed.data.permissions, actorFrom(request, context)) };
+  });
+
+  app.patch<{ Params: { id: string } }>("/api/backoffice/refunds/:id", async (request, reply) => {
+    const context = await contextFor(request, reply, "INTERNAL", "backoffice.refunds.manage"); if (!context) return;
+    protectMutation(request, context, "refund-admin");
+    const parsed = z.object({ status: z.enum(["processing", "failed"]), reason: z.string().trim().min(3).max(500) }).safeParse(request.body);
+    if (!uuid.safeParse(request.params.id).success || !parsed.success) return errorResponse(reply, 400, "VALIDATION_ERROR", "عملیات استرداد معتبر نیست");
+    return { refund: await repository.updateRefundStatus(request.params.id, parsed.data.status, parsed.data.reason, actorFrom(request, context)) };
+  });
+
+  app.patch<{ Params: { id: string } }>("/api/backoffice/support/:id", async (request, reply) => {
+    const context = await contextFor(request, reply, "INTERNAL", "backoffice.support.manage"); if (!context) return;
+    protectMutation(request, context, "support-admin");
+    const parsed = z.object({ status: z.enum(["open", "pending", "resolved", "closed"]) }).safeParse(request.body);
+    if (!uuid.safeParse(request.params.id).success || !parsed.success) return errorResponse(reply, 400, "VALIDATION_ERROR", "وضعیت پشتیبانی معتبر نیست");
+    return { ticket: await repository.updateSupportStatus(request.params.id, parsed.data.status, actorFrom(request, context)) };
+  });
+
   app.get("/api/merchant/me", async (request, reply) => {
     const context = await contextFor(request, reply, "MERCHANT", "merchant.dashboard.view");
     return context ? { user: context.user, organization: context.organization, roles: context.roles, permissions: context.permissions } : undefined;
@@ -277,5 +301,21 @@ export async function registerPlatformRoutes(app: FastifyInstance, dependencies:
   app.get("/api/merchant/profile", async (request, reply) => {
     const context = await contextFor(request, reply, "MERCHANT", "merchant.dashboard.view"); if (!context) return;
     return { profile: await repository.getMerchantProfile(context.organization.id) };
+  });
+
+  app.patch("/api/merchant/profile", async (request, reply) => {
+    const context = await contextFor(request, reply, "MERCHANT", "merchant.profile.manage"); if (!context) return;
+    protectMutation(request, context, "merchant-profile");
+    const parsed = z.object({ name: z.string().trim().min(2).max(120).optional(), contactEmail: z.string().email().nullable().optional(), contactMobile: z.string().regex(/^09\d{9}$/).nullable().optional(), supportPhone: z.string().max(30).nullable().optional() }).refine((value) => Object.keys(value).length > 0).safeParse(request.body);
+    if (!parsed.success) return errorResponse(reply, 400, "VALIDATION_ERROR", "اطلاعات پروفایل معتبر نیست");
+    return { profile: await repository.updateOwnMerchantProfile(context.organization.id, parsed.data, actorFrom(request, context)) };
+  });
+
+  app.put<{ Params: { membershipId: string } }>("/api/merchant/team/:membershipId/roles", async (request, reply) => {
+    const context = await contextFor(request, reply, "MERCHANT", "merchant.team.manage"); if (!context) return;
+    protectMutation(request, context, "merchant-team-role");
+    const parsed = z.object({ roles: z.array(z.string().max(80)).max(10) }).safeParse(request.body);
+    if (!uuid.safeParse(request.params.membershipId).success || !parsed.success) return errorResponse(reply, 400, "VALIDATION_ERROR", "نقش‌ها معتبر نیستند");
+    return { membership: await repository.setMembershipRoles(context.organization.id, request.params.membershipId, parsed.data.roles, actorFrom(request, context)) };
   });
 }

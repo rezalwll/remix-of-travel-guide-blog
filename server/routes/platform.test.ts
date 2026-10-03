@@ -27,6 +27,8 @@ function mocks(access: (user: string, scope: "INTERNAL" | "MERCHANT", requested?
     listMerchantSettlements: vi.fn(async () => ({ items: [], total: 0 })),
     listMerchantTeam: vi.fn(async () => ({ items: [], total: 0 })),
     getMerchantProfile: vi.fn(async () => ({ id: orgA })),
+    updateOwnMerchantProfile: vi.fn(async (organizationId, input) => ({ id: organizationId, ...input })),
+    setMembershipRoles: vi.fn(async (organizationId, membershipId, roles) => ({ organizationId, membershipId, roles })),
     reportSummary: vi.fn(async () => ({ totals: { orders: 0 }, series: [] })),
     listMerchants: vi.fn(async () => ({ items: [], total: 0 })),
     createMerchant: vi.fn(async (input, actor) => ({ id: orgB, ...input, auditActor: actor.userId })),
@@ -114,6 +116,22 @@ describe("platform API authorization", () => {
     const operatorApp = await appWith(operator.runtime, operator.platform);
     expect((await operatorApp.inject({ method: "GET", url: "/api/merchant/orders", headers: auth })).statusCode).toBe(200);
     expect((await operatorApp.inject({ method: "GET", url: "/api/merchant/finance/summary", headers: auth })).statusCode).toBe(403);
+  });
+
+  it("scopes merchant profile and team mutations to the authorized tenant", async () => {
+    const permissions = ["merchant.dashboard.view", "merchant.profile.manage", "merchant.team.manage"];
+    const { runtime, platform } = mocks((_user, scope, requested) => scope === "MERCHANT" && (!requested || requested === orgA) ? baseContext(permissions) : null);
+    const app = await appWith(runtime, platform);
+    const profile = await app.inject({ method: "PATCH", url: "/api/merchant/profile", headers: { ...auth, origin: "http://localhost:8080" }, payload: { name: "نام تازه نمونه" } });
+    expect(profile.statusCode).toBe(200);
+    expect(platform.updateOwnMerchantProfile).toHaveBeenCalledWith(orgA, expect.objectContaining({ name: "نام تازه نمونه" }), expect.objectContaining({ userId }));
+    const membershipId = "30000000-0000-4000-8000-000000000099";
+    const roles = await app.inject({ method: "PUT", url: `/api/merchant/team/${membershipId}/roles`, headers: { ...auth, origin: "http://localhost:8080" }, payload: { roles: ["MERCHANT_OPERATOR"] } });
+    expect(roles.statusCode).toBe(200);
+    expect(platform.setMembershipRoles).toHaveBeenCalledWith(orgA, membershipId, ["MERCHANT_OPERATOR"], expect.objectContaining({ userId }));
+    vi.mocked(platform.updateOwnMerchantProfile).mockClear();
+    expect((await app.inject({ method: "PATCH", url: "/api/merchant/profile", headers: { ...auth, "x-organization-id": orgB }, payload: { name: "غیرمجاز" } })).statusCode).toBe(403);
+    expect(platform.updateOwnMerchantProfile).not.toHaveBeenCalled();
   });
 
   it("keeps merchant users out of internal APIs", async () => {

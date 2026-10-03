@@ -308,6 +308,16 @@ export class PlatformRepository {
     return { ...organization, contactEmail: maskEmail(organization.contactEmail), contactMobile: maskMobile(organization.contactMobile), merchantProfile: { ...organization.merchantProfile, legalIdentifier: maskIdentifier(organization.merchantProfile.legalIdentifier), taxIdentifier: maskIdentifier(organization.merchantProfile.taxIdentifier) } };
   }
 
+  async updateOwnMerchantProfile(organizationId: string, input: { name?: string; contactEmail?: string | null; contactMobile?: string | null; supportPhone?: string | null }, actor: AuditActor) {
+    return this.prisma.$transaction(async (tx) => {
+      const current = await tx.organization.findFirst({ where: { id: organizationId, type: "MERCHANT" }, include: { merchantProfile: true } });
+      if (!current || !current.merchantProfile) throw notFound();
+      const organization = await tx.organization.update({ where: { id: organizationId }, data: { name: input.name, contactEmail: input.contactEmail, contactMobile: input.contactMobile, merchantProfile: { update: { supportPhone: input.supportPhone } } }, include: { merchantProfile: true } });
+      await this.audit(tx, { ...actor, action: "merchant.profile_updated", resourceType: "MerchantProfile", resourceId: current.merchantProfile.id, targetOrganizationId: organizationId, beforeData: { name: current.name, contactEmail: current.contactEmail, contactMobile: current.contactMobile, supportPhone: current.merchantProfile.supportPhone }, afterData: { name: organization.name, contactEmail: organization.contactEmail, contactMobile: organization.contactMobile, supportPhone: organization.merchantProfile?.supportPhone } });
+      return { id: organization.id, name: organization.name, contactEmail: maskEmail(organization.contactEmail), contactMobile: maskMobile(organization.contactMobile), supportPhone: maskMobile(organization.merchantProfile?.supportPhone) };
+    });
+  }
+
   async createFinanceAdjustment(organizationId: string, input: { amount: number; currency: string; reason: string; idempotencyKey: string }, actor: AuditActor) {
     return this.prisma.$transaction(async (tx) => {
       const merchant = await tx.organization.findFirst({ where: { id: organizationId, type: "MERCHANT" }, select: { id: true } });
@@ -361,6 +371,40 @@ export class PlatformRepository {
       if (roles.length) await tx.membershipRole.createMany({ data: roles.map((role) => ({ membershipId, roleId: role.id })) });
       await this.audit(tx, { ...actor, action: "membership.roles_changed", resourceType: "OrganizationMembership", resourceId: membershipId, targetOrganizationId: organizationId, beforeData: { roles: membership.roles.map((entry) => entry.role.code) }, afterData: { roles: roles.map((role) => role.code) } });
       return { membershipId, roles: roles.map((role) => role.code) };
+    });
+  }
+
+  async setRolePermissions(roleId: string, permissionCodes: string[], actor: AuditActor) {
+    return this.prisma.$transaction(async (tx) => {
+      const role = await tx.role.findUnique({ where: { id: roleId }, include: { permissions: { include: { permission: true } } } });
+      if (!role) throw notFound();
+      const permissions = await tx.permission.findMany({ where: { code: { in: permissionCodes } } });
+      if (permissions.length !== new Set(permissionCodes).size) throw new DomainError("VALIDATION_ERROR", "یک یا چند مجوز معتبر نیست", 400);
+      await tx.rolePermission.deleteMany({ where: { roleId } });
+      if (permissions.length) await tx.rolePermission.createMany({ data: permissions.map((permission) => ({ roleId, permissionId: permission.id })) });
+      await this.audit(tx, { ...actor, action: "role.permissions_changed", resourceType: "Role", resourceId: roleId, beforeData: { permissions: role.permissions.map((entry) => entry.permission.code) }, afterData: { permissions: permissions.map((permission) => permission.code) } });
+      return { roleId, permissions: permissions.map((permission) => permission.code).sort() };
+    });
+  }
+
+  async updateRefundStatus(refundId: string, status: "processing" | "failed", reason: string, actor: AuditActor) {
+    return this.prisma.$transaction(async (tx) => {
+      const current = await tx.refundRequest.findUnique({ where: { id: refundId }, include: { order: { select: { merchantOrganizationId: true } } } });
+      if (!current) throw notFound();
+      if (!["requested", "processing"].includes(current.status)) throw new DomainError("INVALID_STATE_TRANSITION", "وضعیت استرداد قابل تغییر نیست", 409);
+      const refund = await tx.refundRequest.update({ where: { id: refundId }, data: { status, reason } });
+      await this.audit(tx, { ...actor, action: "refund.admin_status_changed", resourceType: "RefundRequest", resourceId: refundId, targetOrganizationId: current.order.merchantOrganizationId ?? undefined, beforeData: { status: current.status, reason: current.reason }, afterData: { status: refund.status, reason: refund.reason } });
+      return { id: refund.id, status: refund.status, updatedAt: refund.updatedAt };
+    });
+  }
+
+  async updateSupportStatus(ticketId: string, status: "open" | "pending" | "resolved" | "closed", actor: AuditActor) {
+    return this.prisma.$transaction(async (tx) => {
+      const current = await tx.supportTicket.findUnique({ where: { id: ticketId } });
+      if (!current) throw notFound();
+      const ticket = await tx.supportTicket.update({ where: { id: ticketId }, data: { status } });
+      await this.audit(tx, { ...actor, action: "support.status_changed", resourceType: "SupportTicket", resourceId: ticketId, beforeData: { status: current.status }, afterData: { status: ticket.status } });
+      return { id: ticket.id, status: ticket.status, updatedAt: ticket.updatedAt };
     });
   }
 
