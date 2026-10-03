@@ -17,6 +17,8 @@ const navigation = {
   backoffice: [
     ["/backoffice", "نمای کلی", "backoffice.dashboard.view"],
     ["/backoffice/orders", "سفارش‌ها", "backoffice.orders.read"],
+    ["/backoffice/programs", "تور و زیارت", "backoffice.programs.read"],
+    ["/backoffice/registrations", "ثبت‌نام‌ها", "backoffice.registrations.read"],
     ["/backoffice/merchants", "پذیرندگان", "backoffice.merchants.read"],
     ["/backoffice/reports", "گزارش‌ها", "backoffice.reports.view"],
     ["/backoffice/audit", "ممیزی", "backoffice.audit.read"],
@@ -24,6 +26,8 @@ const navigation = {
   merchant: [
     ["/merchant", "نمای کلی", "merchant.dashboard.view"],
     ["/merchant/orders", "سفارش‌ها", "merchant.orders.read"],
+    ["/merchant/programs", "تور و زیارت", "merchant.programs.read"],
+    ["/merchant/registrations", "ثبت‌نام‌ها", "merchant.registrations.read"],
     ["/merchant/finance", "مالی", "merchant.finance.view"],
     ["/merchant/settlements", "تسویه‌ها", "merchant.settlements.read"],
     ["/merchant/team", "تیم", "merchant.team.read"],
@@ -83,4 +87,3 @@ export default function PlatformShell({ scope, children }: { scope: Scope; child
     </main>
   );
 }
-

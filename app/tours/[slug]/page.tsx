@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { CalendarCheck, MapPinned, ShieldCheck } from "lucide-react";
 import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import TravelHero from "@/components/media/TravelHero";
@@ -10,9 +9,10 @@ import { destinationAsset, serviceAsset } from "@/media/library";
 import { getTourLanding, seoTourLandings } from "@/seo/content";
 import { isIndexableSeoPath } from "@/seo/inventory";
 import { createMetadata, privateMetadata } from "@/seo/metadata";
+import { ManagedProgramDetail } from "@/components/experience/ManagedProgramCatalog";
 
 export const revalidate = 86_400;
-export const dynamicParams = false;
+export const dynamicParams = true;
 
 const legacyTourSlugs = new Set(tours.map((tour) => tour.slug));
 const collisions = seoTourLandings.filter((item) => legacyTourSlugs.has(item.slug));
@@ -37,8 +37,8 @@ export default async function TourDestinationPage({ params }: { params: Promise<
   const { slug } = await params;
   const item = getTourLanding(slug);
   if (!item) {
-    if (!legacyTourSlugs.has(slug)) notFound();
-    return <LegacyPage name="TourDetail" />;
+    if (legacyTourSlugs.has(slug)) return <LegacyPage name="TourDetail" />;
+    return <ManagedProgramDetail slug={slug} />;
   }
   const media = destinationAsset(item.slug, `نمایی از ${item.destination}`);
   return (
