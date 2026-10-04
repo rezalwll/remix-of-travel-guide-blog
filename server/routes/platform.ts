@@ -264,7 +264,7 @@ export async function registerPlatformRoutes(app: FastifyInstance, dependencies:
   app.patch<{ Params: { merchantId: string; settlementId: string } }>("/api/backoffice/merchants/:merchantId/settlements/:settlementId", async (request, reply) => {
     const context = await contextFor(request, reply, "INTERNAL", "backoffice.finance.manage"); if (!context) return;
     protectMutation(request, context, "settlement-status");
-    const parsed = z.object({ status: z.enum(["DRAFT", "READY", "APPROVED", "PROCESSING", "PAID", "FAILED", "CANCELLED"]), notes: z.string().max(1000).optional() }).safeParse(request.body);
+    const parsed = z.object({ status: z.enum(["DRAFT", "READY", "APPROVED", "PROCESSING", "PAID", "FAILED", "CANCELLED"]), notes: z.string().trim().max(1000).optional() }).superRefine((value,context)=>{if(["PAID","FAILED","CANCELLED"].includes(value.status)&&(!value.notes||value.notes.length<5))context.addIssue({code:z.ZodIssueCode.custom,path:["notes"],message:"برای وضعیت حساس، یادداشت الزامی است"});}).safeParse(request.body);
     if (!uuid.safeParse(request.params.merchantId).success || !uuid.safeParse(request.params.settlementId).success || !parsed.success) return errorResponse(reply, 400, "VALIDATION_ERROR", "تغییر وضعیت تسویه معتبر نیست");
     return { settlement: await repository.updateSettlementStatus(request.params.merchantId, request.params.settlementId, parsed.data.status, parsed.data.notes, actorFrom(request, context)) };
   });
