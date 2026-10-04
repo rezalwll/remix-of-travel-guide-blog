@@ -11,7 +11,7 @@ const userId = "20000000-0000-4000-8000-000000000001";
 const baseContext = (permissions: string[], organizationId = orgA, scope: "INTERNAL" | "MERCHANT" = "MERCHANT"): PlatformAccessContext => ({
   membershipId: "30000000-0000-4000-8000-000000000001",
   user: { id: userId, mobile: "09120000001", firstName: "کاربر", lastName: "نمونه", email: "demo@example.test" },
-  organization: { id: organizationId, type: scope === "INTERNAL" ? "KIASHI_INTERNAL" : "MERCHANT", name: "سازمان نمونه", slug: "demo", status: "ACTIVE" },
+  organization: { id: organizationId, type: scope === "INTERNAL" ? "KIASHI_INTERNAL" : "MERCHANT", name: "سازمان نمونه", slug: "demo", status: "ACTIVE", businessType: scope === "MERCHANT" ? "HOTEL" : null },
   roles: [scope === "INTERNAL" ? "OPERATIONS" : "MERCHANT_OWNER"],
   permissions,
 });
