@@ -26,6 +26,7 @@ const navigation = {
     ["/backoffice/programs", "تور و زیارت", "backoffice.programs.read"],
     ["/backoffice/registrations", "ثبت‌نام‌ها", "backoffice.registrations.read"],
     ["/backoffice/merchants", "پذیرندگان", "backoffice.merchants.read"],
+    ["/backoffice/finance", "مالی و تسویه", "backoffice.finance.view"],
     ["/backoffice/reports", "گزارش‌ها", "backoffice.reports.view"],
     ["/backoffice/audit", "ممیزی", "backoffice.audit.read"],
   ],

@@ -1,3 +1,2 @@
-import PlatformResourceView from "@/components/platform/PlatformResourceView";
-export default function Page() { return <PlatformResourceView endpoint="/api/backoffice/merchants" title="پذیرندگان" description="سازمان‌های تجاری، وضعیت onboarding و قراردادهای نمایشی." dataKey="merchants" columns={[{ key: "name", label: "نام" }, { key: "merchantProfile.merchantCode", label: "کد" }, { key: "merchantProfile.businessType", label: "نوع" }, { key: "status", label: "سازمان" }, { key: "merchantProfile.onboardingStatus", label: "پذیرش" }, { key: "merchantProfile.settlementStatus", label: "تسویه" }]} />; }
-
+import {MerchantList} from "@/components/platform/MerchantManagement";
+export default function Page(){return <MerchantList/>}

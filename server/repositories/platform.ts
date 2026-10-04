@@ -350,9 +350,9 @@ export class PlatformRepository {
   }
 
   async getMerchant(id: string) {
-    const merchant = await this.prisma.organization.findFirst({ where: { id, type: "MERCHANT" }, select: { id: true, name: true, legalName: true, slug: true, status: true, contactEmail: true, contactMobile: true, metadata: true, createdAt: true, updatedAt: true, merchantProfile: true, _count: { select: { memberships: true, merchantOrders: true, settlements: true } } } });
+    const merchant = await this.prisma.organization.findFirst({ where: { id, type: "MERCHANT" }, select: { id: true, name: true, legalName: true, slug: true, status: true, contactEmail: true, contactMobile: true, metadata: true, createdAt: true, updatedAt: true, merchantProfile: true, memberships:{where:{status:{not:"REVOKED"}},select:{id:true,status:true,user:{select:{id:true,firstName:true,lastName:true,mobile:true}},roles:{select:{role:{select:{code:true,name:true}}}}},take:50},merchantOrders:{select:{id:true,orderNumber:true,serviceType:true,total:true,paymentStatus:true,bookingStatus:true,createdAt:true},orderBy:{createdAt:"desc"},take:10},settlements:{select:{id:true,status:true,payableAmount:true,periodStart:true,periodEnd:true},orderBy:{createdAt:"desc"},take:5},_count: { select: { memberships: true, merchantOrders: true, settlements: true } } } });
     if (!merchant) throw notFound();
-    return { ...merchant, merchantProfile: merchant.merchantProfile ? { ...merchant.merchantProfile, legalIdentifier: maskIdentifier(merchant.merchantProfile.legalIdentifier), taxIdentifier: maskIdentifier(merchant.merchantProfile.taxIdentifier) } : null };
+    return { ...merchant,memberships:merchant.memberships.map(member=>({...member,user:{...member.user,mobile:maskMobile(member.user.mobile)},roles:member.roles.map(entry=>entry.role)})), merchantProfile: merchant.merchantProfile ? { ...merchant.merchantProfile, legalIdentifier: maskIdentifier(merchant.merchantProfile.legalIdentifier), taxIdentifier: maskIdentifier(merchant.merchantProfile.taxIdentifier) } : null };
   }
 
   async createMerchant(input: { name: string; legalName?: string; slug: string; contactEmail?: string; contactMobile?: string; merchantCode: string; businessType: string; legalIdentifier?: string; taxIdentifier?: string; supportPhone?: string }, actor: AuditActor) {
@@ -457,6 +457,18 @@ export class PlatformRepository {
     return { range: { from: range.from.toISOString(), to: range.to.toISOString(), timezone: reportingTimezone }, ledger: ledger.map((entry) => ({ type: entry.type, currency: entry.currency, amount: numeric(entry._sum.amount), count: entry._count._all })), settlements: { count: settlements._count._all, grossAmount: numeric(settlements._sum.grossAmount), commissionAmount: numeric(settlements._sum.commissionAmount), refundAmount: numeric(settlements._sum.refundAmount), adjustmentAmount: numeric(settlements._sum.adjustmentAmount), payableAmount: numeric(settlements._sum.payableAmount) } };
   }
 
+  async backofficeFinanceSummary(range: RangeInput) {
+    const [report,settlements,adjustments]=await Promise.all([
+      this.reportSummary(range),
+      this.prisma.settlementBatch.groupBy({by:["status"],where:{createdAt:{gte:range.from,lt:range.to}},_sum:{grossAmount:true,commissionAmount:true,refundAmount:true,adjustmentAmount:true,payableAmount:true},_count:{_all:true}}),
+      this.prisma.merchantLedgerEntry.aggregate({where:{type:"ADJUSTMENT",status:"POSTED",createdAt:{gte:range.from,lt:range.to}},_sum:{amount:true},_count:{_all:true}}),
+    ]);
+    const pending=settlements.filter(entry=>!["PAID","CANCELLED","FAILED"].includes(entry.status));const completed=settlements.filter(entry=>entry.status==="PAID");
+    return{range:report.range,totals:{grossSales:report.totals.grossAmount,refunds:report.totals.refundAmount,commission:report.totals.commissionAmount,merchantPayable:report.totals.merchantPayable,adjustments:numeric(adjustments._sum.amount),pendingSettlements:pending.reduce((sum,entry)=>sum+entry._count._all,0),pendingAmount:pending.reduce((sum,entry)=>sum+numeric(entry._sum.payableAmount),0),completedSettlements:completed.reduce((sum,entry)=>sum+entry._count._all,0),completedAmount:completed.reduce((sum,entry)=>sum+numeric(entry._sum.payableAmount),0)},series:report.series};
+  }
+
+  async listBackofficeSettlements(page:PageInput,status?:SettlementStatus,organizationId?:string){const where:Prisma.SettlementBatchWhereInput={status,organizationId};const[items,total]=await Promise.all([this.prisma.settlementBatch.findMany({where,select:{id:true,organizationId:true,periodStart:true,periodEnd:true,grossAmount:true,commissionAmount:true,refundAmount:true,adjustmentAmount:true,payableAmount:true,currency:true,status:true,externalReference:true,notes:true,approvedAt:true,paidAt:true,createdAt:true,organization:{select:{id:true,name:true}}},orderBy:{createdAt:"desc"},skip:(page.page-1)*page.perPage,take:page.perPage}),this.prisma.settlementBatch.count({where})]);return{items,total};}
+
   async listMerchantSettlements(organizationId: string, page: PageInput) {
     const [items, total] = await Promise.all([
       this.prisma.settlementBatch.findMany({ where: { organizationId }, select: { id: true, periodStart: true, periodEnd: true, grossAmount: true, commissionAmount: true, refundAmount: true, adjustmentAmount: true, payableAmount: true, currency: true, status: true, externalReference: true, notes: true, approvedAt: true, paidAt: true, createdAt: true, updatedAt: true }, orderBy: { createdAt: "desc" }, skip: (page.page - 1) * page.perPage, take: page.perPage }),
@@ -473,6 +485,8 @@ export class PlatformRepository {
     ]);
     return { items: items.map((item) => ({ ...item, user: { ...item.user, mobile: maskMobile(item.user.mobile), email: maskEmail(item.user.email) }, roles: item.roles.map((entry) => entry.role) })), total };
   }
+
+  async updateMembershipStatus(organizationId:string,membershipId:string,status:"ACTIVE"|"SUSPENDED",actor:AuditActor){return this.prisma.$transaction(async tx=>{const membership=await tx.organizationMembership.findFirst({where:{id:membershipId,organizationId},include:{roles:{include:{role:true}}}});if(!membership)throw notFound();if(status==="SUSPENDED"&&membership.roles.some(entry=>entry.role.code==="MERCHANT_OWNER")){const otherOwner=await tx.organizationMembership.count({where:{organizationId,status:"ACTIVE",id:{not:membershipId},roles:{some:{role:{code:"MERCHANT_OWNER"}}}}});if(!otherOwner)throw new DomainError("LAST_OWNER_REQUIRED","آخرین مالک فعال سازمان را نمی‌توان غیرفعال کرد",409);}const updated=await tx.organizationMembership.update({where:{id:membershipId},data:{status}});await this.audit(tx,{...actor,action:"membership.status_changed",resourceType:"OrganizationMembership",resourceId:membershipId,targetOrganizationId:organizationId,beforeData:{status:membership.status},afterData:{status}});return updated;});}
 
   async getMerchantProfile(organizationId: string) {
     const organization = await this.prisma.organization.findFirst({ where: { id: organizationId, type: "MERCHANT" }, select: { id: true, name: true, legalName: true, slug: true, status: true, contactEmail: true, contactMobile: true, merchantProfile: true } });

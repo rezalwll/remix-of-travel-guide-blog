@@ -33,6 +33,9 @@ function mocks(access: (user: string, scope: "INTERNAL" | "MERCHANT", requested?
     getMerchantProfile: vi.fn(async () => ({ id: orgA })),
     updateOwnMerchantProfile: vi.fn(async (organizationId, input) => ({ id: organizationId, ...input })),
     setMembershipRoles: vi.fn(async (organizationId, membershipId, roles) => ({ organizationId, membershipId, roles })),
+    updateMembershipStatus: vi.fn(async (organizationId, membershipId, status) => ({ organizationId, membershipId, status })),
+    backofficeFinanceSummary: vi.fn(async () => ({ totals: { grossSales: 0 } })),
+    listBackofficeSettlements: vi.fn(async () => ({ items: [], total: 0 })),
     reportSummary: vi.fn(async () => ({ totals: { orders: 0 }, series: [] })),
     listMerchants: vi.fn(async () => ({ items: [], total: 0 })),
     createMerchant: vi.fn(async (input, actor) => ({ id: orgB, ...input, auditActor: actor.userId })),
@@ -136,6 +139,17 @@ describe("platform API authorization", () => {
     vi.mocked(platform.updateOwnMerchantProfile).mockClear();
     expect((await app.inject({ method: "PATCH", url: "/api/merchant/profile", headers: { ...auth, "x-organization-id": orgB }, payload: { name: "غیرمجاز" } })).statusCode).toBe(403);
     expect(platform.updateOwnMerchantProfile).not.toHaveBeenCalled();
+    const status=await app.inject({method:"PATCH",url:`/api/merchant/team/${membershipId}`,headers:{...auth,origin:"http://localhost:8080"},payload:{status:"SUSPENDED"}});
+    expect(status.statusCode).toBe(200);
+    expect(platform.updateMembershipStatus).toHaveBeenCalledWith(orgA,membershipId,"SUSPENDED",expect.objectContaining({userId}));
+  });
+
+  it("keeps backoffice finance summaries and settlements behind finance permission",async()=>{
+    const allowed=mocks((_user,scope)=>scope==="INTERNAL"?baseContext(["backoffice.finance.view"],orgA,"INTERNAL"):null);const allowedApp=await appWith(allowed.runtime,allowed.platform);
+    expect((await allowedApp.inject({method:"GET",url:"/api/backoffice/finance/summary?preset=30d",headers:auth})).statusCode).toBe(200);
+    expect((await allowedApp.inject({method:"GET",url:"/api/backoffice/settlements?status=READY",headers:auth})).statusCode).toBe(200);
+    const denied=mocks((_user,scope)=>scope==="INTERNAL"?baseContext(["backoffice.dashboard.view"],orgA,"INTERNAL"):null);const deniedApp=await appWith(denied.runtime,denied.platform);
+    expect((await deniedApp.inject({method:"GET",url:"/api/backoffice/finance/summary",headers:auth})).statusCode).toBe(403);
   });
 
   it("keeps merchant users out of internal APIs", async () => {

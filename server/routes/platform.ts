@@ -36,6 +36,8 @@ const contractStatus = z.enum(["NOT_STARTED", "PENDING", "ACTIVE", "EXPIRED", "S
 const settlementProfileStatus = z.enum(["INACTIVE", "ACTIVE", "SUSPENDED"]);
 const membershipStatus = z.enum(["INVITED", "ACTIVE", "SUSPENDED", "REVOKED"]);
 const providerDrivenService = z.enum(["flight", "train", "bus", "insurance", "cip", "transfer"]);
+const settlementStatus=z.enum(["DRAFT","READY","APPROVED","PROCESSING","PAID","FAILED","CANCELLED"]);
+const merchantRole=z.enum(["MERCHANT_OWNER","MERCHANT_MANAGER","MERCHANT_FINANCE","MERCHANT_OPERATOR","MERCHANT_READONLY"]);
 
 function parsePage(query: unknown) {
   const result = pageSchema.safeParse(query);
@@ -235,6 +237,9 @@ export async function registerPlatformRoutes(app: FastifyInstance, dependencies:
     return { report: await repository.reportSummary(parseRange(request.query)) };
   });
 
+  app.get("/api/backoffice/finance/summary",async(request,reply)=>{const context=await contextFor(request,reply,"INTERNAL","backoffice.finance.view");if(!context)return;return{finance:await repository.backofficeFinanceSummary(parseRange(request.query))};});
+  app.get("/api/backoffice/settlements",async(request,reply)=>{const context=await contextFor(request,reply,"INTERNAL","backoffice.finance.view");if(!context)return;const parsed=z.object({status:settlementStatus.optional(),merchantId:uuid.optional()}).safeParse(request.query);if(!parsed.success)return errorResponse(reply,400,"VALIDATION_ERROR","فیلتر تسویه معتبر نیست");const page=parsePage(request.query);const result=await repository.listBackofficeSettlements(page,parsed.data.status,parsed.data.merchantId);return{settlements:result.items,pagination:pagination(page,result.total)};});
+
   app.post<{ Params: { id: string } }>("/api/backoffice/merchants/:id/finance-adjustments", async (request, reply) => {
     const context = await contextFor(request, reply, "INTERNAL", "backoffice.finance.manage"); if (!context) return;
     protectMutation(request, context, "finance-adjustment");
@@ -366,8 +371,10 @@ export async function registerPlatformRoutes(app: FastifyInstance, dependencies:
   app.put<{ Params: { membershipId: string } }>("/api/merchant/team/:membershipId/roles", async (request, reply) => {
     const context = await contextFor(request, reply, "MERCHANT", "merchant.team.manage"); if (!context) return;
     protectMutation(request, context, "merchant-team-role");
-    const parsed = z.object({ roles: z.array(z.string().max(80)).max(10) }).safeParse(request.body);
+    const parsed = z.object({ roles: z.array(merchantRole).min(1).max(3) }).safeParse(request.body);
     if (!uuid.safeParse(request.params.membershipId).success || !parsed.success) return errorResponse(reply, 400, "VALIDATION_ERROR", "نقش‌ها معتبر نیستند");
     return { membership: await repository.setMembershipRoles(context.organization.id, request.params.membershipId, parsed.data.roles, actorFrom(request, context)) };
   });
+
+  app.patch<{Params:{membershipId:string}}>("/api/merchant/team/:membershipId",async(request,reply)=>{const context=await contextFor(request,reply,"MERCHANT","merchant.team.manage");if(!context)return;protectMutation(request,context,"merchant-team-status");const parsed=z.object({status:z.enum(["ACTIVE","SUSPENDED"])}).safeParse(request.body);if(!uuid.safeParse(request.params.membershipId).success||!parsed.success)return errorResponse(reply,400,"VALIDATION_ERROR","وضعیت عضویت معتبر نیست");if(request.params.membershipId===context.membershipId)return errorResponse(reply,409,"SELF_MEMBERSHIP_CHANGE","وضعیت عضویت فعال خودتان را نمی‌توانید تغییر دهید");return{membership:await repository.updateMembershipStatus(context.organization.id,request.params.membershipId,parsed.data.status,actorFrom(request,context))};});
 }
