@@ -22,6 +22,7 @@ const navigation = {
     ["/backoffice/customers", "مشتریان", "backoffice.customers.read"],
     ["/backoffice/refunds", "استرداد", "backoffice.refunds.read"],
     ["/backoffice/support", "پشتیبانی", "backoffice.support.read"],
+    ["/backoffice/visa", "پرونده‌های ویزا", "backoffice.visa.read"],
     ["/backoffice/programs", "تور و زیارت", "backoffice.programs.read"],
     ["/backoffice/registrations", "ثبت‌نام‌ها", "backoffice.registrations.read"],
     ["/backoffice/merchants", "پذیرندگان", "backoffice.merchants.read"],

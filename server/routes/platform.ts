@@ -5,6 +5,7 @@ import { permissionCatalog, requirePermission, type PermissionCode } from "../pl
 import { reportRange, type ReportPreset } from "../platform/reporting.js";
 import type { PlatformAccessContext } from "../repositories/platform.js";
 import { PlatformRepository } from "../repositories/platform.js";
+import { visaDocumentKeys, visaDocumentStates, visaStatuses } from "../visa/domain.js";
 
 type AuthenticatedUser = { id: string };
 type FeatureConfig = { WEB_ORIGIN: string; BACKOFFICE_ENABLED: boolean; MERCHANT_PORTAL_ENABLED: boolean };
@@ -156,6 +157,30 @@ export async function registerPlatformRoutes(app: FastifyInstance, dependencies:
     const parsed=z.object({status:z.enum(["open","pending","resolved","closed"]).optional()}).safeParse(request.query);if(!parsed.success)return errorResponse(reply,400,"VALIDATION_ERROR","فیلتر پشتیبانی معتبر نیست");
     const page = parsePage(request.query); const result = await repository.listSupport(page,parsed.data.status);
     return { tickets: result.items, pagination: pagination(page, result.total) };
+  });
+
+  app.get("/api/backoffice/visa", async (request, reply) => {
+    const context = await contextFor(request, reply, "INTERNAL", "backoffice.visa.read"); if (!context) return;
+    const parsed=z.object({status:z.enum(visaStatuses).optional(),country:z.string().trim().max(80).optional(),query:z.string().trim().max(120).optional()}).safeParse(request.query);
+    if(!parsed.success)return errorResponse(reply,400,"VALIDATION_ERROR","فیلتر پرونده ویزا معتبر نیست");
+    const page=parsePage(request.query);const result=await repository.listVisaCases(parsed.data,page);
+    return{applications:result.items,pagination:pagination(page,result.total)};
+  });
+
+  app.get<{Params:{id:string}}>("/api/backoffice/visa/:id",async(request,reply)=>{
+    const context=await contextFor(request,reply,"INTERNAL","backoffice.visa.read");if(!context)return;
+    if(!uuid.safeParse(request.params.id).success)return errorResponse(reply,400,"VALIDATION_ERROR","شناسه پرونده معتبر نیست");
+    return{application:await repository.getVisaCase(request.params.id)};
+  });
+
+  app.patch<{Params:{id:string}}>("/api/backoffice/visa/:id",async(request,reply)=>{
+    const context=await contextFor(request,reply,"INTERNAL","backoffice.visa.manage");if(!context)return;protectMutation(request,context,"visa-case");
+    const checklistItem=z.object({status:z.enum(visaDocumentStates),note:z.string().trim().max(500).optional()});
+    const checklist=z.record(z.enum(visaDocumentKeys),checklistItem);
+    const parsed=z.object({status:z.enum(visaStatuses).optional(),checklist:checklist.optional(),internalNote:z.string().trim().max(3000).nullable().optional(),customerNote:z.string().trim().max(1500).nullable().optional(),reviewerId:uuid.nullable().optional(),providerReference:z.string().trim().max(180).nullable().optional()}).refine(value=>Object.keys(value).length>0).safeParse(request.body);
+    if(!uuid.safeParse(request.params.id).success||!parsed.success)return errorResponse(reply,400,"VALIDATION_ERROR","تغییرات پرونده ویزا معتبر نیست");
+    await repository.updateVisaCase(request.params.id,parsed.data,actorFrom(request,context));
+    return{application:await repository.getVisaCase(request.params.id)};
   });
 
   app.get<{Params:{id:string}}>("/api/backoffice/support/:id",async(request,reply)=>{const context=await contextFor(request,reply,"INTERNAL","backoffice.support.read");if(!context)return;if(!uuid.safeParse(request.params.id).success)return errorResponse(reply,400,"VALIDATION_ERROR","شناسه معتبر نیست");return{ticket:await repository.getSupport(request.params.id)};});

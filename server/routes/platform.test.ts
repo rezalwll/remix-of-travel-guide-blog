@@ -22,6 +22,9 @@ function mocks(access: (user: string, scope: "INTERNAL" | "MERCHANT", requested?
     accessContext: vi.fn(async (user: string, scope: "INTERNAL" | "MERCHANT", requested?: string) => access(user, scope, requested)),
     listMerchantOrders: vi.fn(async () => ({ items: [], total: 0 })),
     listServiceOperations: vi.fn(async () => ({ items: [], total: 0 })),
+    listVisaCases: vi.fn(async () => ({ items: [], total: 0 })),
+    getVisaCase: vi.fn(async (id) => ({ id, status: "SUBMITTED" })),
+    updateVisaCase: vi.fn(async (id, input) => ({ id, ...input })),
     getMerchantOrder: vi.fn(async (_organizationId, id) => ({ id })),
     listMerchantBookings: vi.fn(async () => ({ items: [], total: 0 })),
     merchantFinanceSummary: vi.fn(async () => ({ ledger: [], settlements: {} })),
@@ -157,6 +160,21 @@ describe("platform API authorization", () => {
     const app = await appWith(runtime, platform);
     expect((await app.inject({ method: "GET", url: "/api/backoffice/operations/flight", headers: auth })).statusCode).toBe(403);
     expect(platform.listServiceOperations).not.toHaveBeenCalled();
+  });
+
+  it("separates visa case read and transition permissions", async () => {
+    const read = mocks((_user, scope) => scope === "INTERNAL" ? baseContext(["backoffice.visa.read"], orgA, "INTERNAL") : null);
+    const readApp = await appWith(read.runtime, read.platform);
+    expect((await readApp.inject({ method: "GET", url: "/api/backoffice/visa?status=SUBMITTED", headers: auth })).statusCode).toBe(200);
+    const visaId="40000000-0000-4000-8000-000000000088";
+    expect((await readApp.inject({ method: "GET", url: `/api/backoffice/visa/${visaId}`, headers: auth })).statusCode).toBe(200);
+    expect((await readApp.inject({ method: "PATCH", url: `/api/backoffice/visa/${visaId}`, headers: auth, payload:{status:"UNDER_REVIEW"} })).statusCode).toBe(403);
+
+    const manage = mocks((_user, scope) => scope === "INTERNAL" ? baseContext(["backoffice.visa.manage"], orgA, "INTERNAL") : null);
+    const manageApp = await appWith(manage.runtime, manage.platform);
+    const updated=await manageApp.inject({method:"PATCH",url:`/api/backoffice/visa/${visaId}`,headers:{...auth,origin:"http://localhost:8080"},payload:{status:"UNDER_REVIEW",customerNote:"پرونده در حال بررسی است"}});
+    expect(updated.statusCode).toBe(200);
+    expect(manage.platform.updateVisaCase).toHaveBeenCalledWith(visaId,expect.objectContaining({status:"UNDER_REVIEW"}),expect.objectContaining({userId}));
   });
 
   it("allows internal reads but denies role management without its permission", async () => {

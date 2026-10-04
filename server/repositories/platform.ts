@@ -4,6 +4,7 @@ import { canTransitionSettlement, type SettlementStatus } from "../platform/fina
 import { maskEmail, maskIdentifier, maskMobile, toMerchantOrderDto } from "../platform/privacy.js";
 import { reportingTimezone } from "../platform/reporting.js";
 import { sanitizeProviderPayload } from "../providers/redaction.js";
+import { assertVisaTransition, emptyVisaChecklist, normalizeVisaStatus, type VisaDocumentKey, type VisaDocumentState, type VisaStatus } from "../visa/domain.js";
 
 const asJson = (value: unknown): Prisma.InputJsonValue => value as Prisma.InputJsonValue;
 const numeric = (value: bigint | number | null | undefined) => Number(value ?? 0);
@@ -104,6 +105,15 @@ function operationContext(serviceType: string, snapshotValue: unknown, summaryVa
   if (serviceType === "cip") return { ...common, airport: firstText(outbound.airport, snapshot.airport), package: firstText(outbound.packageName, outbound.title, summary.title), direction: firstText(outbound.direction, snapshot.direction), specialNotes: firstText(snapshot.specialNotes, snapshot.note) };
   if (serviceType === "transfer") return { ...common, vehicleType: firstText(outbound.vehicleType, snapshot.vehicleType), capacity: outbound.capacity ?? snapshot.capacity, source: firstText(snapshot.source, outbound.source) };
   return common;
+}
+
+function visaCasePayload(value: unknown) {
+  const payload = objectValue(value);
+  return {
+    ...payload,
+    checklist: objectValue(payload.checklist),
+    timeline: Array.isArray(payload.timeline) ? payload.timeline.filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === "object" && !Array.isArray(entry)) : [],
+  } as Record<string, unknown> & { checklist: Record<string, unknown>; timeline: Array<Record<string, unknown>> };
 }
 
 export class PlatformRepository {
@@ -271,6 +281,55 @@ export class PlatformRepository {
       this.prisma.supportTicket.count({where:{status}}),
     ]);
     return { items: items.map((item) => ({ ...item, user: item.user ? { ...item.user, mobile: maskMobile(item.user.mobile) } : null })), total };
+  }
+
+  async listVisaCases(filters: { status?: string; country?: string; query?: string }, page: PageInput) {
+    const queryIsUuid=Boolean(filters.query&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(filters.query));
+    const where: Prisma.VisaApplicationWhereInput = {
+      status: filters.status ? { equals: filters.status, mode: "insensitive" } : undefined,
+      country: filters.country ? { contains: filters.country, mode: "insensitive" } : undefined,
+      ...(filters.query ? { OR: [
+        ...(queryIsUuid?[{ id: { equals: filters.query } }]:[]),
+        { country: { contains: filters.query, mode: "insensitive" } },
+        { user: { mobile: { contains: filters.query } } },
+        { user: { firstName: { contains: filters.query, mode: "insensitive" } } },
+        { user: { lastName: { contains: filters.query, mode: "insensitive" } } },
+      ] } : {}),
+    };
+    const [items, total] = await Promise.all([
+      this.prisma.visaApplication.findMany({ where, include: { user: { select: { id: true, firstName: true, lastName: true, mobile: true, email: true } } }, orderBy: { updatedAt: "desc" }, skip: (page.page - 1) * page.perPage, take: page.perPage }),
+      this.prisma.visaApplication.count({ where }),
+    ]);
+    return { items: items.map((item) => { const payload=visaCasePayload(item.payload);const checklist=payload.checklist;const missingDocuments=Object.values(checklist).filter(entry=>["missing","requested"].includes(String(objectValue(entry).status))).length;return{id:item.id,country:item.country,status:normalizeVisaStatus(item.status),applicant:{id:item.user.id,name:`${item.user.firstName} ${item.user.lastName}`.trim(),mobile:maskMobile(item.user.mobile),email:maskEmail(item.user.email)},submittedAt:payload.submittedAt??null,missingDocuments,reviewerId:payload.reviewerId??null,customerNote:payload.customerNote??null,updatedAt:item.updatedAt,createdAt:item.createdAt};}), total };
+  }
+
+  async getVisaCase(id: string) {
+    const visa = await this.prisma.visaApplication.findUnique({ where: { id }, include: { user: { select: { id: true, firstName: true, lastName: true, mobile: true, email: true, nationalId: true } } } });
+    if (!visa) throw notFound("پرونده ویزا پیدا نشد");
+    const payload=visaCasePayload(visa.payload);
+    const reviewerId=typeof payload.reviewerId==="string"?payload.reviewerId:null;
+    const [reviewer,audit]=await Promise.all([
+      reviewerId?this.prisma.user.findUnique({where:{id:reviewerId},select:{id:true,firstName:true,lastName:true}}):null,
+      this.prisma.auditLog.findMany({where:{resourceType:"VisaApplication",resourceId:id},select:{id:true,actorUserId:true,action:true,beforeData:true,afterData:true,createdAt:true},orderBy:{createdAt:"desc"},take:100}),
+    ]);
+    return { id:visa.id,country:visa.country,status:normalizeVisaStatus(visa.status),applicant:{id:visa.user.id,name:`${visa.user.firstName} ${visa.user.lastName}`.trim(),mobile:maskMobile(visa.user.mobile),email:maskEmail(visa.user.email),nationalId:maskIdentifier(visa.user.nationalId)},travelDates:payload.travelDates??null,purpose:payload.purpose??null,checklist:Object.keys(payload.checklist).length?payload.checklist:emptyVisaChecklist(),internalNote:payload.internalNote??null,customerNote:payload.customerNote??null,providerReference:payload.providerReference??null,reviewer:reviewer?{id:reviewer.id,name:`${reviewer.firstName} ${reviewer.lastName}`.trim()}:null,timeline:payload.timeline,audit,submittedAt:payload.submittedAt??null,createdAt:visa.createdAt,updatedAt:visa.updatedAt };
+  }
+
+  async updateVisaCase(id: string, input: { status?: VisaStatus; checklist?: Partial<Record<VisaDocumentKey, { status?: VisaDocumentState; note?: string }>>; internalNote?: string | null; customerNote?: string | null; reviewerId?: string | null; providerReference?: string | null }, actor: AuditActor) {
+    return this.prisma.$transaction(async tx=>{
+      const current=await tx.visaApplication.findUnique({where:{id}});if(!current)throw notFound("پرونده ویزا پیدا نشد");
+      const currentStatus=normalizeVisaStatus(current.status);const nextStatus=input.status??currentStatus;assertVisaTransition(currentStatus,nextStatus);
+      const payload=visaCasePayload(current.payload);const checklist={...(Object.keys(payload.checklist).length?payload.checklist:emptyVisaChecklist()),...input.checklist};
+      const providerReference=input.providerReference===undefined?payload.providerReference:input.providerReference;
+      if(nextStatus==="SUBMITTED_TO_PROVIDER"&&!providerReference)throw new DomainError("VISA_PROVIDER_REFERENCE_REQUIRED","برای ثبت ارسال واقعی، مرجع تأمین‌کننده الزامی است",409);
+      if(input.reviewerId&&!(await tx.user.findUnique({where:{id:input.reviewerId},select:{id:true}})))throw notFound("کارشناس پرونده پیدا نشد");
+      const now=new Date().toISOString();const statusChanged=nextStatus!==currentStatus;
+      const timeline=[...payload.timeline,...(statusChanged?[{status:nextStatus,at:now,audience:"customer",note:input.customerNote||"وضعیت پرونده به‌روزرسانی شد"}]:[]),...(input.internalNote!==undefined?[{status:nextStatus,at:now,audience:"internal",note:input.internalNote||"یادداشت داخلی پاک شد"}]:[])];
+      const nextPayload={...payload,checklist,internalNote:input.internalNote===undefined?payload.internalNote:input.internalNote,customerNote:input.customerNote===undefined?payload.customerNote:input.customerNote,reviewerId:input.reviewerId===undefined?payload.reviewerId:input.reviewerId,providerReference,...(!payload.submittedAt&&nextStatus!=="DRAFT"?{submittedAt:now}:{}),timeline};
+      const updated=await tx.visaApplication.update({where:{id},data:{status:nextStatus,payload:asJson(nextPayload)}});
+      await this.audit(tx,{...actor,action:statusChanged?"visa.status_changed":"visa.case_updated",resourceType:"VisaApplication",resourceId:id,beforeData:{status:currentStatus,checklist:payload.checklist,reviewerId:payload.reviewerId},afterData:{status:nextStatus,checklist,reviewerId:nextPayload.reviewerId,customerNote:nextPayload.customerNote,providerReference:Boolean(providerReference)}});
+      return updated;
+    });
   }
 
   async getSupport(id:string){const ticket=await this.prisma.supportTicket.findUnique({where:{id},include:{user:{select:{id:true,firstName:true,lastName:true,mobile:true}},order:{select:{id:true,orderNumber:true,trackingCode:true,serviceType:true}},organization:{select:{id:true,name:true}},messages:{orderBy:{createdAt:"asc"},select:{id:true,authorType:true,body:true,internal:true,createdAt:true}}}});if(!ticket)throw notFound();return{...ticket,user:ticket.user?{...ticket.user,mobile:maskMobile(ticket.user.mobile)}:null};}
