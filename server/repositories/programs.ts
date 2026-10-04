@@ -139,8 +139,8 @@ export class ProgramRepository {
 
   async createProgram(organizationId: string, input: Required<Pick<ProgramWriteInput, "type" | "slug" | "title">> & ProgramWriteInput, actor: AuditActor) {
     return this.prisma.$transaction(async (tx) => {
-      const merchant = await tx.organization.findFirst({ where: { id: organizationId, type: "MERCHANT", status: "ACTIVE" }, select: { id: true } });
-      if (!merchant) throw notFound("پذیرنده پیدا نشد");
+      const merchant = await tx.organization.findFirst({ where: { id: organizationId, type: "MERCHANT", status: "ACTIVE", merchantProfile: { businessType: "TOUR_OPERATOR" } }, select: { id: true } });
+      if (!merchant) throw new DomainError("PROGRAM_MERCHANT_REQUIRED", "مجری تور فعال برای این برنامه پیدا نشد", 409);
       const program = await tx.travelProgram.create({ data: { organizationId, type: input.type, slug: input.slug, title: input.title, shortDescription: input.shortDescription, description: input.description ?? "", origin: input.origin ?? "", durationDays: input.durationDays ?? 1, durationNights: input.durationNights ?? 0, sourceType: input.sourceType ?? "DIRECT", featured: input.featured ?? false, futureSalePolicy: input.futureSalePolicy ?? false, visaNote: input.visaNote, cancellationPolicy: input.cancellationPolicy ?? "", guideNote: input.guideNote, destinations: input.destinations?.length ? { create: input.destinations } : undefined, itinerary: input.itinerary?.length ? { create: input.itinerary } : undefined, contentItems: input.contentItems?.length ? { create: input.contentItems } : undefined, media: input.media?.length ? { create: input.media } : undefined }, include: programInclude });
       await this.audit(tx, actor, { action: "program.created", resourceType: "TravelProgram", resourceId: program.id, targetOrganizationId: organizationId, afterData: { type: program.type, slug: program.slug, title: program.title } });
       return presentProgram(program);

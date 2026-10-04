@@ -64,3 +64,19 @@ export function assertTransition<T extends keyof typeof transitions>(machine: T,
   const allowed = transitions[machine][from] as readonly string[];
   if (from !== to && !allowed?.includes(to)) throw new DomainError("INVALID_STATE_TRANSITION", `Invalid ${machine} transition: ${from} -> ${to}`, 409);
 }
+
+const bookingOverrideTransitions: Record<OrderBookingState, readonly OrderBookingState[]> = {
+  paid_booking_pending: ["confirmed", "reservation_failed", "manual_review_required"],
+  confirmed: ["manual_review_required"],
+  reservation_failed: ["manual_review_required"],
+  compensation_pending: ["manual_review_required"],
+  manual_review_required: ["confirmed", "reservation_failed"],
+  refunded: [],
+};
+
+export function assertBookingOverride(from: OrderBookingState, to: OrderBookingState) {
+  if (from === to) return;
+  if (!bookingOverrideTransitions[from]?.includes(to)) {
+    throw new DomainError("INVALID_STATE_TRANSITION", `Invalid booking override: ${from} -> ${to}`, 409);
+  }
+}

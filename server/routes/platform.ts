@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { DomainError } from "../domain/errors.js";
 import { permissionCatalog, requirePermission, type PermissionCode } from "../platform/permissions.js";
+import { capabilitiesForBusinessType, requireMerchantPermissionCapability } from "../platform/merchant-capabilities.js";
 import { reportRange, type ReportPreset } from "../platform/reporting.js";
 import type { PlatformAccessContext } from "../repositories/platform.js";
 import { PlatformRepository } from "../repositories/platform.js";
@@ -96,6 +97,7 @@ export async function registerPlatformRoutes(app: FastifyInstance, dependencies:
     const context = await repository.accessContext(user.id, scope, requested);
     if (!context) { errorResponse(reply, 403, "ACCESS_DENIED", "دسترسی به این بخش برای حساب شما فعال نیست"); return undefined; }
     requirePermission(context.permissions, permission);
+    if (scope === "MERCHANT") requireMerchantPermissionCapability(context.organization.businessType, permission);
     request.log.info({ actorUserId: user.id, organizationId: context.organization.id, accessScope: scope }, "platform access authorized");
     return context;
   }
@@ -272,7 +274,7 @@ export async function registerPlatformRoutes(app: FastifyInstance, dependencies:
   app.patch<{ Params: { orderId: string } }>("/api/backoffice/bookings/:orderId", async (request, reply) => {
     const context = await contextFor(request, reply, "INTERNAL", "backoffice.orders.manage"); if (!context) return;
     protectMutation(request, context, "booking-override");
-    const parsed = z.object({ bookingStatus: z.enum(["confirmed", "reservation_failed", "manual_review_required", "refunded"]), reason: z.string().trim().min(5).max(500) }).safeParse(request.body);
+    const parsed = z.object({ bookingStatus: z.enum(["confirmed", "reservation_failed", "manual_review_required"]), reason: z.string().trim().min(5).max(500) }).safeParse(request.body);
     if (!uuid.safeParse(request.params.orderId).success || !parsed.success) return errorResponse(reply, 400, "VALIDATION_ERROR", "بازنویسی وضعیت رزرو معتبر نیست");
     return { order: await repository.overrideBooking(request.params.orderId, parsed.data.bookingStatus, parsed.data.reason, actorFrom(request, context)) };
   });
@@ -319,7 +321,7 @@ export async function registerPlatformRoutes(app: FastifyInstance, dependencies:
 
   app.get("/api/merchant/me", async (request, reply) => {
     const context = await contextFor(request, reply, "MERCHANT", "merchant.dashboard.view");
-    return context ? { user: context.user, organization: context.organization, roles: context.roles, permissions: context.permissions } : undefined;
+    return context ? { user: context.user, organization: context.organization, roles: context.roles, permissions: context.permissions, capabilities: capabilitiesForBusinessType(context.organization.businessType) } : undefined;
   });
 
   app.get("/api/merchant/dashboard/summary", async (request, reply) => {

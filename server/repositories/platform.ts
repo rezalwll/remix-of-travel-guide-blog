@@ -5,6 +5,7 @@ import { maskEmail, maskIdentifier, maskMobile, toMerchantOrderDto } from "../pl
 import { reportingTimezone } from "../platform/reporting.js";
 import { sanitizeProviderPayload } from "../providers/redaction.js";
 import { assertVisaTransition, emptyVisaChecklist, normalizeVisaStatus, type VisaDocumentKey, type VisaDocumentState, type VisaStatus } from "../visa/domain.js";
+import { assertBookingOverride, type OrderBookingState } from "../domain/states.js";
 
 const asJson = (value: unknown): Prisma.InputJsonValue => value as Prisma.InputJsonValue;
 const numeric = (value: bigint | number | null | undefined) => Number(value ?? 0);
@@ -572,6 +573,7 @@ export class PlatformRepository {
     return this.prisma.$transaction(async (tx) => {
       const current = await tx.order.findUnique({ where: { id: orderId }, select: { id: true, bookingStatus: true, merchantOrganizationId: true } });
       if (!current) throw notFound();
+      assertBookingOverride(current.bookingStatus as OrderBookingState, bookingStatus as OrderBookingState);
       const order = await tx.order.update({ where: { id: orderId }, data: { bookingStatus } });
       await this.audit(tx, { ...actor, action: "booking.manual_override", resourceType: "Order", resourceId: order.id, targetOrganizationId: current.merchantOrganizationId ?? undefined, beforeData: { bookingStatus: current.bookingStatus }, afterData: { bookingStatus, reason } });
       return { id: order.id, bookingStatus: order.bookingStatus };

@@ -11,7 +11,17 @@ type AccessPayload = {
   organization: { name: string; id: string; businessType?: string | null };
   roles: string[];
   permissions: string[];
+  capabilities?: string[];
 };
+
+const merchantCapabilityBySection: ReadonlyArray<[RegExp, string]> = [
+  [/\/(hotels|inventory|hotel-bookings|guests)(?:\/|$)/, "MANAGE_HOTELS"],
+  [/\/programs(?:\/|$)/, "MANAGE_PROGRAMS"],
+  [/\/registrations(?:\/|$)/, "VIEW_PROGRAM_REGISTRATIONS"],
+  [/\/orders(?:\/|$)/, "VIEW_PROVIDER_ORDERS"],
+  [/\/team(?:\/|$)/, "MANAGE_TEAM"],
+  [/\/(finance|settlements)(?:\/|$)/, "VIEW_FINANCE"],
+];
 
 const navigation = {
   backoffice: [
@@ -70,7 +80,12 @@ export default function PlatformShell({ scope, children }: { scope: Scope; child
     return () => controller.abort();
   }, [scope]);
 
-  const links = useMemo(() => navigation[scope].filter((entry) => {if(!access?.permissions.includes(entry[2]))return false;if(scope!=="merchant")return true;const hotel=access.organization.businessType==="HOTEL";if(entry[0].includes("program")||entry[0].includes("registration"))return !hotel;if(entry[0].includes("hotel")||entry[0].includes("inventory")||entry[0].includes("guests"))return hotel;return true;}), [access, scope]);
+  const links = useMemo(() => navigation[scope].filter((entry) => {
+    if (!access?.permissions.includes(entry[2])) return false;
+    if (scope !== "merchant") return true;
+    const required = merchantCapabilityBySection.find(([pattern]) => pattern.test(entry[0]))?.[1];
+    return !required || Boolean(access.capabilities?.includes(required));
+  }), [access, scope]);
 
   if (state === "loading") return <div className="mx-auto grid min-h-[55vh] max-w-6xl place-items-center px-4"><div className="flex items-center gap-3 text-sm text-muted-foreground"><span className="size-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />در حال بررسی دسترسی…</div></div>;
   if (state === "forbidden") return <div className="mx-auto grid min-h-[55vh] max-w-3xl place-items-center px-4"><div className="w-full rounded-3xl border border-red-100 bg-white p-8 text-center shadow-sm"><LockKeyhole className="mx-auto size-10 text-primary" /><h1 className="mt-4 text-xl font-black">دسترسی پنل برای این حساب فعال نیست</h1><p className="mt-2 text-sm leading-7 text-muted-foreground">عضویت فعال و مجوز مناسب باید توسط مدیر سامانه ثبت شود.</p><Link className="mt-5 inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white" href="/">بازگشت به سایت</Link></div></div>;

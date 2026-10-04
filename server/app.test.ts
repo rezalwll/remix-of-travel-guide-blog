@@ -189,6 +189,56 @@ integration("PostgreSQL runtime persistence", () => {
     await app.close();
   });
 
+  it("restores an exact managed hotel allocation once after authoritative refund completion", async () => {
+    const marker = `${Date.now()}`;
+    const mobile = `09${String(Date.now() + 7).slice(-9)}`;
+    const app = await buildApp({ repository, env });
+    const cookie = await login(app, mobile);
+    const organization = await prisma.organization.create({ data: { type: "MERCHANT", name: `هتل تست ${marker}`, slug: `hotel-allocation-${marker}` } });
+    const property = await prisma.property.create({ data: { organizationId: organization.id, slug: `direct-hotel-${marker}`, name: "هتل مستقیم تست", city: "تهران", address: "تهران", stars: 4, description: "هتل تست", sourceType: "DIRECT", publicationStatus: "PUBLISHED", operationalStatus: "ACTIVE" } });
+    const room = await prisma.roomType.create({ data: { propertyId: property.id, name: "اتاق دو تخته", description: "اتاق تست", capacity: 2, bedType: "دو تخت", status: "ACTIVE" } });
+    const rate = await prisma.ratePlan.create({ data: { roomTypeId: room.id, title: "صبحانه", mealPlan: "صبحانه", refundable: true, cancellationPolicy: "لغو مجاز", baseRate: 2_000_000, currency: "TOMAN", status: "ACTIVE" } });
+    const unrelatedRate = await prisma.ratePlan.create({ data: { roomTypeId: room.id, title: "نرخ دیگر", mealPlan: "بدون صبحانه", refundable: true, cancellationPolicy: "لغو مجاز", baseRate: 1_800_000, currency: "TOMAN", status: "ACTIVE" } });
+    const dates = [new Date("2026-12-10T00:00:00.000Z"), new Date("2026-12-11T00:00:00.000Z"), new Date("2026-12-12T00:00:00.000Z")];
+    await prisma.dailyInventory.createMany({ data: [...dates.map((date) => ({ ratePlanId: rate.id, date, availableRooms: 5 })), ...dates.map((date) => ({ ratePlanId: unrelatedRate.id, date, availableRooms: 9 }))] });
+    const created = await app.inject({ method: "POST", url: "/api/checkout/sessions", headers: { cookie }, payload: { serviceType: "hotel", quantity: 1, service: { hotel: { id: property.id }, room: { id: room.id }, ratePlan: { id: rate.id }, stay: { checkIn: "2026-12-10", checkOut: "2026-12-13" }, roomCount: 2 } } });
+    expect(created.statusCode).toBe(201);
+    const checkout = created.json().checkoutSession;
+    const paid = await app.inject({ method: "POST", url: `/api/checkout/sessions/${checkout.id}/payments`, headers: { cookie }, payload: { idempotencyKey: `hotel-allocation-${marker}`, method: "online_mock" } });
+    expect(paid.statusCode).toBe(200);
+    const order = paid.json().order;
+    expect(order.bookingStatus).toBe("confirmed");
+    expect((await prisma.dailyInventory.findMany({ where: { ratePlanId: rate.id }, orderBy: { date: "asc" } })).map((day) => day.availableRooms)).toEqual([3, 3, 3]);
+    const allocation = await prisma.hotelInventoryAllocation.findUniqueOrThrow({ where: { orderId: order.id } });
+    expect(allocation).toMatchObject({ propertyId: property.id, roomTypeId: room.id, ratePlanId: rate.id, roomCount: 2, status: "ACTIVE", sourceType: "DIRECT" });
+    const compensation = await repository.beginCompensation(order.id, "لغو قطعی رزرو هتل");
+    await repository.completeCompensation(compensation.refund.id, "TEST-REFUND");
+    expect((await prisma.dailyInventory.findMany({ where: { ratePlanId: rate.id }, orderBy: { date: "asc" } })).map((day) => day.availableRooms)).toEqual([5, 5, 5]);
+    expect((await prisma.dailyInventory.findMany({ where: { ratePlanId: unrelatedRate.id }, orderBy: { date: "asc" } })).map((day) => day.availableRooms)).toEqual([9, 9, 9]);
+    await repository.completeCompensation(compensation.refund.id, "TEST-REFUND");
+    expect((await prisma.dailyInventory.findMany({ where: { ratePlanId: rate.id }, orderBy: { date: "asc" } })).map((day) => day.availableRooms)).toEqual([5, 5, 5]);
+    expect(await prisma.hotelInventoryAllocation.findUnique({ where: { orderId: order.id } })).toMatchObject({ status: "RELEASED", releasedByRefundId: compensation.refund.id });
+    await app.close();
+  });
+
+  it("never decrements supplier hotel inventory manually", async () => {
+    const marker = `${Date.now()}-supplier`;
+    const mobile = `09${String(Date.now() + 8).slice(-9)}`;
+    const app = await buildApp({ repository, env });
+    const cookie = await login(app, mobile);
+    const organization = await prisma.organization.create({ data: { type: "MERCHANT", name: `تأمین‌کننده ${marker}`, slug: `supplier-hotel-${marker}` } });
+    const property = await prisma.property.create({ data: { organizationId: organization.id, slug: `supplier-property-${marker}`, name: "هتل تأمین‌کننده", city: "شیراز", address: "شیراز", stars: 4, description: "هتل تست", sourceType: "SUPPLIER", supplierCode: `SUP-${marker}`, publicationStatus: "PUBLISHED", operationalStatus: "ACTIVE" } });
+    const room = await prisma.roomType.create({ data: { propertyId: property.id, name: "اتاق تأمین‌کننده", description: "اتاق تست", capacity: 2, bedType: "دو تخت", status: "ACTIVE" } });
+    const rate = await prisma.ratePlan.create({ data: { roomTypeId: room.id, title: "نرخ تأمین‌کننده", mealPlan: "صبحانه", refundable: true, cancellationPolicy: "طبق تأمین‌کننده", baseRate: 2_000_000, currency: "TOMAN", status: "ACTIVE" } });
+    await prisma.dailyInventory.create({ data: { ratePlanId: rate.id, date: new Date("2026-12-20T00:00:00.000Z"), availableRooms: 7 } });
+    const checkout = (await app.inject({ method: "POST", url: "/api/checkout/sessions", headers: { cookie }, payload: { serviceType: "hotel", quantity: 1, service: { hotel: { id: property.id }, room: { id: room.id }, ratePlan: { id: rate.id }, stay: { checkIn: "2026-12-20", checkOut: "2026-12-21" }, roomCount: 2 } } })).json().checkoutSession;
+    const paid = await app.inject({ method: "POST", url: `/api/checkout/sessions/${checkout.id}/payments`, headers: { cookie }, payload: { idempotencyKey: `supplier-hotel-${marker}`, method: "online_mock" } });
+    expect(paid.statusCode).toBe(200);
+    expect((await prisma.dailyInventory.findUniqueOrThrow({ where: { ratePlanId_date: { ratePlanId: rate.id, date: new Date("2026-12-20T00:00:00.000Z") } } })).availableRooms).toBe(7);
+    expect(await prisma.hotelInventoryAllocation.count({ where: { orderId: paid.json().order.id } })).toBe(0);
+    await app.close();
+  });
+
   it("enforces ownership and immutable finalized snapshots", async () => {
     const app = await buildApp({ repository, env });
     const firstMobile = `09${String(Date.now() + 5).slice(-9)}`;

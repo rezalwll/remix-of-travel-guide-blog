@@ -1,10 +1,27 @@
 import { DomainError } from "../domain/errors.js";
 
 export type HotelSourceType = "DIRECT" | "SUPPLIER" | "HYBRID" | "DEMO";
+export type HotelPublicationStatus = "DRAFT" | "SUBMITTED" | "NEEDS_CHANGES" | "REJECTED" | "PUBLISHED" | "PAUSED" | "ARCHIVED";
 export type InventoryDay = { date: Date; availableRooms: number; priceOverride?: number | null; closed?: boolean; minimumStay?: number };
 
 export function assertManualInventoryAllowed(sourceType: HotelSourceType) {
   if (sourceType !== "DIRECT" && sourceType !== "DEMO") throw new DomainError("SUPPLIER_INVENTORY_AUTHORITATIVE", "موجودی هتل تأمین‌کننده با تقویم دستی قابل بازنویسی نیست", 409);
+}
+
+const publicationTransitions: Record<HotelPublicationStatus, readonly HotelPublicationStatus[]> = {
+  DRAFT: ["SUBMITTED", "ARCHIVED"],
+  SUBMITTED: ["NEEDS_CHANGES", "REJECTED", "PUBLISHED", "ARCHIVED"],
+  NEEDS_CHANGES: ["SUBMITTED", "ARCHIVED"],
+  REJECTED: ["SUBMITTED", "ARCHIVED"],
+  PUBLISHED: ["PAUSED", "ARCHIVED"],
+  PAUSED: ["PUBLISHED", "ARCHIVED"],
+  ARCHIVED: [],
+};
+
+export function assertPropertyPublicationTransition(from: HotelPublicationStatus, to: HotelPublicationStatus, scope: "INTERNAL" | "MERCHANT") {
+  if (from === to) return;
+  if (!publicationTransitions[from]?.includes(to)) throw new DomainError("INVALID_STATE_TRANSITION", "تغییر وضعیت انتشار هتل مجاز نیست", 409);
+  if (scope === "MERCHANT" && ["PUBLISHED", "NEEDS_CHANGES", "REJECTED"].includes(to)) throw new DomainError("APPROVAL_REQUIRED", "تأیید و انتشار هتل فقط توسط بک‌آفیس انجام می‌شود", 403);
 }
 
 export function dateRange(from: Date, to: Date, weekdays?: number[]) {

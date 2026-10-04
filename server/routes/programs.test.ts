@@ -14,7 +14,7 @@ const apps: Array<Awaited<ReturnType<typeof buildApp>>> = [];
 afterEach(async () => Promise.all(apps.splice(0).map((app) => app.close())));
 
 function context(permissions: string[]): PlatformAccessContext {
-  return { membershipId: "50000000-0000-4000-8000-000000000001", user: { id: userId, mobile: "09120000001", firstName: "اپراتور", lastName: "نمونه", email: null }, organization: { id: orgA, type: "MERCHANT", name: "مجری نمونه", slug: "merchant-a", status: "ACTIVE" }, roles: ["MERCHANT_OPERATOR"], permissions };
+  return { membershipId: "50000000-0000-4000-8000-000000000001", user: { id: userId, mobile: "09120000001", firstName: "اپراتور", lastName: "نمونه", email: null }, organization: { id: orgA, type: "MERCHANT", name: "مجری نمونه", slug: "merchant-a", status: "ACTIVE", businessType: "TOUR_OPERATOR" }, roles: ["MERCHANT_OPERATOR"], permissions };
 }
 
 async function setup(permissions: string[]) {
@@ -58,5 +58,18 @@ describe("program API tenant isolation", () => {
     const { app, programs } = await setup([]);
     expect((await app.inject({ method: "GET", url: "/api/catalog/programs?type=TOUR" })).statusCode).toBe(200);
     expect(programs.publicPrograms).toHaveBeenCalledWith("TOUR");
+  });
+
+  it("denies program operations to a hotel merchant even with a broad role", async () => {
+    const runtime = { userFromSession: vi.fn(async () => ({ id: userId })) } as unknown as PrismaRuntimeRepository;
+    const hotelContext = context(["merchant.programs.manage"]);
+    hotelContext.organization.businessType = "HOTEL";
+    const platform = { accessContext: vi.fn(async () => hotelContext) } as unknown as PlatformRepository;
+    const programs = { updateProgram: vi.fn(async (id) => ({ id })) } as unknown as ProgramRepository;
+    const app = await buildApp({ repository: runtime, platformRepository: platform, programRepository: programs, env: { NODE_ENV: "test", BACKOFFICE_ENABLED: true, MERCHANT_PORTAL_ENABLED: true, WEB_ORIGIN: "http://localhost:8080" } });
+    apps.push(app);
+    const response = await app.inject({ method: "PATCH", url: `/api/merchant/programs/${programId}`, headers: auth, payload: { title: "تور غیرمجاز" } });
+    expect(response.statusCode).toBe(403);
+    expect(programs.updateProgram).not.toHaveBeenCalled();
   });
 });

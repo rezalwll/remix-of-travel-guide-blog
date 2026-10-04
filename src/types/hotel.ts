@@ -13,7 +13,7 @@ export interface HotelRatePlan {
   cancellationSummary: string;
   nightlyPrice: number;
   originalNightlyPrice?: number;
-  currency: 'IRR';
+  currency: 'IRR' | 'TOMAN';
   taxesIncluded: boolean;
   remainingRooms?: number;
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { assertTransition } from './states.js';
+import { assertBookingOverride, assertTransition } from './states.js';
 
 describe('domain state machines', () => {
   it('accepts lifecycle progress and rejects impossible transitions', () => {
@@ -11,5 +11,10 @@ describe('domain state machines', () => {
     expect(() => assertTransition('refund', 'processing', 'completed')).not.toThrow();
     expect(() => assertTransition('payment', 'refunded', 'succeeded')).toThrowError(/Invalid payment transition/);
     expect(() => assertTransition('order', 'refunded', 'confirmed')).toThrowError(/Invalid order transition/);
+  });
+  it('keeps manual booking overrides away from financial refund transitions', () => {
+    expect(() => assertBookingOverride('confirmed', 'manual_review_required')).not.toThrow();
+    expect(() => assertBookingOverride('confirmed', 'refunded')).toThrowError(/Invalid booking override/);
+    expect(() => assertBookingOverride('refunded', 'confirmed')).toThrowError(/Invalid booking override/);
   });
 });

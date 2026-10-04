@@ -9,15 +9,15 @@ datasource db {
 }
 
 model User {
-  id                      String                   @id @default(uuid()) @db.Uuid
-  mobile                  String                   @unique
-  firstName               String                   @default("")
-  lastName                String                   @default("")
+  id                      String                         @id @default(uuid()) @db.Uuid
+  mobile                  String                         @unique
+  firstName               String                         @default("")
+  lastName                String                         @default("")
   email                   String?
   birthDate               DateTime?
   nationalId              String?
-  createdAt               DateTime                 @default(now())
-  updatedAt               DateTime                 @updatedAt
+  createdAt               DateTime                       @default(now())
+  updatedAt               DateTime                       @updatedAt
   sessions                AuthSession[]
   otpChallenges           OtpChallenge[]
   passengers              Passenger[]
@@ -30,40 +30,41 @@ model User {
   visaApplications        VisaApplication[]
   refunds                 RefundRequest[]
   organizationMemberships OrganizationMembership[]
-  auditLogs               AuditLog[]               @relation("AuditActorUser")
+  auditLogs               AuditLog[]                     @relation("AuditActorUser")
   programModerationEvents TravelProgramModerationEvent[]
   registrationNotes       TravelRegistrationNote[]
-  supportMessages         SupportMessage[]         @relation("SupportMessageAuthor")
+  supportMessages         SupportMessage[]               @relation("SupportMessageAuthor")
 }
 
 model Organization {
-  id               String                   @id @default(uuid()) @db.Uuid
-  type             String
-  name             String
-  legalName        String?
-  slug             String                   @unique
-  status           String                   @default("ACTIVE")
-  contactEmail     String?
-  contactMobile    String?
-  metadata         Json?
-  createdAt        DateTime                 @default(now())
-  updatedAt        DateTime                 @updatedAt
-  merchantProfile  MerchantProfile?
-  memberships      OrganizationMembership[]
-  commissionRules  CommissionRule[]
-  ledgerEntries    MerchantLedgerEntry[]
-  settlements      SettlementBatch[]
-  documents        MerchantDocument[]
-  merchantOrders   Order[]                  @relation("MerchantOrders")
-  supplierOrders   Order[]                  @relation("SupplierOrders")
-  merchantBookings BookingAttempt[]         @relation("MerchantBookingAttempts")
-  supplierBookings BookingAttempt[]         @relation("SupplierBookingAttempts")
-  auditActorLogs   AuditLog[]               @relation("AuditActorOrganization")
-  auditTargetLogs  AuditLog[]               @relation("AuditTargetOrganization")
-  travelPrograms   TravelProgram[]
-  programModerationEvents TravelProgramModerationEvent[]
-  properties       Property[]
-  supportTickets   SupportTicket[]
+  id                        String                         @id @default(uuid()) @db.Uuid
+  type                      String
+  name                      String
+  legalName                 String?
+  slug                      String                         @unique
+  status                    String                         @default("ACTIVE")
+  contactEmail              String?
+  contactMobile             String?
+  metadata                  Json?
+  createdAt                 DateTime                       @default(now())
+  updatedAt                 DateTime                       @updatedAt
+  merchantProfile           MerchantProfile?
+  memberships               OrganizationMembership[]
+  commissionRules           CommissionRule[]
+  ledgerEntries             MerchantLedgerEntry[]
+  settlements               SettlementBatch[]
+  documents                 MerchantDocument[]
+  merchantOrders            Order[]                        @relation("MerchantOrders")
+  supplierOrders            Order[]                        @relation("SupplierOrders")
+  merchantBookings          BookingAttempt[]               @relation("MerchantBookingAttempts")
+  supplierBookings          BookingAttempt[]               @relation("SupplierBookingAttempts")
+  auditActorLogs            AuditLog[]                     @relation("AuditActorOrganization")
+  auditTargetLogs           AuditLog[]                     @relation("AuditTargetOrganization")
+  travelPrograms            TravelProgram[]
+  programModerationEvents   TravelProgramModerationEvent[]
+  properties                Property[]
+  hotelInventoryAllocations HotelInventoryAllocation[]
+  supportTickets            SupportTicket[]
 
   @@index([type, status])
 }
@@ -248,54 +249,55 @@ model OrderCounter {
 }
 
 model Order {
-  id                     String                @id @default(uuid()) @db.Uuid
-  userId                 String?               @db.Uuid
-  merchantOrganizationId String?               @db.Uuid
-  supplierOrganizationId String?               @db.Uuid
-  checkoutSessionId      String                @unique @db.Uuid
-  orderNumber            String                @unique
-  trackingCode           String                @unique
-  guestMobile            String?
-  serviceType            String
-  summary                Json
-  buyer                  Json
-  travelers              Json
-  serviceSnapshot        Json
-  pricingSnapshot        Json
-  paymentSnapshot        Json
-  total                  Int
-  currency               String                @default("TOMAN")
-  paymentStatus          String                @default("paid")
-  bookingStatus          String                @default("pending")
-  providerName           String?
-  externalReference      String?
-  providerPayload        Json?
-  relevantDate           DateTime?
-  createdAt              DateTime              @default(now())
-  updatedAt              DateTime              @updatedAt
-  user                   User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
-  merchantOrganization   Organization?         @relation("MerchantOrders", fields: [merchantOrganizationId], references: [id], onDelete: SetNull)
-  supplierOrganization   Organization?         @relation("SupplierOrders", fields: [supplierOrganizationId], references: [id], onDelete: SetNull)
-  checkoutSession        CheckoutSession       @relation(fields: [checkoutSessionId], references: [id], onDelete: Restrict)
-  payments               PaymentAttempt[]
-  refunds                RefundRequest[]
-  transactions           Transaction[]
-  bookingAttempts        BookingAttempt[]
-  merchantLedgerEntries  MerchantLedgerEntry[]
-  travelProgram          TravelProgram?        @relation(fields: [travelProgramId], references: [id], onDelete: SetNull)
-  travelProgramDeparture TravelProgramDeparture? @relation(fields: [travelProgramDepartureId], references: [id], onDelete: SetNull)
-  travelProgramPackage   TravelProgramPackage? @relation(fields: [travelProgramPackageId], references: [id], onDelete: SetNull)
-  registrationNotes      TravelRegistrationNote[]
-  supportTickets         SupportTicket[]
-  property               Property?             @relation(fields: [propertyId], references: [id], onDelete: SetNull)
-  roomType               RoomType?             @relation(fields: [roomTypeId], references: [id], onDelete: SetNull)
-  ratePlan               RatePlan?             @relation(fields: [ratePlanId], references: [id], onDelete: SetNull)
-  travelProgramId          String?               @db.Uuid
-  travelProgramDepartureId String?               @db.Uuid
-  travelProgramPackageId   String?               @db.Uuid
-  propertyId                String?               @db.Uuid
-  roomTypeId                String?               @db.Uuid
-  ratePlanId                String?               @db.Uuid
+  id                       String                    @id @default(uuid()) @db.Uuid
+  userId                   String?                   @db.Uuid
+  merchantOrganizationId   String?                   @db.Uuid
+  supplierOrganizationId   String?                   @db.Uuid
+  checkoutSessionId        String                    @unique @db.Uuid
+  orderNumber              String                    @unique
+  trackingCode             String                    @unique
+  guestMobile              String?
+  serviceType              String
+  summary                  Json
+  buyer                    Json
+  travelers                Json
+  serviceSnapshot          Json
+  pricingSnapshot          Json
+  paymentSnapshot          Json
+  total                    Int
+  currency                 String                    @default("TOMAN")
+  paymentStatus            String                    @default("paid")
+  bookingStatus            String                    @default("pending")
+  providerName             String?
+  externalReference        String?
+  providerPayload          Json?
+  relevantDate             DateTime?
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+  user                     User?                     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  merchantOrganization     Organization?             @relation("MerchantOrders", fields: [merchantOrganizationId], references: [id], onDelete: SetNull)
+  supplierOrganization     Organization?             @relation("SupplierOrders", fields: [supplierOrganizationId], references: [id], onDelete: SetNull)
+  checkoutSession          CheckoutSession           @relation(fields: [checkoutSessionId], references: [id], onDelete: Restrict)
+  payments                 PaymentAttempt[]
+  refunds                  RefundRequest[]
+  transactions             Transaction[]
+  bookingAttempts          BookingAttempt[]
+  merchantLedgerEntries    MerchantLedgerEntry[]
+  travelProgram            TravelProgram?            @relation(fields: [travelProgramId], references: [id], onDelete: SetNull)
+  travelProgramDeparture   TravelProgramDeparture?   @relation(fields: [travelProgramDepartureId], references: [id], onDelete: SetNull)
+  travelProgramPackage     TravelProgramPackage?     @relation(fields: [travelProgramPackageId], references: [id], onDelete: SetNull)
+  registrationNotes        TravelRegistrationNote[]
+  supportTickets           SupportTicket[]
+  property                 Property?                 @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+  roomType                 RoomType?                 @relation(fields: [roomTypeId], references: [id], onDelete: SetNull)
+  ratePlan                 RatePlan?                 @relation(fields: [ratePlanId], references: [id], onDelete: SetNull)
+  hotelInventoryAllocation HotelInventoryAllocation?
+  travelProgramId          String?                   @db.Uuid
+  travelProgramDepartureId String?                   @db.Uuid
+  travelProgramPackageId   String?                   @db.Uuid
+  propertyId               String?                   @db.Uuid
+  roomTypeId               String?                   @db.Uuid
+  ratePlanId               String?                   @db.Uuid
 
   @@index([userId, createdAt])
   @@index([guestMobile, createdAt])
@@ -477,20 +479,20 @@ model Notification {
 }
 
 model SupportTicket {
-  id        String           @id @default(uuid()) @db.Uuid
-  userId    String?          @db.Uuid
-  subject   String
-  status    String           @default("open")
-  orderId   String?          @db.Uuid
-  organizationId String?     @db.Uuid
-  category  String           @default("general")
-  internalNote String?
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-  user      User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
-  order     Order?           @relation(fields: [orderId], references: [id], onDelete: SetNull)
-  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  messages  SupportMessage[]
+  id             String           @id @default(uuid()) @db.Uuid
+  userId         String?          @db.Uuid
+  subject        String
+  status         String           @default("open")
+  orderId        String?          @db.Uuid
+  organizationId String?          @db.Uuid
+  category       String           @default("general")
+  internalNote   String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  user           User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  order          Order?           @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  organization   Organization?    @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  messages       SupportMessage[]
 
   @@index([userId, createdAt])
   @@index([organizationId, status, updatedAt])
@@ -498,46 +500,47 @@ model SupportTicket {
 }
 
 model SupportMessage {
-  id         String        @id @default(uuid()) @db.Uuid
-  ticketId   String        @db.Uuid
-  authorType String
-  body       String
-  authorUserId String?      @db.Uuid
-  internal   Boolean       @default(false)
-  createdAt  DateTime      @default(now())
-  ticket     SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
-  authorUser User?         @relation("SupportMessageAuthor", fields: [authorUserId], references: [id], onDelete: SetNull)
+  id           String        @id @default(uuid()) @db.Uuid
+  ticketId     String        @db.Uuid
+  authorType   String
+  body         String
+  authorUserId String?       @db.Uuid
+  internal     Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  ticket       SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorUser   User?         @relation("SupportMessageAuthor", fields: [authorUserId], references: [id], onDelete: SetNull)
 
   @@index([ticketId, createdAt])
 }
 
 model Property {
-  id                String       @id @default(uuid()) @db.Uuid
-  organizationId    String       @db.Uuid
-  slug              String       @unique
-  name              String
-  city              String
-  country           String       @default("ایران")
-  address            String
-  area               String?
-  latitude           Decimal?    @db.Decimal(9, 6)
-  longitude          Decimal?    @db.Decimal(9, 6)
-  stars              Int
-  description        String
-  checkInTime        String       @default("14:00")
-  checkOutTime       String       @default("12:00")
-  sourceType         String       @default("DIRECT")
-  supplierCode       String?
-  publicationStatus String       @default("DRAFT")
-  operationalStatus String       @default("ACTIVE")
-  amenities          Json?
-  policies           Json?
-  images             Json?
-  createdAt          DateTime     @default(now())
-  updatedAt          DateTime     @updatedAt
-  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
-  roomTypes          RoomType[]
-  orders             Order[]
+  id                   String                     @id @default(uuid()) @db.Uuid
+  organizationId       String                     @db.Uuid
+  slug                 String                     @unique
+  name                 String
+  city                 String
+  country              String                     @default("ایران")
+  address              String
+  area                 String?
+  latitude             Decimal?                   @db.Decimal(9, 6)
+  longitude            Decimal?                   @db.Decimal(9, 6)
+  stars                Int
+  description          String
+  checkInTime          String                     @default("14:00")
+  checkOutTime         String                     @default("12:00")
+  sourceType           String                     @default("DIRECT")
+  supplierCode         String?
+  publicationStatus    String                     @default("DRAFT")
+  operationalStatus    String                     @default("ACTIVE")
+  amenities            Json?
+  policies             Json?
+  images               Json?
+  createdAt            DateTime                   @default(now())
+  updatedAt            DateTime                   @updatedAt
+  organization         Organization               @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  roomTypes            RoomType[]
+  orders               Order[]
+  inventoryAllocations HotelInventoryAllocation[]
 
   @@index([organizationId, publicationStatus])
   @@index([city, publicationStatus, operationalStatus])
@@ -545,42 +548,44 @@ model Property {
 }
 
 model RoomType {
-  id          String           @id @default(uuid()) @db.Uuid
-  propertyId  String           @db.Uuid
-  name        String
-  description String
-  capacity    Int
-  bedType     String
-  sizeSqm     Int?
-  amenities   Json?
-  images      Json?
-  status      String           @default("ACTIVE")
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  property    Property         @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  ratePlans   RatePlan[]
-  orders      Order[]
+  id                   String                     @id @default(uuid()) @db.Uuid
+  propertyId           String                     @db.Uuid
+  name                 String
+  description          String
+  capacity             Int
+  bedType              String
+  sizeSqm              Int?
+  amenities            Json?
+  images               Json?
+  status               String                     @default("ACTIVE")
+  createdAt            DateTime                   @default(now())
+  updatedAt            DateTime                   @updatedAt
+  property             Property                   @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  ratePlans            RatePlan[]
+  orders               Order[]
+  inventoryAllocations HotelInventoryAllocation[]
 
   @@unique([propertyId, name])
   @@index([propertyId, status])
 }
 
 model RatePlan {
-  id                 String           @id @default(uuid()) @db.Uuid
-  roomTypeId         String           @db.Uuid
-  title              String
-  mealPlan           String
-  refundable         Boolean          @default(false)
-  cancellationPolicy String
-  baseRate           Int
-  currency           String           @default("TOMAN")
-  taxesIncluded      Boolean          @default(true)
-  status             String           @default("ACTIVE")
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
-  roomType           RoomType         @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
-  inventory          DailyInventory[]
-  orders             Order[]
+  id                   String                     @id @default(uuid()) @db.Uuid
+  roomTypeId           String                     @db.Uuid
+  title                String
+  mealPlan             String
+  refundable           Boolean                    @default(false)
+  cancellationPolicy   String
+  baseRate             Int
+  currency             String                     @default("TOMAN")
+  taxesIncluded        Boolean                    @default(true)
+  status               String                     @default("ACTIVE")
+  createdAt            DateTime                   @default(now())
+  updatedAt            DateTime                   @updatedAt
+  roomType             RoomType                   @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+  inventory            DailyInventory[]
+  orders               Order[]
+  inventoryAllocations HotelInventoryAllocation[]
 
   @@unique([roomTypeId, title])
   @@index([roomTypeId, status])
@@ -600,6 +605,33 @@ model DailyInventory {
 
   @@unique([ratePlanId, date])
   @@index([date, closed])
+}
+
+model HotelInventoryAllocation {
+  id                 String       @id @default(uuid()) @db.Uuid
+  orderId            String       @unique @db.Uuid
+  organizationId     String       @db.Uuid
+  propertyId         String       @db.Uuid
+  roomTypeId         String       @db.Uuid
+  ratePlanId         String       @db.Uuid
+  checkIn            DateTime     @db.Date
+  checkOut           DateTime     @db.Date
+  roomCount          Int
+  sourceType         String
+  status             String       @default("ACTIVE")
+  releasedByRefundId String?      @unique @db.Uuid
+  releaseReason      String?
+  releasedAt         DateTime?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  order              Order        @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  property           Property     @relation(fields: [propertyId], references: [id], onDelete: Restrict)
+  roomType           RoomType     @relation(fields: [roomTypeId], references: [id], onDelete: Restrict)
+  ratePlan           RatePlan     @relation(fields: [ratePlanId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, status])
+  @@index([ratePlanId, checkIn, checkOut])
 }
 
 model VisaApplication {

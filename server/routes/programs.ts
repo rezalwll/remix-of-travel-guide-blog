@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { DomainError } from "../domain/errors.js";
 import { requirePermission, type PermissionCode } from "../platform/permissions.js";
+import { requireMerchantPermissionCapability } from "../platform/merchant-capabilities.js";
 import type { ProgramType, PublicationStatus } from "../programs/domain.js";
 import type { PlatformAccessContext } from "../repositories/platform.js";
 import { PlatformRepository } from "../repositories/platform.js";
@@ -65,6 +66,7 @@ export async function registerProgramRoutes(app: FastifyInstance, dependencies: 
     const context = await platformRepository.accessContext(user.id, scope, requested);
     if (!context) { errorResponse(reply, 403, "ACCESS_DENIED", "دسترسی به این بخش فعال نیست"); return undefined; }
     requirePermission(context.permissions, permission);
+    if (scope === "MERCHANT") requireMerchantPermissionCapability(context.organization.businessType, permission);
     return context;
   }
   function protect(request: FastifyRequest, context: PlatformAccessContext, action: string) { if (!originAllowed(request, env.WEB_ORIGIN)) throw new DomainError("CSRF_REJECTED", "مبدأ درخواست معتبر نیست", 403); enforceRate(`program:${action}:${context.user.id}`, 40, 10 * 60_000); }
