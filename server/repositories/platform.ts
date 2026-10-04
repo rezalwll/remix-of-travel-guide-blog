@@ -638,6 +638,8 @@ export class PlatformRepository {
     return this.prisma.$transaction(async (tx) => {
       const current = await tx.supportTicket.findUnique({ where: { id: ticketId } });
       if (!current) throw notFound();
+      const allowed:Record<string,string[]>={open:["pending","resolved","closed"],pending:["open","resolved","closed"],resolved:["open","closed"],closed:["open"]};
+      if(current.status!==status&&!allowed[current.status]?.includes(status))throw new DomainError("INVALID_STATE_TRANSITION","تغییر وضعیت درخواست پشتیبانی مجاز نیست",409);
       const ticket = await tx.supportTicket.update({ where: { id: ticketId }, data: { status } });
       await this.audit(tx, { ...actor, action: "support.status_changed", resourceType: "SupportTicket", resourceId: ticketId, beforeData: { status: current.status }, afterData: { status: ticket.status } });
       return { id: ticket.id, status: ticket.status, updatedAt: ticket.updatedAt };
