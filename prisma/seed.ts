@@ -161,6 +161,28 @@ async function seedManagedPrograms() {
   }
 }
 
+async function seedManagedHotels() {
+  const directId = "dd000000-0000-4000-8000-000000000001";
+  const roomId = "de000000-0000-4000-8000-000000000001";
+  const rateId = "df000000-0000-4000-8000-000000000001";
+  const directData = { organizationId: platformIds.hotelOrganization, slug: "managed-parsian-azadi-tehran", name: "هتل پارسیان آزادی تهران", city: "تهران", country: "ایران", address: "تهران، بزرگراه شهید چمران، تقاطع یادگار امام", area: "اوین", stars: 5, description: "نمونه مدیریت‌شده برای نمایش عملیات واقعی هتل، اتاق، نرخ، موجودی و رزرو مستقیم.", checkInTime: "14:00", checkOutTime: "12:00", sourceType: "DEMO", publicationStatus: "PUBLISHED", operationalStatus: "ACTIVE", amenities: ["وای‌فای", "صبحانه", "پارکینگ", "استخر"], policies: { لغو: "قوانین هر نرخ جداگانه نمایش داده می‌شود.", پذیرش: "ارائه مدرک هویتی معتبر الزامی است." }, images: ["/media/hotels/tehran/parsian-azadi.webp"] };
+  await prisma.property.upsert({ where: { id: directId }, update: directData, create: { id: directId, ...directData } });
+  const roomData = { propertyId: directId, name: "اتاق دبل استاندارد", description: "اتاق دو نفره با نمای شهر و امکانات اقامت کاری یا تفریحی.", capacity: 2, bedType: "یک تخت دو نفره", sizeSqm: 32, amenities: ["وای‌فای", "مینی‌بار", "صندوق امانات"], images: ["/media/hotels/tehran/parsian-azadi.webp"], status: "ACTIVE" };
+  await prisma.roomType.upsert({ where: { id: roomId }, update: roomData, create: { id: roomId, ...roomData } });
+  const rateData = { roomTypeId: roomId, title: "اقامت با صبحانه", mealPlan: "صبحانه", refundable: true, cancellationPolicy: "لغو تا ۴۸ ساعت قبل از ورود بدون جریمه؛ پس از آن هزینه یک شب کسر می‌شود.", baseRate: 4_850_000, currency: "TOMAN", taxesIncluded: true, status: "ACTIVE" };
+  await prisma.ratePlan.upsert({ where: { id: rateId }, update: rateData, create: { id: rateId, ...rateData } });
+  await prisma.dailyInventory.deleteMany({ where: { ratePlanId: rateId } });
+  const inventory = Array.from({ length: 180 }, (_, index) => { const date = new Date(Date.UTC(2026, 8, 1 + index)); const weekend = [4, 5].includes(date.getUTCDay()); return { ratePlanId: rateId, date, availableRooms: index % 17 === 0 ? 1 : 8, priceOverride: weekend ? 5_350_000 : null, closed: index === 90, minimumStay: weekend ? 2 : 1 }; });
+  await prisma.dailyInventory.createMany({ data: inventory });
+
+  const supplierId = "dd000000-0000-4000-8000-000000000002";
+  const supplierData = { organizationId: platformIds.hotelOrganization, slug: "supplier-shaygan-kish", name: "هتل شایگان کیش (نگاشت تأمین‌کننده)", city: "کیش", country: "ایران", address: "کیش، میدان پردیس", area: "پردیس", stars: 5, description: "رکورد mapping نمایشی؛ قیمت و موجودی آن فقط از adapter تأمین‌کننده معتبر است.", checkInTime: "15:00", checkOutTime: "12:00", sourceType: "SUPPLIER", supplierCode: "DEMO-SUPPLIER-HOTEL-11", publicationStatus: "PUBLISHED", operationalStatus: "ACTIVE", amenities: ["وای‌فای", "صبحانه"], policies: { موجودی: "مرجع فقط تأمین‌کننده است." }, images: ["/media/hotels/kish/aramis-plus.webp"] };
+  await prisma.property.upsert({ where: { id: supplierId }, update: supplierData, create: { id: supplierId, ...supplierData } });
+  await prisma.order.update({ where: { id: "30000000-0000-4000-8000-000000000002" }, data: { propertyId: directId, roomTypeId: roomId, ratePlanId: rateId, merchantOrganizationId: platformIds.hotelOrganization, providerName: "managed-demo-hotel" } });
+  await prisma.order.update({ where: { id: "30000000-0000-4000-8000-000000000011" }, data: { propertyId: supplierId, roomTypeId: null, ratePlanId: null, merchantOrganizationId: platformIds.hotelOrganization, providerName: "mock-hotel-supplier" } });
+  await prisma.supportTicket.update({ where: { id: "60000000-0000-4000-8000-000000000003" }, data: { orderId: "30000000-0000-4000-8000-000000000002", organizationId: platformIds.hotelOrganization, category: "booking" } });
+}
+
 type DemoOrderFixture = {
   key: string;
   type: string;
@@ -321,6 +343,7 @@ async function main() {
 
   await seedMerchantFinance();
   await seedManagedPrograms();
+  await seedManagedHotels();
 
   console.log(`Seeded ${user.mobile}: ${orderFixtures.length} orders, ${walletEntries.length} wallet entries, ${tickets.length} support threads, balance ${wallet.balance} TOMAN`);
 }
