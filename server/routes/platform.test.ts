@@ -21,6 +21,7 @@ function mocks(access: (user: string, scope: "INTERNAL" | "MERCHANT", requested?
   const platform = {
     accessContext: vi.fn(async (user: string, scope: "INTERNAL" | "MERCHANT", requested?: string) => access(user, scope, requested)),
     listMerchantOrders: vi.fn(async () => ({ items: [], total: 0 })),
+    listServiceOperations: vi.fn(async () => ({ items: [], total: 0 })),
     getMerchantOrder: vi.fn(async (_organizationId, id) => ({ id })),
     listMerchantBookings: vi.fn(async () => ({ items: [], total: 0 })),
     merchantFinanceSummary: vi.fn(async () => ({ ledger: [], settlements: {} })),
@@ -138,6 +139,24 @@ describe("platform API authorization", () => {
     const { runtime, platform } = mocks((_user, scope) => scope === "MERCHANT" ? baseContext(["merchant.dashboard.view"]) : null);
     const app = await appWith(runtime, platform);
     expect((await app.inject({ method: "GET", url: "/api/backoffice/merchants", headers: auth })).statusCode).toBe(403);
+  });
+
+  it("protects all provider-driven service operation views with internal order access", async () => {
+    const { runtime, platform } = mocks((_user, scope) => scope === "INTERNAL" ? baseContext(["backoffice.orders.read"], orgA, "INTERNAL") : null);
+    const app = await appWith(runtime, platform);
+    for (const service of ["flight", "train", "bus", "insurance", "cip", "transfer"]) {
+      const response = await app.inject({ method: "GET", url: `/api/backoffice/operations/${service}?preset=7d`, headers: auth });
+      expect(response.statusCode).toBe(200);
+      expect(platform.listServiceOperations).toHaveBeenLastCalledWith(service, expect.objectContaining({ from: expect.any(Date), to: expect.any(Date) }), expect.any(Object));
+    }
+    expect((await app.inject({ method: "GET", url: "/api/backoffice/operations/manual-flight", headers: auth })).statusCode).toBe(400);
+  });
+
+  it("denies provider operations without order read permission", async () => {
+    const { runtime, platform } = mocks((_user, scope) => scope === "INTERNAL" ? baseContext(["backoffice.dashboard.view"], orgA, "INTERNAL") : null);
+    const app = await appWith(runtime, platform);
+    expect((await app.inject({ method: "GET", url: "/api/backoffice/operations/flight", headers: auth })).statusCode).toBe(403);
+    expect(platform.listServiceOperations).not.toHaveBeenCalled();
   });
 
   it("allows internal reads but denies role management without its permission", async () => {

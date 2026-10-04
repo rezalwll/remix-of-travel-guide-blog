@@ -31,6 +31,14 @@ export type OrderFilters = RangeInput & {
   query?: string;
 };
 
+export type ServiceOperationFilters = RangeInput & {
+  provider?: string;
+  route?: string;
+  bookingStatus?: string;
+  paymentStatus?: string;
+  manualReview?: boolean;
+};
+
 export type AuditActor = {
   userId: string;
   organizationId: string;
@@ -72,6 +80,31 @@ const orderSelect = {
   merchantOrganization: { select: { id: true, name: true } },
   supplierOrganization: { select: { id: true, name: true } },
 } satisfies Prisma.OrderSelect;
+
+const objectValue = (value: unknown): Record<string, unknown> => value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+const firstText = (...values: unknown[]) => values.find((value): value is string => typeof value === "string" && value.trim().length > 0);
+
+function operationContext(serviceType: string, snapshotValue: unknown, summaryValue: unknown, travelerCount: number) {
+  const snapshot = objectValue(snapshotValue);
+  const summary = objectValue(summaryValue);
+  const outbound = objectValue(snapshot.outbound ?? snapshot.selection ?? snapshot.offer ?? snapshot.service);
+  const route = objectValue(snapshot.route ?? outbound.route);
+  const plan = objectValue(snapshot.plan ?? outbound.plan);
+  const coverage = objectValue(snapshot.coverage ?? plan.coverage);
+  const origin = firstText(outbound.origin, outbound.from, route.origin, snapshot.origin);
+  const destination = firstText(outbound.destination, outbound.to, route.destination, snapshot.destination);
+  const common = {
+    title: firstText(summary.title, outbound.title, snapshot.title),
+    route: origin || destination ? [origin, destination].filter(Boolean).join(" ← ") : firstText(route.title, summary.route),
+    schedule: firstText(outbound.departureAt, outbound.departure, snapshot.date, snapshot.serviceDate),
+    travelerCount,
+  };
+  if (serviceType === "flight") return { ...common, flightNumber: firstText(outbound.flightNumber, outbound.number, snapshot.flightNumber), airline: firstText(outbound.airline, snapshot.airline) };
+  if (serviceType === "insurance") return { ...common, plan: firstText(plan.title, plan.name, outbound.planName, summary.title), provider: firstText(plan.provider, outbound.provider), coverage: firstText(coverage.summary, plan.coverageSummary, snapshot.coverageSummary), issuanceState: firstText(snapshot.issuanceState, outbound.issuanceState), policyReference: firstText(snapshot.policyReference, outbound.policyReference) };
+  if (serviceType === "cip") return { ...common, airport: firstText(outbound.airport, snapshot.airport), package: firstText(outbound.packageName, outbound.title, summary.title), direction: firstText(outbound.direction, snapshot.direction), specialNotes: firstText(snapshot.specialNotes, snapshot.note) };
+  if (serviceType === "transfer") return { ...common, vehicleType: firstText(outbound.vehicleType, snapshot.vehicleType), capacity: outbound.capacity ?? snapshot.capacity, source: firstText(snapshot.source, outbound.source) };
+  return common;
+}
 
 export class PlatformRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -134,6 +167,62 @@ export class PlatformRepository {
       this.prisma.order.count({ where }),
     ]);
     return { items: items.map((item) => { const buyer=item.buyer&&typeof item.buyer==="object"&&!Array.isArray(item.buyer)?item.buyer as Record<string,unknown>:{};return { ...item, customer:{name:`${buyer.firstName??""} ${buyer.lastName??""}`.trim()||"مشتری",mobile:maskMobile(item.guestMobile)},guestMobile: maskMobile(item.guestMobile), buyer: undefined, travelers: undefined }; }), total };
+  }
+
+  async listServiceOperations(serviceType: string, filters: ServiceOperationFilters, page: PageInput) {
+    const where: Prisma.OrderWhereInput = {
+      serviceType,
+      relevantDate: { gte: filters.from, lt: filters.to },
+      providerName: filters.provider ? { contains: filters.provider, mode: "insensitive" } : undefined,
+      bookingStatus: filters.manualReview ? "manual_review_required" : filters.bookingStatus,
+      paymentStatus: filters.paymentStatus,
+      summary: filters.route ? { path: ["title"], string_contains: filters.route } : undefined,
+    };
+    const [items, total] = await Promise.all([
+      this.prisma.order.findMany({
+        where,
+        select: {
+          id: true, orderNumber: true, trackingCode: true, serviceType: true, summary: true, serviceSnapshot: true,
+          total: true, currency: true, paymentStatus: true, bookingStatus: true, providerName: true,
+          externalReference: true, relevantDate: true, createdAt: true, travelers: true,
+          merchantOrganization: { select: { id: true, name: true } },
+          bookingAttempts: { select: { id: true, provider: true, providerReference: true, status: true, error: true, createdAt: true, updatedAt: true }, orderBy: { createdAt: "desc" }, take: 5 },
+          refunds: { select: { id: true, status: true, amount: true, providerReference: true, createdAt: true }, orderBy: { createdAt: "desc" }, take: 1 },
+        },
+        orderBy: [{ relevantDate: "desc" }, { createdAt: "desc" }],
+        skip: (page.page - 1) * page.perPage,
+        take: page.perPage,
+      }),
+      this.prisma.order.count({ where }),
+    ]);
+    return {
+      items: items.map((item) => {
+        const attempts = item.bookingAttempts.map((attempt) => ({ ...attempt, error: attempt.error ? String(sanitizeProviderPayload(attempt.error, { maxBytes: 512 })) : null }));
+        const latestAttempt = attempts[0] ?? null;
+        return {
+          id: item.id,
+          orderNumber: item.orderNumber,
+          trackingCode: item.trackingCode,
+          serviceType: item.serviceType,
+          context: operationContext(item.serviceType, item.serviceSnapshot, item.summary, Array.isArray(item.travelers) ? item.travelers.length : 0),
+          total: item.total,
+          currency: item.currency,
+          paymentStatus: item.paymentStatus,
+          bookingStatus: item.bookingStatus,
+          provider: item.providerName ?? latestAttempt?.provider ?? null,
+          externalReference: item.externalReference ?? latestAttempt?.providerReference ?? null,
+          relevantDate: item.relevantDate,
+          merchant: item.merchantOrganization,
+          manualReview: item.bookingStatus === "manual_review_required" || latestAttempt?.status === "UNKNOWN",
+          reconciliationState: latestAttempt?.status === "UNKNOWN" ? "unresolved" : item.bookingStatus === "manual_review_required" ? "manual_review" : item.bookingStatus === "confirmed" ? "resolved" : "pending",
+          latestAttempt,
+          attemptCount: attempts.length,
+          refund: item.refunds[0] ?? null,
+          createdAt: item.createdAt,
+        };
+      }),
+      total,
+    };
   }
 
   getBackofficeOrder(id: string) {

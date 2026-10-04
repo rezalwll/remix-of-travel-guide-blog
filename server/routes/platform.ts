@@ -34,6 +34,7 @@ const onboardingStatus = z.enum(["DRAFT", "SUBMITTED", "UNDER_REVIEW", "APPROVED
 const contractStatus = z.enum(["NOT_STARTED", "PENDING", "ACTIVE", "EXPIRED", "SUSPENDED"]);
 const settlementProfileStatus = z.enum(["INACTIVE", "ACTIVE", "SUSPENDED"]);
 const membershipStatus = z.enum(["INVITED", "ACTIVE", "SUSPENDED", "REVOKED"]);
+const providerDrivenService = z.enum(["flight", "train", "bus", "insurance", "cip", "transfer"]);
 
 function parsePage(query: unknown) {
   const result = pageSchema.safeParse(query);
@@ -112,6 +113,22 @@ export async function registerPlatformRoutes(app: FastifyInstance, dependencies:
     if (!parsed.success) return errorResponse(reply, 400, "VALIDATION_ERROR", "فیلتر سفارش معتبر نیست");
     const result = await repository.listBackofficeOrders({ ...parseRange(request.query), ...parsed.data, merchantOrganizationId: parsed.data.merchant }, page);
     return { orders: result.items, pagination: pagination(page, result.total) };
+  });
+
+  app.get<{ Params: { service: string } }>("/api/backoffice/operations/:service", async (request, reply) => {
+    const context = await contextFor(request, reply, "INTERNAL", "backoffice.orders.read"); if (!context) return;
+    const service = providerDrivenService.safeParse(request.params.service);
+    const filters = z.object({
+      provider: z.string().trim().max(80).optional(),
+      route: z.string().trim().max(120).optional(),
+      bookingStatus: z.string().trim().max(60).optional(),
+      paymentStatus: z.string().trim().max(40).optional(),
+      manualReview: z.enum(["true", "false"]).transform((value) => value === "true").optional(),
+    }).safeParse(request.query);
+    if (!service.success || !filters.success) return errorResponse(reply, 400, "VALIDATION_ERROR", "فیلتر عملیات سرویس معتبر نیست");
+    const page = parsePage(request.query);
+    const result = await repository.listServiceOperations(service.data, { ...parseRange(request.query), ...filters.data }, page);
+    return { service: service.data, operations: result.items, pagination: pagination(page, result.total), inventoryAuthority: "provider" };
   });
 
   app.get<{ Params: { id: string } }>("/api/backoffice/orders/:id", async (request, reply) => {
