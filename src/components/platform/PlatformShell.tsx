@@ -25,36 +25,37 @@ const merchantCapabilityBySection: ReadonlyArray<[RegExp, string]> = [
 
 const navigation = {
   backoffice: [
-    ["/backoffice", "نمای کلی", "backoffice.dashboard.view"],
-    ["/backoffice/orders", "سفارش‌ها", "backoffice.orders.read"],
-    ["/backoffice/operations/flight", "عملیات سرویس‌ها", "backoffice.orders.read"],
-    ["/backoffice/providers", "تأمین‌کنندگان", "backoffice.providers.read"],
-    ["/backoffice/hotels", "هتل‌ها", "backoffice.hotels.read"],
-    ["/backoffice/customers", "مشتریان", "backoffice.customers.read"],
-    ["/backoffice/refunds", "استرداد", "backoffice.refunds.read"],
-    ["/backoffice/support", "پشتیبانی", "backoffice.support.read"],
-    ["/backoffice/visa", "پرونده‌های ویزا", "backoffice.visa.read"],
-    ["/backoffice/programs", "تور و زیارت", "backoffice.programs.read"],
-    ["/backoffice/registrations", "ثبت‌نام‌ها", "backoffice.registrations.read"],
-    ["/backoffice/merchants", "پذیرندگان", "backoffice.merchants.read"],
-    ["/backoffice/finance", "مالی و تسویه", "backoffice.finance.view"],
-    ["/backoffice/reports", "گزارش‌ها", "backoffice.reports.view"],
-    ["/backoffice/audit", "ممیزی", "backoffice.audit.read"],
+    ["/backoffice", "نمای کلی", "backoffice.dashboard.view", "نمای کلی"],
+    ["/backoffice/orders", "سفارش‌ها", "backoffice.orders.read", "عملیات"],
+    ["/backoffice/registrations", "ثبت‌نام‌ها", "backoffice.registrations.read", "عملیات"],
+    ["/backoffice/refunds", "استرداد", "backoffice.refunds.read", "عملیات"],
+    ["/backoffice/operations/flight", "عملیات سرویس‌ها", "backoffice.orders.read", "عملیات"],
+    ["/backoffice/programs", "تور و زیارت", "backoffice.programs.read", "محصولات"],
+    ["/backoffice/hotels", "هتل‌ها", "backoffice.hotels.read", "محصولات"],
+    ["/backoffice/hotel-bookings", "رزرو هتل", "backoffice.orders.read", "محصولات"],
+    ["/backoffice/visa", "پرونده‌های ویزا", "backoffice.visa.read", "محصولات"],
+    ["/backoffice/customers", "مشتریان", "backoffice.customers.read", "ارتباط"],
+    ["/backoffice/support", "پشتیبانی", "backoffice.support.read", "ارتباط"],
+    ["/backoffice/merchants", "پذیرندگان", "backoffice.merchants.read", "پذیرندگان"],
+    ["/backoffice/finance", "مالی و تسویه", "backoffice.finance.view", "پذیرندگان"],
+    ["/backoffice/providers", "تأمین‌کنندگان", "backoffice.providers.read", "سیستم"],
+    ["/backoffice/reports", "گزارش‌ها", "backoffice.reports.view", "سیستم"],
+    ["/backoffice/audit", "ممیزی", "backoffice.audit.read", "سیستم"],
   ],
   merchant: [
-    ["/merchant", "نمای کلی", "merchant.dashboard.view"],
-    ["/merchant/orders", "سفارش‌ها", "merchant.orders.read"],
-    ["/merchant/hotels", "هتل‌ها", "merchant.hotels.read"],
-    ["/merchant/inventory", "قیمت و موجودی", "merchant.inventory.read"],
-    ["/merchant/hotel-bookings", "رزروها", "merchant.bookings.read"],
-    ["/merchant/guests", "مهمان‌ها", "merchant.guests.read"],
-    ["/merchant/programs", "تور و زیارت", "merchant.programs.read"],
-    ["/merchant/registrations", "ثبت‌نام‌ها", "merchant.registrations.read"],
-    ["/merchant/finance", "مالی", "merchant.finance.view"],
-    ["/merchant/settlements", "تسویه‌ها", "merchant.settlements.read"],
-    ["/merchant/team", "تیم", "merchant.team.read"],
-    ["/merchant/profile", "پروفایل", "merchant.dashboard.view"],
-    ["/merchant/support", "پشتیبانی", "merchant.dashboard.view"],
+    ["/merchant", "نمای کلی", "merchant.dashboard.view", "نمای کلی"],
+    ["/merchant/orders", "سفارش‌ها", "merchant.orders.read", "عملیات"],
+    ["/merchant/hotels", "هتل‌ها", "merchant.hotels.read", "هتل"],
+    ["/merchant/inventory", "قیمت و موجودی", "merchant.inventory.read", "هتل"],
+    ["/merchant/hotel-bookings", "رزروها", "merchant.bookings.read", "هتل"],
+    ["/merchant/guests", "مهمان‌ها", "merchant.guests.read", "هتل"],
+    ["/merchant/programs", "تور و زیارت", "merchant.programs.read", "تور و زیارت"],
+    ["/merchant/registrations", "ثبت‌نام‌ها", "merchant.registrations.read", "تور و زیارت"],
+    ["/merchant/finance", "مالی", "merchant.finance.view", "مالی"],
+    ["/merchant/settlements", "تسویه‌ها", "merchant.settlements.read", "مالی"],
+    ["/merchant/team", "تیم", "merchant.team.read", "سازمان"],
+    ["/merchant/profile", "پروفایل", "merchant.dashboard.view", "سازمان"],
+    ["/merchant/support", "پشتیبانی", "merchant.dashboard.view", "سازمان"],
   ],
 } as const;
 
@@ -86,6 +87,7 @@ export default function PlatformShell({ scope, children }: { scope: Scope; child
     const required = merchantCapabilityBySection.find(([pattern]) => pattern.test(entry[0]))?.[1];
     return !required || Boolean(access.capabilities?.includes(required));
   }), [access, scope]);
+  const groups=useMemo(()=>Array.from(new Set(links.map(entry=>entry[3]))),[links]);
 
   if (state === "loading") return <div className="mx-auto grid min-h-[55vh] max-w-6xl place-items-center px-4"><div className="flex items-center gap-3 text-sm text-muted-foreground"><span className="size-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />در حال بررسی دسترسی…</div></div>;
   if (state === "forbidden") return <div className="mx-auto grid min-h-[55vh] max-w-3xl place-items-center px-4"><div className="w-full rounded-3xl border border-red-100 bg-white p-8 text-center shadow-sm"><LockKeyhole className="mx-auto size-10 text-primary" /><h1 className="mt-4 text-xl font-black">دسترسی پنل برای این حساب فعال نیست</h1><p className="mt-2 text-sm leading-7 text-muted-foreground">عضویت فعال و مجوز مناسب باید توسط مدیر سامانه ثبت شود.</p><Link className="mt-5 inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white" href="/">بازگشت به سایت</Link></div></div>;
@@ -103,11 +105,8 @@ export default function PlatformShell({ scope, children }: { scope: Scope; child
             </div>
             <div className="flex items-center gap-2 rounded-2xl bg-red-50 px-4 py-3 text-xs font-bold text-red-800"><Building2 className="size-4" />داده‌ها محدود به سازمان مجاز هستند</div>
           </div>
-          <nav aria-label="ناوبری پنل" className="mt-6 flex gap-2 overflow-x-auto border-t border-red-50 pt-4">
-            {links.map(([href, label]) => {
-              const active = pathname === href;
-              return <Link key={href} href={href} aria-current={active ? "page" : undefined} className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-bold transition ${active ? "bg-primary text-white" : "bg-slate-50 text-slate-700 hover:bg-red-50 hover:text-primary"}`}>{label}</Link>;
-            })}
+          <nav aria-label="ناوبری پنل" className="mt-6 flex gap-5 overflow-x-auto border-t border-red-50 pt-4">
+            {groups.map(group=><div key={group} className="shrink-0"><p className="mb-2 px-1 text-[10px] font-black text-slate-400">{group}</p><div className="flex gap-2">{links.filter(entry=>entry[3]===group).map(([href,label])=>{const active=pathname===href;return <Link key={href} href={href} aria-current={active?"page":undefined} className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-bold transition ${active?"bg-primary text-white":"bg-slate-50 text-slate-700 hover:bg-red-50 hover:text-primary"}`}>{label}</Link>})}</div></div>)}
           </nav>
         </header>
         <section className="mt-6">{children}</section>

@@ -601,6 +601,8 @@ export class PlatformRepository {
       const expectedScope = membership.organization.type === "KIASHI_INTERNAL" ? "INTERNAL" : "MERCHANT";
       const roles = await tx.role.findMany({ where: { code: { in: roleCodes }, scope: expectedScope } });
       if (roles.length !== new Set(roleCodes).size) throw new DomainError("VALIDATION_ERROR", "یک یا چند نقش برای این سازمان معتبر نیست", 400);
+      const removingMerchantOwner=membership.roles.some(entry=>entry.role.code==="MERCHANT_OWNER")&&!roleCodes.includes("MERCHANT_OWNER");
+      if(removingMerchantOwner){const otherOwner=await tx.organizationMembership.count({where:{organizationId,status:"ACTIVE",id:{not:membershipId},roles:{some:{role:{code:"MERCHANT_OWNER"}}}}});if(!otherOwner)throw new DomainError("LAST_OWNER_REQUIRED","نقش آخرین مالک فعال سازمان قابل حذف نیست",409);}
       await tx.membershipRole.deleteMany({ where: { membershipId } });
       if (roles.length) await tx.membershipRole.createMany({ data: roles.map((role) => ({ membershipId, roleId: role.id })) });
       await this.audit(tx, { ...actor, action: "membership.roles_changed", resourceType: "OrganizationMembership", resourceId: membershipId, targetOrganizationId: organizationId, beforeData: { roles: membership.roles.map((entry) => entry.role.code) }, afterData: { roles: roles.map((role) => role.code) } });

@@ -1,0 +1,17 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import PlatformResourceView from "./PlatformResourceView";
+
+const statuses=["confirmed","paid_booking_pending","reservation_failed","manual_review_required","cancelled","refunded"];
+const today=()=>new Date().toISOString().slice(0,10);
+
+export default function HotelBookingsOperations({scope}:{scope:"backoffice"|"merchant"}){
+  const[filters,setFilters]=useState({from:"",to:"",status:"",propertyId:""});
+  const[properties,setProperties]=useState<Array<{id:string;name:string;city:string}>>([]);
+  useEffect(()=>{if(scope!=="backoffice")return;fetch("/api/backoffice/hotels?perPage=100",{credentials:"include",cache:"no-store"}).then(response=>response.ok?response.json():null).then(body=>setProperties(body?.properties??[]))},[scope]);
+  const endpoint=useMemo(()=>{const query=new URLSearchParams();Object.entries(filters).forEach(([key,value])=>value&&query.set(key,value));return `/api/${scope}/hotel-bookings${query.size?`?${query}`:""}`},[scope,filters]);
+  const set=(key:string,value:string)=>setFilters(current=>({...current,[key]:value}));
+  const todayArrivals=()=>{const from=today();const end=new Date(`${from}T00:00:00Z`);end.setUTCDate(end.getUTCDate()+1);setFilters(current=>({...current,from,to:end.toISOString().slice(0,10)}))};
+  return <div className="space-y-4"><section className="rounded-3xl border bg-white p-5 shadow-sm"><div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center"><div><h1 className="text-xl font-black">عملیات روزانه رزرو هتل</h1><p className="mt-1 text-sm text-slate-500">ورودی‌های امروز، رزروهای پیش‌رو و وضعیت‌های نیازمند پیگیری.</p></div><button type="button" onClick={todayArrivals} className="rounded-xl border border-red-200 px-4 py-2 text-sm font-bold text-primary">ورودی‌های امروز</button></div><div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"><label className="text-xs font-bold">از تاریخ<input type="date" value={filters.from} onChange={event=>set("from",event.target.value)} className="mt-1 min-h-11 w-full rounded-xl border px-3"/></label><label className="text-xs font-bold">تا تاریخ<input type="date" value={filters.to} onChange={event=>set("to",event.target.value)} className="mt-1 min-h-11 w-full rounded-xl border px-3"/></label><label className="text-xs font-bold">وضعیت رزرو<select value={filters.status} onChange={event=>set("status",event.target.value)} className="mt-1 min-h-11 w-full rounded-xl border bg-white px-3"><option value="">همه وضعیت‌ها</option>{statuses.map(status=><option key={status} value={status}>{status}</option>)}</select></label>{scope==="backoffice"&&<label className="text-xs font-bold">هتل<select value={filters.propertyId} onChange={event=>set("propertyId",event.target.value)} className="mt-1 min-h-11 w-full rounded-xl border bg-white px-3"><option value="">همه هتل‌ها</option>{properties.map(property=><option key={property.id} value={property.id}>{property.name} · {property.city}</option>)}</select></label>}</div></section><PlatformResourceView endpoint={endpoint} title="فهرست رزروها" description="شماره تماس مهمان در این فهرست ماسک شده است." dataKey="bookings" detailBasePath={`/${scope}/orders`} columns={[{key:"orderNumber",label:"سفارش"},{key:"property.name",label:"هتل"},{key:"guestMobile",label:"موبایل"},{key:"relevantDate",label:"ورود"},{key:"roomType.name",label:"اتاق"},{key:"ratePlan.title",label:"نرخ"},{key:"bookingStatus",label:"رزرو"},{key:"total",label:"مبلغ"}]}/></div>;
+}

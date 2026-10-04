@@ -1,2 +1,2 @@
-import{HotelManagement}from"@/components/platform/HotelManagement";
-export default function Page(){return <HotelManagement scope="merchant"/>}
+import HotelPropertyList from "@/components/platform/HotelPropertyList";
+export default function Page(){return <HotelPropertyList scope="merchant"/>}
