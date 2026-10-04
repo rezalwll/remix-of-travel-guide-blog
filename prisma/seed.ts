@@ -321,13 +321,13 @@ async function main() {
 
   await prisma.visaApplication.upsert({
     where: { id: "70000000-0000-4000-8000-000000000001" },
-    update: { userId: user.id, country: "امارات", status: "under_review", payload: { purpose: "گردشگری", travelMonth: "آبان ۱۴۰۵", travelers: 2, documentState: "complete", demo: true } },
-    create: { id: "70000000-0000-4000-8000-000000000001", userId: user.id, country: "امارات", status: "under_review", payload: { purpose: "گردشگری", travelMonth: "آبان ۱۴۰۵", travelers: 2, documentState: "complete", demo: true }, createdAt: at("2026-09-05T10:00:00.000Z") },
+    update: { userId: user.id, country: "امارات", status: "UNDER_REVIEW", payload: { applicant: { travelers: 2 }, purpose: "گردشگری", travelDates: { month: "آبان ۱۴۰۵" }, checklist: { passport: { status: "verified" }, photo: { status: "verified" }, insurance: { status: "received" }, financialProof: { status: "received" }, reservations: { status: "verified" }, applicationForms: { status: "received" } }, reviewerId: "b0000000-0000-4000-8000-000000000003", internalNote: "مدارک نمایشی کنترل اولیه شده‌اند.", customerNote: "پرونده در بررسی داخلی است و هنوز برای مرجع خارجی ارسال نشده است.", submittedAt: "2026-09-05T10:10:00.000Z", timeline: [{ status: "SUBMITTED", at: "2026-09-05T10:10:00.000Z", audience: "customer", note: "درخواست ثبت شد" }, { status: "UNDER_REVIEW", at: "2026-09-06T08:00:00.000Z", audience: "customer", note: "بررسی داخلی آغاز شد" }, { status: "UNDER_REVIEW", at: "2026-09-06T08:05:00.000Z", audience: "internal", note: "پرونده به کارشناس عملیات تخصیص یافت" }], demo: true } },
+    create: { id: "70000000-0000-4000-8000-000000000001", userId: user.id, country: "امارات", status: "UNDER_REVIEW", payload: { applicant: { travelers: 2 }, purpose: "گردشگری", travelDates: { month: "آبان ۱۴۰۵" }, checklist: { passport: { status: "verified" }, photo: { status: "verified" }, insurance: { status: "received" }, financialProof: { status: "received" }, reservations: { status: "verified" }, applicationForms: { status: "received" } }, reviewerId: "b0000000-0000-4000-8000-000000000003", internalNote: "مدارک نمایشی کنترل اولیه شده‌اند.", customerNote: "پرونده در بررسی داخلی است و هنوز برای مرجع خارجی ارسال نشده است.", submittedAt: "2026-09-05T10:10:00.000Z", timeline: [{ status: "SUBMITTED", at: "2026-09-05T10:10:00.000Z", audience: "customer", note: "درخواست ثبت شد" }, { status: "UNDER_REVIEW", at: "2026-09-06T08:00:00.000Z", audience: "customer", note: "بررسی داخلی آغاز شد" }], demo: true }, createdAt: at("2026-09-05T10:00:00.000Z") },
   });
   await prisma.visaApplication.upsert({
     where: { id: "70000000-0000-4000-8000-000000000002" },
-    update: { userId: user.id, country: "ترکیه", status: "draft", payload: { purpose: "گردشگری", travelers: 1, documentState: "incomplete", demo: true } },
-    create: { id: "70000000-0000-4000-8000-000000000002", userId: user.id, country: "ترکیه", status: "draft", payload: { purpose: "گردشگری", travelers: 1, documentState: "incomplete", demo: true }, createdAt: at("2026-09-17T10:00:00.000Z") },
+    update: { userId: user.id, country: "ترکیه", status: "DRAFT", payload: { applicant: { travelers: 1 }, purpose: "گردشگری", travelDates: null, checklist: { passport: { status: "received" }, photo: { status: "missing" }, insurance: { status: "not_required" }, financialProof: { status: "missing" }, reservations: { status: "missing" }, applicationForms: { status: "missing" } }, customerNote: null, timeline: [{ status: "DRAFT", at: "2026-09-17T10:00:00.000Z", audience: "customer", note: "پیش‌نویس پرونده ایجاد شد" }], demo: true } },
+    create: { id: "70000000-0000-4000-8000-000000000002", userId: user.id, country: "ترکیه", status: "DRAFT", payload: { applicant: { travelers: 1 }, purpose: "گردشگری", travelDates: null, checklist: { passport: { status: "received" }, photo: { status: "missing" }, insurance: { status: "not_required" }, financialProof: { status: "missing" }, reservations: { status: "missing" }, applicationForms: { status: "missing" } }, customerNote: null, timeline: [{ status: "DRAFT", at: "2026-09-17T10:00:00.000Z", audience: "customer", note: "پیش‌نویس پرونده ایجاد شد" }], demo: true }, createdAt: at("2026-09-17T10:00:00.000Z") },
   });
 
   await prisma.refundRequest.upsert({
@@ -340,6 +340,13 @@ async function main() {
     update: { status: "UNKNOWN", merchantOrganizationId: platformIds.hotelOrganization },
     create: { id: "90000000-0000-4000-8000-000000000001", orderId: "30000000-0000-4000-8000-000000000011", merchantOrganizationId: platformIds.hotelOrganization, provider: "mock-hotel", requestKey: "demo-booking-manual-review", providerReference: "DEMO-MANUAL-11", status: "UNKNOWN", requestSnapshot: { inventoryMode: "demo" }, responseSnapshot: { message: "پاسخ تأمین‌کننده قطعی نیست" }, createdAt: at("2026-09-16T13:36:00.000Z") },
   });
+  for (const [key, service, provider] of [["01", "flight", "mock-flight"], ["03", "train", "mock-train"], ["04", "bus", "mock-bus"], ["07", "insurance", "mock-insurance"], ["08", "cip", "mock-cip"], ["09", "transfer", "mock-transfer"]] as const) {
+    await prisma.bookingAttempt.upsert({
+      where: { requestKey: `demo-booking-${service}` },
+      update: { orderId: `30000000-0000-4000-8000-0000000000${key}`, provider, status: "CONFIRMED", providerReference: `DEMO-${service.toUpperCase()}-${key}` },
+      create: { id: `91000000-0000-4000-8000-0000000000${key}`, orderId: `30000000-0000-4000-8000-0000000000${key}`, provider, requestKey: `demo-booking-${service}`, providerReference: `DEMO-${service.toUpperCase()}-${key}`, status: "CONFIRMED", requestSnapshot: { synthetic: true, service }, responseSnapshot: { synthetic: true, confirmed: true }, createdAt: at(orderFixtures.find((fixture) => fixture.key === key)?.createdAt ?? "2026-09-01T08:00:00.000Z") },
+    });
+  }
 
   await seedMerchantFinance();
   await seedManagedPrograms();
