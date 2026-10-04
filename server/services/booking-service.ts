@@ -16,6 +16,7 @@ export type BookingRepository = {
 };
 
 const isItem = (value: unknown): value is SupplierItem => !!value && typeof value === "object" && typeof (value as SupplierItem).id === "string";
+const managedHotelId = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export class BookingService {
   constructor(private readonly providers: ProviderRegistry, private readonly repository: BookingRepository, private readonly executor = new ProviderExecutor()) {}
@@ -40,6 +41,9 @@ export class BookingService {
     const supplier = this.supplier(kind);
     if (!supplier) return;
     const item = this.selectedItem(kind, snapshot);
+    // UUID hotel selections belong to the managed catalog. The repository validates
+    // property/room/rate ownership, publication and inventory against PostgreSQL.
+    if (kind === "hotel" && managedHotelId.test(item.id)) return;
     const validation = await this.executor.run(requestId, supplier.name, "validate", () => supplier.validate(item));
     if (!validation.valid) throw new ProviderError("INVALID_REQUEST", "Selected supplier item is unavailable", false, supplier.name);
   }
@@ -50,6 +54,7 @@ export class BookingService {
     const supplier = this.supplier(checkout.serviceType);
     if (!supplier) return { outcome: "VALID" as const };
     const item = this.selectedItem(checkout.serviceType, checkout.service);
+    if (checkout.serviceType === "hotel" && managedHotelId.test(item.id)) return { outcome: "VALID" as const };
     const result = await this.executor.run(requestId, supplier.name, "validate", () => supplier.revalidate(item));
     if (result.outcome === "VALID") return result;
     const code = result.outcome === "EXPIRED" ? "OFFER_EXPIRED" : result.outcome;
@@ -57,6 +62,7 @@ export class BookingService {
   }
 
   async confirmOrder<T extends BookingOrder>(order: T, requestId = "internal"): Promise<BookingOrder> {
+    if (order.bookingStatus === "confirmed") return order;
     const supplier = this.supplier(order.serviceType);
     if (!supplier) return order;
     const previous = await this.repository.getBookingAttempt(order.id);

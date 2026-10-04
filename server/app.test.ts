@@ -231,11 +231,11 @@ integration("PostgreSQL runtime persistence", () => {
     const room = await prisma.roomType.create({ data: { propertyId: property.id, name: "اتاق تأمین‌کننده", description: "اتاق تست", capacity: 2, bedType: "دو تخت", status: "ACTIVE" } });
     const rate = await prisma.ratePlan.create({ data: { roomTypeId: room.id, title: "نرخ تأمین‌کننده", mealPlan: "صبحانه", refundable: true, cancellationPolicy: "طبق تأمین‌کننده", baseRate: 2_000_000, currency: "TOMAN", status: "ACTIVE" } });
     await prisma.dailyInventory.create({ data: { ratePlanId: rate.id, date: new Date("2026-12-20T00:00:00.000Z"), availableRooms: 7 } });
-    const checkout = (await app.inject({ method: "POST", url: "/api/checkout/sessions", headers: { cookie }, payload: { serviceType: "hotel", quantity: 1, service: { hotel: { id: property.id }, room: { id: room.id }, ratePlan: { id: rate.id }, stay: { checkIn: "2026-12-20", checkOut: "2026-12-21" }, roomCount: 2 } } })).json().checkoutSession;
-    const paid = await app.inject({ method: "POST", url: `/api/checkout/sessions/${checkout.id}/payments`, headers: { cookie }, payload: { idempotencyKey: `supplier-hotel-${marker}`, method: "online_mock" } });
-    expect(paid.statusCode).toBe(200);
+    const checkout = await app.inject({ method: "POST", url: "/api/checkout/sessions", headers: { cookie }, payload: { serviceType: "hotel", quantity: 1, service: { hotel: { id: property.id }, room: { id: room.id }, ratePlan: { id: rate.id }, stay: { checkIn: "2026-12-20", checkOut: "2026-12-21" }, roomCount: 2 } } });
+    expect(checkout.statusCode).toBe(409);
+    expect(checkout.json().error.code).toBe("HOTEL_SELECTION_INVALID");
     expect((await prisma.dailyInventory.findUniqueOrThrow({ where: { ratePlanId_date: { ratePlanId: rate.id, date: new Date("2026-12-20T00:00:00.000Z") } } })).availableRooms).toBe(7);
-    expect(await prisma.hotelInventoryAllocation.count({ where: { orderId: paid.json().order.id } })).toBe(0);
+    expect(await prisma.hotelInventoryAllocation.count({ where: { ratePlanId: rate.id } })).toBe(0);
     await app.close();
   });
 
