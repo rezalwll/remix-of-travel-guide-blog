@@ -1,0 +1,2 @@
+import PlatformResourceView from"@/components/platform/PlatformResourceView";
+export default function Page(){return <PlatformResourceView endpoint="/api/merchant/hotel-guests" title="فهرست مهمان‌ها" description="اطلاعات حداقلی و ماسک‌شده برای عملیات پذیرش؛ PII اضافی نمایش داده نمی‌شود." dataKey="guests" columns={[{key:"guestName",label:"مهمان"},{key:"mobile",label:"موبایل"},{key:"checkIn",label:"ورود"},{key:"roomType",label:"اتاق"},{key:"bookingReference",label:"مرجع"},{key:"status",label:"وضعیت"}]}/>}

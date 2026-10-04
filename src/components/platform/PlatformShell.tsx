@@ -8,7 +8,7 @@ import { Building2, LockKeyhole, ShieldCheck } from "lucide-react";
 type Scope = "backoffice" | "merchant";
 type AccessPayload = {
   user: { firstName: string; lastName: string };
-  organization: { name: string; id: string };
+  organization: { name: string; id: string; businessType?: string | null };
   roles: string[];
   permissions: string[];
 };
@@ -17,6 +17,10 @@ const navigation = {
   backoffice: [
     ["/backoffice", "نمای کلی", "backoffice.dashboard.view"],
     ["/backoffice/orders", "سفارش‌ها", "backoffice.orders.read"],
+    ["/backoffice/hotels", "هتل‌ها", "backoffice.hotels.read"],
+    ["/backoffice/customers", "مشتریان", "backoffice.customers.read"],
+    ["/backoffice/refunds", "استرداد", "backoffice.refunds.read"],
+    ["/backoffice/support", "پشتیبانی", "backoffice.support.read"],
     ["/backoffice/programs", "تور و زیارت", "backoffice.programs.read"],
     ["/backoffice/registrations", "ثبت‌نام‌ها", "backoffice.registrations.read"],
     ["/backoffice/merchants", "پذیرندگان", "backoffice.merchants.read"],
@@ -26,12 +30,17 @@ const navigation = {
   merchant: [
     ["/merchant", "نمای کلی", "merchant.dashboard.view"],
     ["/merchant/orders", "سفارش‌ها", "merchant.orders.read"],
+    ["/merchant/hotels", "هتل‌ها", "merchant.hotels.read"],
+    ["/merchant/inventory", "قیمت و موجودی", "merchant.inventory.read"],
+    ["/merchant/hotel-bookings", "رزروها", "merchant.bookings.read"],
+    ["/merchant/guests", "مهمان‌ها", "merchant.guests.read"],
     ["/merchant/programs", "تور و زیارت", "merchant.programs.read"],
     ["/merchant/registrations", "ثبت‌نام‌ها", "merchant.registrations.read"],
     ["/merchant/finance", "مالی", "merchant.finance.view"],
     ["/merchant/settlements", "تسویه‌ها", "merchant.settlements.read"],
     ["/merchant/team", "تیم", "merchant.team.read"],
     ["/merchant/profile", "پروفایل", "merchant.dashboard.view"],
+    ["/merchant/support", "پشتیبانی", "merchant.dashboard.view"],
   ],
 } as const;
 
@@ -57,7 +66,7 @@ export default function PlatformShell({ scope, children }: { scope: Scope; child
     return () => controller.abort();
   }, [scope]);
 
-  const links = useMemo(() => navigation[scope].filter((entry) => access?.permissions.includes(entry[2])), [access, scope]);
+  const links = useMemo(() => navigation[scope].filter((entry) => {if(!access?.permissions.includes(entry[2]))return false;if(scope!=="merchant")return true;const hotel=access.organization.businessType==="HOTEL";if(entry[0].includes("program")||entry[0].includes("registration"))return !hotel;if(entry[0].includes("hotel")||entry[0].includes("inventory")||entry[0].includes("guests"))return hotel;return true;}), [access, scope]);
 
   if (state === "loading") return <div className="mx-auto grid min-h-[55vh] max-w-6xl place-items-center px-4"><div className="flex items-center gap-3 text-sm text-muted-foreground"><span className="size-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />در حال بررسی دسترسی…</div></div>;
   if (state === "forbidden") return <div className="mx-auto grid min-h-[55vh] max-w-3xl place-items-center px-4"><div className="w-full rounded-3xl border border-red-100 bg-white p-8 text-center shadow-sm"><LockKeyhole className="mx-auto size-10 text-primary" /><h1 className="mt-4 text-xl font-black">دسترسی پنل برای این حساب فعال نیست</h1><p className="mt-2 text-sm leading-7 text-muted-foreground">عضویت فعال و مجوز مناسب باید توسط مدیر سامانه ثبت شود.</p><Link className="mt-5 inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white" href="/">بازگشت به سایت</Link></div></div>;

@@ -1,0 +1,2 @@
+import PlatformResourceView from"@/components/platform/PlatformResourceView";
+export default function Page(){return <PlatformResourceView endpoint="/api/backoffice/support" title="عملیات پشتیبانی" description="درخواست‌های باز، در انتظار، حل‌شده و بسته؛ پیام داخلی در API از پیام مشتری تفکیک شده است." dataKey="tickets" columns={[{key:"subject",label:"موضوع"},{key:"category",label:"دسته"},{key:"user.firstName",label:"مشتری"},{key:"organization.name",label:"پذیرنده"},{key:"order.orderNumber",label:"سفارش"},{key:"status",label:"وضعیت"},{key:"updatedAt",label:"آخرین تغییر"}]}/>}

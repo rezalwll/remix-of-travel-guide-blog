@@ -108,7 +108,7 @@ export async function registerPlatformRoutes(app: FastifyInstance, dependencies:
   app.get("/api/backoffice/orders", async (request, reply) => {
     const context = await contextFor(request, reply, "INTERNAL", "backoffice.orders.read"); if (!context) return;
     const page = parsePage(request.query);
-    const parsed = z.object({ serviceType: z.string().max(40).optional(), paymentStatus: z.string().max(40).optional(), bookingStatus: z.string().max(60).optional(), merchant: uuid.optional(), provider: z.string().max(80).optional(), orderNumber: z.string().max(80).optional(), trackingCode: z.string().max(80).optional() }).safeParse(request.query);
+    const parsed = z.object({ serviceType: z.string().max(40).optional(), paymentStatus: z.string().max(40).optional(), bookingStatus: z.string().max(60).optional(), merchant: uuid.optional(), provider: z.string().max(80).optional(), orderNumber: z.string().max(80).optional(), trackingCode: z.string().max(80).optional(),query:z.string().max(100).optional() }).safeParse(request.query);
     if (!parsed.success) return errorResponse(reply, 400, "VALIDATION_ERROR", "فیلتر سفارش معتبر نیست");
     const result = await repository.listBackofficeOrders({ ...parseRange(request.query), ...parsed.data, merchantOrganizationId: parsed.data.merchant }, page);
     return { orders: result.items, pagination: pagination(page, result.total) };
@@ -136,9 +136,16 @@ export async function registerPlatformRoutes(app: FastifyInstance, dependencies:
 
   app.get("/api/backoffice/support", async (request, reply) => {
     const context = await contextFor(request, reply, "INTERNAL", "backoffice.support.read"); if (!context) return;
-    const page = parsePage(request.query); const result = await repository.listSupport(page);
+    const parsed=z.object({status:z.enum(["open","pending","resolved","closed"]).optional()}).safeParse(request.query);if(!parsed.success)return errorResponse(reply,400,"VALIDATION_ERROR","فیلتر پشتیبانی معتبر نیست");
+    const page = parsePage(request.query); const result = await repository.listSupport(page,parsed.data.status);
     return { tickets: result.items, pagination: pagination(page, result.total) };
   });
+
+  app.get<{Params:{id:string}}>("/api/backoffice/support/:id",async(request,reply)=>{const context=await contextFor(request,reply,"INTERNAL","backoffice.support.read");if(!context)return;if(!uuid.safeParse(request.params.id).success)return errorResponse(reply,400,"VALIDATION_ERROR","شناسه معتبر نیست");return{ticket:await repository.getSupport(request.params.id)};});
+  app.post<{Params:{id:string}}>("/api/backoffice/support/:id/internal-notes",async(request,reply)=>{const context=await contextFor(request,reply,"INTERNAL","backoffice.support.manage");if(!context)return;protectMutation(request,context,"support-note");const parsed=z.object({note:z.string().trim().min(2).max(3000)}).safeParse(request.body);if(!uuid.safeParse(request.params.id).success||!parsed.success)return errorResponse(reply,400,"VALIDATION_ERROR","یادداشت معتبر نیست");return reply.code(201).send({message:await repository.addSupportInternalNote(request.params.id,parsed.data.note,actorFrom(request,context))});});
+
+  app.get("/api/backoffice/customers",async(request,reply)=>{const context=await contextFor(request,reply,"INTERNAL","backoffice.customers.read");if(!context)return;const parsed=z.object({q:z.string().trim().min(2).max(120)}).safeParse(request.query);if(!parsed.success)return errorResponse(reply,400,"VALIDATION_ERROR","عبارت جست‌وجو معتبر نیست");return{customers:await repository.customerLookup(parsed.data.q,actorFrom(request,context))};});
+  app.get("/api/backoffice/action-required",async(request,reply)=>{const context=await contextFor(request,reply,"INTERNAL","backoffice.orders.read");if(!context)return;return{queue:await repository.operationsQueue()};});
 
   app.get("/api/backoffice/merchants", async (request, reply) => {
     const context = await contextFor(request, reply, "INTERNAL", "backoffice.merchants.read"); if (!context) return;
@@ -302,6 +309,9 @@ export async function registerPlatformRoutes(app: FastifyInstance, dependencies:
     const context = await contextFor(request, reply, "MERCHANT", "merchant.dashboard.view"); if (!context) return;
     return { profile: await repository.getMerchantProfile(context.organization.id) };
   });
+
+  app.get("/api/merchant/action-required",async(request,reply)=>{const context=await contextFor(request,reply,"MERCHANT","merchant.dashboard.view");if(!context)return;return{queue:await repository.operationsQueue(context.organization.id)};});
+  app.post("/api/merchant/support",async(request,reply)=>{const context=await contextFor(request,reply,"MERCHANT","merchant.dashboard.view");if(!context)return;protectMutation(request,context,"merchant-support");const parsed=z.object({subject:z.string().trim().min(3).max(180),body:z.string().trim().min(3).max(3000),category:z.enum(["booking","settlement","hotel_operation","tour_operation","profile"]),orderId:uuid.optional()}).safeParse(request.body);if(!parsed.success)return errorResponse(reply,400,"VALIDATION_ERROR","درخواست پشتیبانی معتبر نیست");return reply.code(201).send({ticket:await repository.createMerchantSupport(context.organization.id,context.user.id,parsed.data as {subject:string;body:string;category:string;orderId?:string})});});
 
   app.patch("/api/merchant/profile", async (request, reply) => {
     const context = await contextFor(request, reply, "MERCHANT", "merchant.profile.manage"); if (!context) return;

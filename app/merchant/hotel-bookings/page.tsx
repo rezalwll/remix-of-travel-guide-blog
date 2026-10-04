@@ -1,0 +1,2 @@
+import PlatformResourceView from"@/components/platform/PlatformResourceView";
+export default function Page(){return <PlatformResourceView endpoint="/api/merchant/hotel-bookings" title="رزروهای هتل" description="ورودی‌های امروز، رزروهای پیش‌رو و موارد نیازمند اقدام سازمان." dataKey="bookings" columns={[{key:"orderNumber",label:"سفارش"},{key:"property.name",label:"هتل"},{key:"guestMobile",label:"موبایل"},{key:"relevantDate",label:"ورود"},{key:"roomType.name",label:"اتاق"},{key:"ratePlan.title",label:"نرخ"},{key:"bookingStatus",label:"رزرو"},{key:"total",label:"مبلغ"}]}/>}

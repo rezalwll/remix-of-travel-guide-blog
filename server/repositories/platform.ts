@@ -13,7 +13,7 @@ export type PlatformScope = "INTERNAL" | "MERCHANT";
 export type PlatformAccessContext = {
   membershipId: string;
   user: { id: string; mobile: string; firstName: string; lastName: string; email: string | null };
-  organization: { id: string; type: string; name: string; slug: string; status: string };
+  organization: { id: string; type: string; name: string; slug: string; status: string; businessType?: string | null };
   roles: string[];
   permissions: string[];
 };
@@ -28,6 +28,7 @@ export type OrderFilters = RangeInput & {
   provider?: string;
   orderNumber?: string;
   trackingCode?: string;
+  query?: string;
 };
 
 export type AuditActor = {
@@ -68,6 +69,8 @@ const orderSelect = {
   supplierOrganizationId: true,
   createdAt: true,
   updatedAt: true,
+  merchantOrganization: { select: { id: true, name: true } },
+  supplierOrganization: { select: { id: true, name: true } },
 } satisfies Prisma.OrderSelect;
 
 export class PlatformRepository {
@@ -84,7 +87,7 @@ export class PlatformRepository {
       orderBy: { createdAt: "asc" },
       include: {
         user: { select: { id: true, mobile: true, firstName: true, lastName: true, email: true } },
-        organization: { select: { id: true, type: true, name: true, slug: true, status: true } },
+        organization: { select: { id: true, type: true, name: true, slug: true, status: true, merchantProfile: { select: { businessType: true } } } },
         roles: {
           where: { role: { scope } },
           include: { role: { include: { permissions: { include: { permission: true } } } } },
@@ -95,7 +98,7 @@ export class PlatformRepository {
     return {
       membershipId: membership.id,
       user: membership.user,
-      organization: membership.organization,
+      organization: { id:membership.organization.id,type:membership.organization.type,name:membership.organization.name,slug:membership.organization.slug,status:membership.organization.status,businessType:membership.organization.merchantProfile?.businessType??null },
       roles: membership.roles.map((entry) => entry.role.code),
       permissions: [...new Set(membership.roles.flatMap((entry) => entry.role.permissions.map((item) => item.permission.code)))].sort(),
     };
@@ -130,7 +133,7 @@ export class PlatformRepository {
       this.prisma.order.findMany({ where, select: orderSelect, orderBy: { createdAt: "desc" }, skip: (page.page - 1) * page.perPage, take: page.perPage }),
       this.prisma.order.count({ where }),
     ]);
-    return { items: items.map((item) => ({ ...item, guestMobile: maskMobile(item.guestMobile), buyer: undefined, travelers: undefined })), total };
+    return { items: items.map((item) => { const buyer=item.buyer&&typeof item.buyer==="object"&&!Array.isArray(item.buyer)?item.buyer as Record<string,unknown>:{};return { ...item, customer:{name:`${buyer.firstName??""} ${buyer.lastName??""}`.trim()||"مشتری",mobile:maskMobile(item.guestMobile)},guestMobile: maskMobile(item.guestMobile), buyer: undefined, travelers: undefined }; }), total };
   }
 
   getBackofficeOrder(id: string) {
@@ -142,6 +145,15 @@ export class PlatformRepository {
         payments: { select: { id: true, provider: true, method: true, status: true, amount: true, walletAmount: true, onlineAmount: true, reference: true, createdAt: true, completedAt: true } },
         refunds: { select: { id: true, amount: true, reason: true, destination: true, status: true, walletAmount: true, onlineAmount: true, providerReference: true, createdAt: true, completedAt: true } },
         bookingAttempts: { select: { id: true, provider: true, providerReference: true, status: true, error: true, createdAt: true, updatedAt: true }, orderBy: { createdAt: "desc" } },
+        serviceSnapshot: true,
+        pricingSnapshot: true,
+        paymentSnapshot: true,
+        property: { select: { id:true,slug:true,name:true,city:true,sourceType:true } },
+        roomType: { select: { id:true,name:true,capacity:true,bedType:true } },
+        ratePlan: { select: { id:true,title:true,mealPlan:true,refundable:true,cancellationPolicy:true } },
+        travelProgram: { select: { id:true,title:true,type:true } },
+        travelProgramDeparture: { select: { id:true,startDate:true,endDate:true,transportType:true } },
+        travelProgramPackage: { select: { id:true,name:true,hotelName:true,roomType:true } },
       },
     });
   }
@@ -164,13 +176,21 @@ export class PlatformRepository {
     return { items, total };
   }
 
-  async listSupport(page: PageInput) {
+  async listSupport(page: PageInput, status?: string) {
     const [items, total] = await Promise.all([
-      this.prisma.supportTicket.findMany({ select: { id: true, subject: true, status: true, createdAt: true, updatedAt: true, user: { select: { id: true, firstName: true, lastName: true, mobile: true } }, _count: { select: { messages: true } } }, orderBy: { updatedAt: "desc" }, skip: (page.page - 1) * page.perPage, take: page.perPage }),
-      this.prisma.supportTicket.count(),
+      this.prisma.supportTicket.findMany({ where:{status},select: { id: true, subject: true, status: true,category:true,order:{select:{id:true,orderNumber:true}},organization:{select:{id:true,name:true}}, createdAt: true, updatedAt: true, user: { select: { id: true, firstName: true, lastName: true, mobile: true } }, _count: { select: { messages: true } } }, orderBy: { updatedAt: "desc" }, skip: (page.page - 1) * page.perPage, take: page.perPage }),
+      this.prisma.supportTicket.count({where:{status}}),
     ]);
     return { items: items.map((item) => ({ ...item, user: item.user ? { ...item.user, mobile: maskMobile(item.user.mobile) } : null })), total };
   }
+
+  async getSupport(id:string){const ticket=await this.prisma.supportTicket.findUnique({where:{id},include:{user:{select:{id:true,firstName:true,lastName:true,mobile:true}},order:{select:{id:true,orderNumber:true,trackingCode:true,serviceType:true}},organization:{select:{id:true,name:true}},messages:{orderBy:{createdAt:"asc"},select:{id:true,authorType:true,body:true,internal:true,createdAt:true}}}});if(!ticket)throw notFound();return{...ticket,user:ticket.user?{...ticket.user,mobile:maskMobile(ticket.user.mobile)}:null};}
+
+  async customerLookup(query:string,actor:AuditActor){const normalized=query.trim();const users=await this.prisma.user.findMany({where:{OR:[{mobile:{contains:normalized}},{firstName:{contains:normalized,mode:"insensitive"}},{lastName:{contains:normalized,mode:"insensitive"}},{orders:{some:{OR:[{orderNumber:{contains:normalized,mode:"insensitive"}},{trackingCode:{contains:normalized,mode:"insensitive"}}]}}}]},take:20,include:{wallet:{select:{balance:true,currency:true}},orders:{orderBy:{createdAt:"desc"},take:20,select:{id:true,orderNumber:true,trackingCode:true,serviceType:true,total:true,paymentStatus:true,bookingStatus:true,relevantDate:true,createdAt:true}},refunds:{orderBy:{createdAt:"desc"},take:10,select:{id:true,orderId:true,amount:true,status:true,createdAt:true}},supportTickets:{orderBy:{updatedAt:"desc"},take:10,select:{id:true,subject:true,status:true,updatedAt:true}},visaApplications:{orderBy:{updatedAt:"desc"},take:10,select:{id:true,country:true,status:true,updatedAt:true}}}});await this.prisma.auditLog.create({data:{actorUserId:actor.userId,actorOrganizationId:actor.organizationId,action:"customer.lookup",resourceType:"User",requestId:actor.requestId,ipAddress:actor.ipAddress,userAgent:actor.userAgent?.slice(0,500),metadata:asJson({queryType:/^09\d{9}$/.test(normalized)?"mobile":"general",resultCount:users.length})}});return users.map(user=>({id:user.id,identity:{name:`${user.firstName} ${user.lastName}`.trim(),mobile:maskMobile(user.mobile),email:maskEmail(user.email),nationalId:maskIdentifier(user.nationalId)},wallet:user.wallet,orders:user.orders,refunds:user.refunds,support:user.supportTickets,visaApplications:user.visaApplications}));}
+
+  async createMerchantSupport(organizationId:string,userId:string,input:{subject:string;body:string;category:string;orderId?:string}){if(input.orderId&&!await this.prisma.order.findFirst({where:{id:input.orderId,merchantOrganizationId:organizationId},select:{id:true}}))throw notFound("سفارش سازمان پیدا نشد");return this.prisma.supportTicket.create({data:{organizationId,orderId:input.orderId,category:input.category,subject:input.subject,messages:{create:{authorType:"merchant",authorUserId:userId,body:input.body}}},include:{messages:true}});}
+
+  async operationsQueue(organizationId?:string){const start=new Date();start.setUTCHours(0,0,0,0);const end=new Date(start.getTime()+86_400_000);const orderScope=organizationId?{merchantOrganizationId:organizationId}:{};const[arrivals,manualReview,refunds,support,lowInventory]=await Promise.all([this.prisma.order.findMany({where:{...orderScope,serviceType:"hotel",relevantDate:{gte:start,lt:end},bookingStatus:{not:"confirmed"}},select:{id:true,orderNumber:true,bookingStatus:true,relevantDate:true,property:{select:{name:true}}},take:30}),this.prisma.order.findMany({where:{...orderScope,bookingStatus:"manual_review_required"},select:{id:true,orderNumber:true,serviceType:true,createdAt:true},take:30}),this.prisma.refundRequest.findMany({where:{status:"requested",...(organizationId?{order:{merchantOrganizationId:organizationId}}:{})},select:{id:true,amount:true,order:{select:{orderNumber:true,serviceType:true}}},take:30}),this.prisma.supportTicket.findMany({where:{status:{in:["open","pending"]},...(organizationId?{organizationId}: {})},select:{id:true,subject:true,status:true,updatedAt:true},take:30}),this.prisma.dailyInventory.findMany({where:{date:{gte:start,lt:new Date(start.getTime()+14*86_400_000)},availableRooms:{lte:1},ratePlan:{roomType:{property:{organizationId}}}},select:{id:true,date:true,availableRooms:true,ratePlan:{select:{title:true,roomType:{select:{name:true,property:{select:{id:true,name:true}}}}}}},take:30})]);return{todayArrivalIssues:arrivals,manualReview,refundRequested:refunds,supportWaiting:support,lowAvailability:lowInventory};}
 
   async listMerchants(page: PageInput, status?: string, businessType?: string) {
     const where: Prisma.OrganizationWhereInput = { type: "MERCHANT", ...(status ? { status } : {}), ...(businessType ? { merchantProfile: { businessType } } : {}) };
@@ -412,6 +432,8 @@ export class PlatformRepository {
     });
   }
 
+  async addSupportInternalNote(ticketId:string,note:string,actor:AuditActor){return this.prisma.$transaction(async tx=>{const current=await tx.supportTicket.findUnique({where:{id:ticketId}});if(!current)throw notFound();const message=await tx.supportMessage.create({data:{ticketId,authorType:"support",authorUserId:actor.userId,body:note,internal:true}});await this.audit(tx,{...actor,action:"support.internal_note_added",resourceType:"SupportTicket",resourceId:ticketId,targetOrganizationId:current.organizationId??undefined,afterData:{messageId:message.id}});return message;});}
+
   private orderWhere(filters: OrderFilters): Prisma.OrderWhereInput {
     return {
       createdAt: { gte: filters.from, lt: filters.to },
@@ -422,6 +444,7 @@ export class PlatformRepository {
       providerName: filters.provider,
       orderNumber: filters.orderNumber ? { contains: filters.orderNumber, mode: "insensitive" } : undefined,
       trackingCode: filters.trackingCode ? { contains: filters.trackingCode, mode: "insensitive" } : undefined,
+      ...(filters.query?{OR:[{orderNumber:{contains:filters.query,mode:"insensitive"}},{trackingCode:{contains:filters.query,mode:"insensitive"}},{guestMobile:{contains:filters.query}}]}:{}),
     };
   }
 }

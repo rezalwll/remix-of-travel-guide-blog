@@ -1,0 +1,2 @@
+import PlatformResourceView from"@/components/platform/PlatformResourceView";
+export default function Page(){return <PlatformResourceView endpoint="/api/backoffice/refunds?preset=30d" title="صف استرداد" description="اثر تسویه، مقصد بازگشت و وضعیت درخواست؛ تغییر وضعیت فقط از API امن و audit‌شده انجام می‌شود." dataKey="refunds" columns={[{key:"order.orderNumber",label:"سفارش"},{key:"amount",label:"مبلغ"},{key:"destination",label:"مقصد"},{key:"reason",label:"دلیل"},{key:"status",label:"وضعیت"},{key:"walletAmount",label:"کیف پول"},{key:"onlineAmount",label:"آنلاین"}]}/>}
