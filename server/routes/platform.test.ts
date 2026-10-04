@@ -38,6 +38,7 @@ function mocks(access: (user: string, scope: "INTERNAL" | "MERCHANT", requested?
     listBackofficeSettlements: vi.fn(async () => ({ items: [], total: 0 })),
     reconciliationView: vi.fn(async () => ({ bookings: [], payments: [], reliability: [], total: 0 })),
     recordOperatorAction: vi.fn(async () => ({})),
+    moderateReport: vi.fn(async (kind) => ({ kind, totals: { orders: 1 }, rows: [{ orderNumber: "=unsafe" }], pagination: { total: 1 } })),
     reportSummary: vi.fn(async () => ({ totals: { orders: 0 }, series: [] })),
     listMerchants: vi.fn(async () => ({ items: [], total: 0 })),
     createMerchant: vi.fn(async (input, actor) => ({ id: orgB, ...input, auditActor: actor.userId })),
@@ -159,6 +160,13 @@ describe("platform API authorization", () => {
     const providers=await app.inject({method:"GET",url:"/api/backoffice/providers",headers:auth});expect(providers.statusCode).toBe(200);expect(providers.body).not.toMatch(/secret|api.?key|credential/i);
     const reconciliation=await app.inject({method:"GET",url:"/api/backoffice/reconciliation?preset=7d",headers:auth});expect(reconciliation.statusCode).toBe(200);expect(allowed.platform.reconciliationView).toHaveBeenCalled();
     expect((await app.inject({method:"POST",url:"/api/backoffice/reconciliation/run",headers:{...auth,origin:"http://localhost:8080"},payload:{limit:10}})).statusCode).toBe(403);
+  });
+
+  it("serves only the bounded report catalog and exports formula-safe CSV",async()=>{
+    const allowed=mocks((_user,scope)=>scope==="INTERNAL"?baseContext(["backoffice.reports.view"],orgA,"INTERNAL"):null);const app=await appWith(allowed.runtime,allowed.platform);
+    for(const kind of ["sales","programs","hotels","merchants","refunds","settlements","providers"])expect((await app.inject({method:"GET",url:`/api/backoffice/reports/${kind}?preset=7d`,headers:auth})).statusCode).toBe(200);
+    expect((await app.inject({method:"GET",url:"/api/backoffice/reports/forecasting",headers:auth})).statusCode).toBe(400);
+    const csv=await app.inject({method:"GET",url:"/api/backoffice/reports/sales/export.csv?preset=7d",headers:auth});expect(csv.statusCode).toBe(200);expect(csv.headers["content-type"]).toContain("text/csv");expect(csv.body).toContain("'=unsafe");
   });
 
   it("keeps merchant users out of internal APIs", async () => {

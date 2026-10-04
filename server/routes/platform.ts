@@ -40,6 +40,10 @@ const membershipStatus = z.enum(["INVITED", "ACTIVE", "SUSPENDED", "REVOKED"]);
 const providerDrivenService = z.enum(["flight", "train", "bus", "insurance", "cip", "transfer"]);
 const settlementStatus=z.enum(["DRAFT","READY","APPROVED","PROCESSING","PAID","FAILED","CANCELLED"]);
 const merchantRole=z.enum(["MERCHANT_OWNER","MERCHANT_MANAGER","MERCHANT_FINANCE","MERCHANT_OPERATOR","MERCHANT_READONLY"]);
+const reportKind=z.enum(["sales","programs","hotels","merchants","refunds","settlements","providers"]);
+
+function csvCell(value:unknown){const text=value==null?"":typeof value==="object"?JSON.stringify(value):String(value);const safe=/^[=+\-@]/.test(text)?`'${text}`:text;return `"${safe.replaceAll('"','""')}"`;}
+function rowsToCsv(rows:Array<Record<string,unknown>>){if(!rows.length)return "\uFEFF";const headers=[...new Set(rows.flatMap(row=>Object.keys(row)))];return `\uFEFF${headers.map(csvCell).join(",")}\n${rows.map(row=>headers.map(header=>csvCell(row[header])).join(",")).join("\n")}`;}
 
 function parsePage(query: unknown) {
   const result = pageSchema.safeParse(query);
@@ -242,6 +246,9 @@ export async function registerPlatformRoutes(app: FastifyInstance, dependencies:
     const context = await contextFor(request, reply, "INTERNAL", "backoffice.reports.view"); if (!context) return;
     return { report: await repository.reportSummary(parseRange(request.query)) };
   });
+
+  app.get<{Params:{kind:string}}>("/api/backoffice/reports/:kind",async(request,reply)=>{const context=await contextFor(request,reply,"INTERNAL","backoffice.reports.view");if(!context)return;const kind=reportKind.safeParse(request.params.kind);const filters=z.object({status:z.string().trim().max(60).optional(),merchantId:uuid.optional()}).safeParse(request.query);if(!kind.success||!filters.success)return errorResponse(reply,400,"VALIDATION_ERROR","گزارش یا فیلتر معتبر نیست");const page=parsePage(request.query);const report=await repository.moderateReport(kind.data,parseRange(request.query),page,filters.data);return{report:{...report,pagination:pagination(page,report.pagination.total)}};});
+  app.get<{Params:{kind:string}}>("/api/backoffice/reports/:kind/export.csv",async(request,reply)=>{const context=await contextFor(request,reply,"INTERNAL","backoffice.reports.view");if(!context)return;const kind=reportKind.safeParse(request.params.kind);const filters=z.object({status:z.string().trim().max(60).optional(),merchantId:uuid.optional()}).safeParse(request.query);if(!kind.success||!filters.success)return errorResponse(reply,400,"VALIDATION_ERROR","گزارش یا فیلتر معتبر نیست");const report=await repository.moderateReport(kind.data,parseRange(request.query),{page:1,perPage:100},filters.data);return reply.type("text/csv; charset=utf-8").header("Content-Disposition",`attachment; filename="kiashi-${kind.data}.csv"`).send(rowsToCsv(report.rows as Array<Record<string,unknown>>));});
 
   app.get("/api/backoffice/finance/summary",async(request,reply)=>{const context=await contextFor(request,reply,"INTERNAL","backoffice.finance.view");if(!context)return;return{finance:await repository.backofficeFinanceSummary(parseRange(request.query))};});
   app.get("/api/backoffice/settlements",async(request,reply)=>{const context=await contextFor(request,reply,"INTERNAL","backoffice.finance.view");if(!context)return;const parsed=z.object({status:settlementStatus.optional(),merchantId:uuid.optional()}).safeParse(request.query);if(!parsed.success)return errorResponse(reply,400,"VALIDATION_ERROR","فیلتر تسویه معتبر نیست");const page=parsePage(request.query);const result=await repository.listBackofficeSettlements(page,parsed.data.status,parsed.data.merchantId);return{settlements:result.items,pagination:pagination(page,result.total)};});
