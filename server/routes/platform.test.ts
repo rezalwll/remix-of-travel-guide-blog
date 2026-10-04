@@ -36,6 +36,8 @@ function mocks(access: (user: string, scope: "INTERNAL" | "MERCHANT", requested?
     updateMembershipStatus: vi.fn(async (organizationId, membershipId, status) => ({ organizationId, membershipId, status })),
     backofficeFinanceSummary: vi.fn(async () => ({ totals: { grossSales: 0 } })),
     listBackofficeSettlements: vi.fn(async () => ({ items: [], total: 0 })),
+    reconciliationView: vi.fn(async () => ({ bookings: [], payments: [], reliability: [], total: 0 })),
+    recordOperatorAction: vi.fn(async () => ({})),
     reportSummary: vi.fn(async () => ({ totals: { orders: 0 }, series: [] })),
     listMerchants: vi.fn(async () => ({ items: [], total: 0 })),
     createMerchant: vi.fn(async (input, actor) => ({ id: orgB, ...input, auditActor: actor.userId })),
@@ -150,6 +152,13 @@ describe("platform API authorization", () => {
     expect((await allowedApp.inject({method:"GET",url:"/api/backoffice/settlements?status=READY",headers:auth})).statusCode).toBe(200);
     const denied=mocks((_user,scope)=>scope==="INTERNAL"?baseContext(["backoffice.dashboard.view"],orgA,"INTERNAL"):null);const deniedApp=await appWith(denied.runtime,denied.platform);
     expect((await deniedApp.inject({method:"GET",url:"/api/backoffice/finance/summary",headers:auth})).statusCode).toBe(403);
+  });
+
+  it("redacts provider dashboard configuration and protects reconciliation",async()=>{
+    const allowed=mocks((_user,scope)=>scope==="INTERNAL"?baseContext(["backoffice.providers.read"],orgA,"INTERNAL"):null);const app=await appWith(allowed.runtime,allowed.platform);
+    const providers=await app.inject({method:"GET",url:"/api/backoffice/providers",headers:auth});expect(providers.statusCode).toBe(200);expect(providers.body).not.toMatch(/secret|api.?key|credential/i);
+    const reconciliation=await app.inject({method:"GET",url:"/api/backoffice/reconciliation?preset=7d",headers:auth});expect(reconciliation.statusCode).toBe(200);expect(allowed.platform.reconciliationView).toHaveBeenCalled();
+    expect((await app.inject({method:"POST",url:"/api/backoffice/reconciliation/run",headers:{...auth,origin:"http://localhost:8080"},payload:{limit:10}})).statusCode).toBe(403);
   });
 
   it("keeps merchant users out of internal APIs", async () => {

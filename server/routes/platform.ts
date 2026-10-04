@@ -16,6 +16,8 @@ type RouteDependencies = {
   currentUser: (request: FastifyRequest) => Promise<AuthenticatedUser | undefined>;
   enforceRate: (key: string, limit: number, windowMs: number) => void;
   errorResponse: (reply: FastifyReply, status: number, code: string, message: string, details?: Record<string, unknown>) => FastifyReply;
+  providerStatus?:()=>Promise<Array<{key:string;adapter:string;mode:string;lifecycle:string;enabled:boolean;optional:boolean;healthy:boolean;checkedAt:string;reason?:string}>>;
+  runReconciliation?:(limit:number)=>Promise<unknown>;
 };
 
 const pageSchema = z.object({ page: z.coerce.number().int().min(1).max(10_000).default(1), perPage: z.coerce.number().int().min(1).max(100).default(20) });
@@ -69,7 +71,7 @@ function actorFrom(request: FastifyRequest, context: PlatformAccessContext) {
 }
 
 export async function registerPlatformRoutes(app: FastifyInstance, dependencies: RouteDependencies) {
-  const { repository, env, currentUser, enforceRate, errorResponse } = dependencies;
+  const { repository, env, currentUser, enforceRate, errorResponse,providerStatus,runReconciliation } = dependencies;
 
   app.addHook("onSend", async (request, reply, payload) => {
     if (request.url.startsWith("/api/backoffice/") || request.url.startsWith("/api/merchant/")) {
@@ -190,6 +192,10 @@ export async function registerPlatformRoutes(app: FastifyInstance, dependencies:
 
   app.get("/api/backoffice/customers",async(request,reply)=>{const context=await contextFor(request,reply,"INTERNAL","backoffice.customers.read");if(!context)return;const parsed=z.object({q:z.string().trim().min(2).max(120)}).safeParse(request.query);if(!parsed.success)return errorResponse(reply,400,"VALIDATION_ERROR","عبارت جست‌وجو معتبر نیست");return{customers:await repository.customerLookup(parsed.data.q,actorFrom(request,context))};});
   app.get("/api/backoffice/action-required",async(request,reply)=>{const context=await contextFor(request,reply,"INTERNAL","backoffice.orders.read");if(!context)return;return{queue:await repository.operationsQueue()};});
+
+  app.get("/api/backoffice/providers",async(request,reply)=>{const context=await contextFor(request,reply,"INTERNAL","backoffice.providers.read");if(!context)return;if(!providerStatus)return{providers:[]};const rows=await providerStatus();return{providers:rows.map(({key,adapter,mode,lifecycle,enabled,optional,healthy,checkedAt,reason})=>({key,adapter,mode,lifecycle,enabled,optional,healthy,checkedAt,...(reason?{reason}:{})}))};});
+  app.get("/api/backoffice/reconciliation",async(request,reply)=>{const context=await contextFor(request,reply,"INTERNAL","backoffice.providers.read");if(!context)return;const parsed=z.object({provider:z.string().trim().max(80).optional(),status:z.string().trim().max(40).optional()}).safeParse(request.query);if(!parsed.success)return errorResponse(reply,400,"VALIDATION_ERROR","فیلتر تطبیق معتبر نیست");const page=parsePage(request.query);const result=await repository.reconciliationView(parseRange(request.query),page,parsed.data.provider,parsed.data.status);return{...result,pagination:pagination(page,result.total)};});
+  app.post("/api/backoffice/reconciliation/run",async(request,reply)=>{const context=await contextFor(request,reply,"INTERNAL","backoffice.reconciliation.run");if(!context)return;protectMutation(request,context,"reconciliation-run");if(!runReconciliation)return errorResponse(reply,409,"RECONCILIATION_UNAVAILABLE","اجرای تطبیق در این محیط فعال نیست");const parsed=z.object({limit:z.number().int().min(1).max(100).default(50)}).safeParse(request.body??{});if(!parsed.success)return errorResponse(reply,400,"VALIDATION_ERROR","محدوده اجرای تطبیق معتبر نیست");await repository.recordOperatorAction({...actorFrom(request,context),action:"reconciliation.booking.triggered",resourceType:"BookingAttempt",metadata:{limit:parsed.data.limit,source:"backoffice"}});return{results:await runReconciliation(parsed.data.limit)};});
 
   app.get("/api/backoffice/merchants", async (request, reply) => {
     const context = await contextFor(request, reply, "INTERNAL", "backoffice.merchants.read"); if (!context) return;

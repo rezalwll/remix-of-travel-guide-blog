@@ -20,6 +20,7 @@ import { CompensationService } from "./services/compensation-service.js";
 import { PlatformRepository } from "./repositories/platform.js";
 import { ProgramRepository } from "./repositories/programs.js";
 import { registerPlatformRoutes } from "./routes/platform.js";
+import { ReconciliationService } from "./services/reconciliation-service.js";
 import { registerProgramRoutes } from "./routes/programs.js";
 import { HotelRepository } from "./repositories/hotels.js";
 import { registerHotelRoutes } from "./routes/hotels.js";
@@ -47,6 +48,7 @@ export async function buildApp(options: AppOptions = {}) {
   const paymentService = new PaymentService(providers.payment, repository, executor);
   const bookingService = new BookingService(providers, repository, executor);
   const compensationService = new CompensationService(providers.payment, repository, executor);
+  const reconciliationService = new ReconciliationService(bookingService, compensationService);
   await app.register(cookie);
   await app.register(cors, { origin: env.WEB_ORIGIN, credentials: true });
   await app.register(helmet, {
@@ -113,6 +115,8 @@ export async function buildApp(options: AppOptions = {}) {
     currentUser,
     enforceRate,
     errorResponse,
+    providerStatus:()=>providers.status(),
+    runReconciliation:(limit)=>reconciliationService.run(limit),
   });
   await registerProgramRoutes(app, {
     repository: programRepository,

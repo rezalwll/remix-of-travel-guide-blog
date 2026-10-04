@@ -18,6 +18,7 @@ const navigation = {
     ["/backoffice", "نمای کلی", "backoffice.dashboard.view"],
     ["/backoffice/orders", "سفارش‌ها", "backoffice.orders.read"],
     ["/backoffice/operations/flight", "عملیات سرویس‌ها", "backoffice.orders.read"],
+    ["/backoffice/providers", "تأمین‌کنندگان", "backoffice.providers.read"],
     ["/backoffice/hotels", "هتل‌ها", "backoffice.hotels.read"],
     ["/backoffice/customers", "مشتریان", "backoffice.customers.read"],
     ["/backoffice/refunds", "استرداد", "backoffice.refunds.read"],
