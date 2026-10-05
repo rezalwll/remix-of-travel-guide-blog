@@ -1,0 +1,51 @@
+name: Offline image bundle
+
+on:
+  workflow_dispatch:
+    inputs:
+      site_url:
+        description: Public HTTPS origin embedded in the web build
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SITE_URL: ${{ inputs.site_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate build origin
+        run: node -e "const u=new URL(process.env.SITE_URL); if(u.protocol!=='https:') process.exit(1)"
+      - name: Build release images
+        run: |
+          docker build --build-arg SITE_URL="$SITE_URL" --target api --tag "kiashi-api:$GITHUB_SHA" .
+          docker build --build-arg SITE_URL="$SITE_URL" --target web --tag "kiashi-web:$GITHUB_SHA" .
+          docker build --build-arg SITE_URL="$SITE_URL" --target migrate --tag "kiashi-migrate:$GITHUB_SHA" .
+          docker build --target proxy --tag "kiashi-proxy:$GITHUB_SHA" .
+          docker pull postgres:16-alpine
+          docker pull hello-world:latest
+      - name: Export image bundle
+        run: |
+          docker save \
+            "kiashi-api:$GITHUB_SHA" \
+            "kiashi-web:$GITHUB_SHA" \
+            "kiashi-migrate:$GITHUB_SHA" \
+            "kiashi-proxy:$GITHUB_SHA" \
+            postgres:16-alpine \
+            hello-world:latest \
+            | gzip -1 > "kiashi-images-$GITHUB_SHA.tar.gz"
+          sha256sum "kiashi-images-$GITHUB_SHA.tar.gz" > "kiashi-images-$GITHUB_SHA.tar.gz.sha256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kiashi-images-${{ github.sha }}
+          path: |
+            kiashi-images-${{ github.sha }}.tar.gz
+            kiashi-images-${{ github.sha }}.tar.gz.sha256
+          compression-level: 0
+          retention-days: 1
+          if-no-files-found: error

@@ -52,6 +52,8 @@ Fastify با Pino JSON، request id، route، status و duration log می‌کن
 
 در production فرانت از same-origin مسیر `/api` استفاده می‌کند و `API_INTERNAL_URL` فقط برای rewrite داخلی Next.js به Fastify است. secret نباید با متغیرهای عمومی وارد bundle مرورگر شود. image وب خروجی standalone Next.js را اجرا می‌کند و TypeScript server نیز source map عمومی منتشر نمی‌کند؛ stack کامل فقط در log داخلی محیط اجرا می‌ماند.
 
+اگر میزبان production دسترسی خروجی registry نداشته باشد، workflow دستی `Offline image bundle` همان targetهای release، PostgreSQL و image آزمون Docker را با SHA کامیت در یک artifact کوتاه‌عمر قرار می‌دهد. checksum همراه bundle باید پیش از `docker load` بررسی شود؛ artifact شامل secret نیست و فایل env همچنان فقط روی میزبان نگهداری می‌شود.
+
 ## reconciliation و scheduler
 
 `reconcile:payments` و `reconcile:bookings` را با cron یا scheduler vendor-neutral اجرا کنید؛ هر run یک run id داشته باشد، batch محدود و overlap-safe باشد و exit code خطا را منتقل کند. اجرای هم‌زمان با idempotency keyهای DB همگرا می‌شود. rate limit فعلی process-local است: برای یک replica مناسب است و در چند replica globally consistent نیست؛ Redis در این فاز اضافه نشده است.
