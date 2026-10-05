@@ -7,6 +7,7 @@
 - اجرای clean install، ۹ migration، seed مصنوعی، typecheck، build وب/API، lint، ۱۶۸ unit و ۱۱۰ API test و ۱۸ provider test موفق بود.
 - SEO روی production preview شامل ۵۰ metadata record، ۵۰ صفحهٔ محتوایی، ۸۴ URL sitemap و crawl تعداد ۲۱۰ صفحه پاس شد. هفت صفحهٔ قاره فقط هشدار محتوای کم‌حجم دارند و blocker نیستند.
 - E2Eهای طولانیِ دارای چند ده navigation به تست‌های مستقل route/viewport تقسیم شدند، navigationهای حساس با `domcontentloaded` پایدار شدند و journeyهای stateful API فقط یک‌بار در Chromium اجرا می‌شوند. پوشش responsive مستقل روی 320 تا 1440 پیکسل باقی مانده است.
+- image وب از wrapper کنترل‌شده برای standalone server استفاده می‌کند؛ SIGTERM به فرزند Next.js منتقل می‌شود و پس از shutdown سالم exit code صفر ثبت می‌شود. CI exit code وب و API را صریح گزارش می‌کند.
 - `db:backup` برای URL استاندارد Prisma دارای `?schema=public` خراب بود؛ اسکریپت اکنون URL را اعتبارسنجی و پارامتر مختص Prisma را پیش از `pg_dump` حذف می‌کند. dump واقعی ساخته، در DB تصادفی restore، ۴۹ جدول/داده و تراز wallet بررسی و DB موقت حذف شد.
 - `tailwindcss-animate` از dependency زمان اجرا به devDependency منتقل شد، چون فقط در build CSS مصرف می‌شود. audit با `--force` یا ارتقای major کور انجام نشده است.
 

@@ -21,11 +21,12 @@ RUN groupadd --system --gid 1001 kiashi && useradd --system --uid 1001 --gid kia
 COPY --from=build --chown=kiashi:kiashi /app/.next/standalone ./
 COPY --from=build --chown=kiashi:kiashi /app/.next/static ./.next/static
 COPY --from=build --chown=kiashi:kiashi /app/public ./public
+COPY --from=build --chown=kiashi:kiashi /app/scripts/start-web.mjs ./start-web.mjs
 USER kiashi
 EXPOSE 3000
 STOPSIGNAL SIGTERM
 HEALTHCHECK --interval=15s --timeout=5s --retries=5 CMD node -e "fetch('http://127.0.0.1:3000/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
-CMD ["node", "server.js"]
+CMD ["node", "start-web.mjs"]
 
 FROM node:20-bookworm-slim AS api
 ENV NODE_ENV=production

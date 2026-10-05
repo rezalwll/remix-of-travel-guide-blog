@@ -78,7 +78,7 @@ jobs:
           done
           curl --fail --silent http://127.0.0.1:8787/health/version | grep -q 'ci-smoke'
           API_URL=http://127.0.0.1:8787 LOAD_COUNT=100 npm run ops:load
-          docker stop --time 15 kiashi-smoke
+          docker stop --timeout 15 kiashi-smoke
           test "$(docker inspect kiashi-smoke --format '{{.State.ExitCode}}')" = "0"
           docker rm kiashi-smoke
           trap - EXIT
@@ -111,7 +111,7 @@ jobs:
             sleep 2
           done
           curl --fail --silent http://127.0.0.1:8787/health/version | grep -q 'previous-rollback'
-          docker stop --time 15 kiashi-rollback
+          docker stop --timeout 15 kiashi-rollback
           test "$(docker inspect kiashi-rollback --format '{{.State.ExitCode}}')" = "0"
           docker rm kiashi-rollback
           git worktree remove --force "$PREVIOUS_DIR"
@@ -171,9 +171,12 @@ jobs:
           SEO_BASE_URL=http://127.0.0.1:3000 npm run seo:links
           SEO_BASE_URL=http://127.0.0.1:3000 npm run seo:crawl
           E2E_EXTERNAL=true PLAYWRIGHT_BASE_URL=https://127.0.0.1 npx playwright test
-          docker stop --time 15 kiashi-e2e-proxy kiashi-e2e-web kiashi-e2e-api
-          test "$(docker inspect kiashi-e2e-web --format '{{.State.ExitCode}}')" = "0"
-          test "$(docker inspect kiashi-e2e-api --format '{{.State.ExitCode}}')" = "0"
+          docker stop --timeout 15 kiashi-e2e-proxy kiashi-e2e-web kiashi-e2e-api
+          WEB_EXIT=$(docker inspect kiashi-e2e-web --format '{{.State.ExitCode}}')
+          API_EXIT=$(docker inspect kiashi-e2e-api --format '{{.State.ExitCode}}')
+          echo "Graceful shutdown exit codes: web=$WEB_EXIT api=$API_EXIT"
+          test "$WEB_EXIT" = "0"
+          test "$API_EXIT" = "0"
           docker rm kiashi-e2e-proxy kiashi-e2e-web kiashi-e2e-api
           trap - EXIT
       - run: npm audit --audit-level=high

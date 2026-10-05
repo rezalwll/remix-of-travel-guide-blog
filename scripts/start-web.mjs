@@ -7,14 +7,16 @@ const readArg = (name, fallback) => {
   return index >= 0 && process.argv[index + 1] ? process.argv[index + 1] : fallback;
 };
 
-const standalone = resolve(".next/standalone");
+const standalone = resolve(process.env.STANDALONE_ROOT || ".next/standalone");
 if (!existsSync(resolve(standalone, "server.js"))) {
   console.error("Next standalone build is missing; run npm run build:web first.");
   process.exit(1);
 }
 
-cpSync(resolve("public"), resolve(standalone, "public"), { recursive: true });
-cpSync(resolve(".next/static"), resolve(standalone, ".next/static"), { recursive: true });
+if (!process.env.STANDALONE_ROOT) {
+  cpSync(resolve("public"), resolve(standalone, "public"), { recursive: true });
+  cpSync(resolve(".next/static"), resolve(standalone, ".next/static"), { recursive: true });
+}
 
 const child = spawn(process.execPath, [resolve(standalone, "server.js")], {
   stdio: "inherit",
