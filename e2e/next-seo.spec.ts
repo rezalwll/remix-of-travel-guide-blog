@@ -15,10 +15,10 @@ test("Next public SEO routes render useful server content and internal links", a
 });
 
 test("legacy aliases redirect once and private routes are noindex", async ({ page }) => {
-  const response = await page.goto("/help");
+  const response = await page.goto("/help", { waitUntil: "domcontentloaded" });
   expect(response?.status()).toBe(200);
   await expect(page).toHaveURL(/\/support$/);
-  const privateResponse = await page.goto("/auth/login");
+  const privateResponse = await page.goto("/auth/login", { waitUntil: "domcontentloaded" });
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   expect(privateResponse?.headers()["cache-control"]).toContain("private");
   expect(privateResponse?.headers()["cache-control"]).toContain("no-store");

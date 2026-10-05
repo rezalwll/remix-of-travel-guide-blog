@@ -2,6 +2,10 @@ import { expect, test, type Page } from '@playwright/test';
 
 const mobileNumber = () => `09${String(Math.floor(Math.random() * 1_000_000_000)).padStart(9, '0')}`;
 
+test.beforeEach((_fixtures, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium', 'Stateful API journeys run once; responsive auth is covered by the viewport suite.');
+});
+
 async function login(page: Page, mobile: string) {
   await page.goto('/auth/login');
   await page.getByLabel('شماره موبایل').fill(mobile);

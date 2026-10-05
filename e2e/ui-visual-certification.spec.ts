@@ -49,14 +49,13 @@ test("home hero exposes a readable accessible heading", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "سفر بعدی‌ات را همین‌جا پیدا کن" })).toBeVisible();
 });
 
-test("representative visual review screenshots are emitted as test artifacts", async ({ page }, testInfo) => {
-  test.setTimeout(120_000);
-  for (const route of screenshotRoutes) {
+for (const route of screenshotRoutes) {
+  test(`visual review artifact: ${route}`, async ({ page }, testInfo) => {
     await page.goto(route, { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { level: 1 }).first(), route).toBeVisible();
     await page.locator("img").evaluateAll((images) => images.forEach((image) => image.loading = "eager"));
     await page.waitForTimeout(750);
     const slug = route === "/" ? "home" : route.slice(1).replaceAll("/", "-");
     await page.screenshot({ path: testInfo.outputPath(`${slug}.png`), fullPage: true, animations: "disabled" });
-  }
-});
+  });
+}

@@ -22,7 +22,7 @@ test('tracking and help provide useful invalid and search states', async ({ page
   await page.getByLabel('موبایل خریدار').fill('09120000000');
   await page.getByRole('button', { name: 'جست‌وجوی سفارش' }).click();
   await expect(page.getByRole('alert').filter({ hasText: 'پیدا نشد' })).toBeVisible();
-  await page.goto('/support');
+  await page.goto('/support', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: 'سوالات متداول' })).toBeVisible();
   const helpSearch = page.getByRole('textbox', { name: 'جست‌وجوی راهنما' });
   await expect(helpSearch).toHaveCount(1);
