@@ -29,7 +29,7 @@ production برای `DATABASE_URL`، URLهای HTTPS، allow-list صریح `TRUS
 
 ## backup و restore
 
-`npm run db:backup` با `pg_dump --format=custom` فایل timestamped در `BACKUP_DIR` می‌سازد و credential را چاپ نمی‌کند. برای آزمون، `BACKUP_FILE=... RESTORE_ADMIN_DATABASE_URL=... npm run db:restore:verify` را اجرا کنید. script یک database با نام تصادفی می‌سازد، restore و table check را انجام می‌دهد و در `finally` آن را حذف می‌کند؛ به‌طور پیش‌فرض اجازه استفاده از `DATABASE_URL` به‌عنوان اتصال admin را نمی‌دهد. فقط برای بررسی دستی می‌توان `RESTORE_VERIFY_KEEP=true` داد.
+`DATABASE_URL=... BACKUP_DIR=... npm run db:backup` با `pg_dump --format=custom` فایل timestamped می‌سازد و credential را چاپ نمی‌کند. پارامتر Prisma یعنی `schema` پیش از فراخوانی ابزار PostgreSQL حذف می‌شود. برای آزمون، `BACKUP_FILE=... RESTORE_ADMIN_DATABASE_URL=... npm run db:restore:verify` را اجرا کنید. اتصال admin باید به DB نگهداری مانند `postgres` اشاره کند و نباید همان `DATABASE_URL` فعال باشد. script یک database با نام تصادفی می‌سازد، restore و integrity check را انجام می‌دهد و در `finally` آن را حذف می‌کند؛ فقط برای بررسی دستی می‌توان `RESTORE_VERIFY_KEEP=true` داد.
 
 baseline عملیاتی: backup منطقی روزانه، backup پیش از migration، retention قابل تنظیم، نگهداری رمزنگاری‌شدهٔ خارج از این repository و restore drill دوره‌ای.
 
@@ -59,3 +59,5 @@ Fastify با Pino JSON، request id، route، status و duration log می‌کن
 ## failure drills
 
 DB unavailable باید readiness را 503 کند؛ provider unavailable باید safe provider error بدهد؛ env ناقص production باید قبل از start fail شود؛ mock payment و provider stub در production endpoint فعال ندارند؛ SIGTERM باید بدون قطع ناگهانی Prisma خارج شود. جزئیات checklist در `docs/production-checklist.md` است.
+
+گواهی command-by-command آخرین release، محدودیت‌های محیط و ماتریس production در `docs/phase-26-release-readiness.md` ثبت می‌شود. Docker certification باید شامل build targetهای `web`، `api` و `proxy`، `nginx -t`، same-origin `/api`، static assets و smoke مسیرهای customer/merchant/backoffice باشد.

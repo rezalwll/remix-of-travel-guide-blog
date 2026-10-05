@@ -14,3 +14,13 @@
 - [ ] cache assetها immutable و API/auth/payment callback no-store است
 - [ ] rollback کد و محدودیت rollback schema برای همین release ثبت شده است
 - [ ] دامنه، TLS، support، legal/content و provider credentialهای واقعی وضعیت مشخص دارند
+- [ ] `npm ci` با Node 20 و npm 10 و سپس matrix کامل `docs/phase-26-release-readiness.md` اجرا شده است
+- [ ] targetهای Docker وب، API و proxy از checkout تمیز ساخته و `nginx -t` پاس شده است
+- [ ] production topology از proxy تا PostgreSQL بالا آمده و same-origin `/api` و static assetها smoke شده‌اند
+- [ ] journeyهای customer، merchant و backoffice با Playwright و عرض‌های 360 تا 1440 پاس شده‌اند
+- [ ] `BACKUP_FILE` غیرصفر است، restore در DB تصادفی انجام و DB موقت حذف شده است
+- [ ] وضعیت advisoryهای dependency بر اساس scope runtime/build ثبت شده و هیچ `audit fix --force` بدون review اجرا نشده است
+- [ ] routeهای حذف‌شدهٔ `city-tours`، `esim` و `fast-track` بازنگشته‌اند و sitemap/noindex پاس است
+- [ ] SHA نمایش‌داده‌شده در `/health/version` دقیقاً SHA image منتشرشده است
+- [ ] workflow مربوط به همان SHA نهایی سبز است؛ run قدیمی یا commit قبلی قابل قبول نیست
+- [ ] mode پرداخت، پیامک و هر travel provider صریحاً mock/sandbox یا real-certified ثبت شده است
