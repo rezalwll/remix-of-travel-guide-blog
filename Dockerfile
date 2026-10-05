@@ -10,10 +10,19 @@ RUN npm ci
 COPY . .
 RUN test -n "$SITE_URL" && npm run db:generate && npm run build:web && npm run build:api
 
-# Keep the Prisma CLI in a dedicated, short-lived image so production
-# migrations never depend on npm/network access from the target host.
-FROM build AS migrate
-CMD ["npm", "run", "db:migrate:deploy"]
+# Keep migrations independent from the application build output. The image is
+# intentionally short-lived and contains only the pinned Prisma CLI and schema.
+FROM node:20-bookworm-slim AS migrate
+ENV NODE_ENV=production
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends openssl \
+    && npm install --global prisma@6.19.3 \
+    && rm -rf /var/lib/apt/lists/* /root/.npm \
+    && groupadd --system --gid 1001 kiashi && useradd --system --uid 1001 --gid kiashi --create-home kiashi
+COPY --chown=kiashi:kiashi prisma/schema.prisma ./prisma/schema.prisma
+COPY --chown=kiashi:kiashi prisma/migrations ./prisma/migrations
+USER kiashi
+CMD ["prisma", "migrate", "deploy", "--schema", "prisma/schema.prisma"]
 
 FROM build AS production-deps
 RUN npm prune --omit=dev
