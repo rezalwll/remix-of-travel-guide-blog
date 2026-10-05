@@ -15,7 +15,7 @@ COPY ops/nginx.example.conf /etc/nginx/conf.d/default.conf
 COPY ops/security-headers.conf /etc/nginx/snippets/kiashi-security-headers.conf
 
 FROM node:20-bookworm-slim AS web
-ENV NODE_ENV=production PORT=3000 HOSTNAME=0.0.0.0
+ENV NODE_ENV=production PORT=3000 HOSTNAME=0.0.0.0 STANDALONE_ROOT=/app
 WORKDIR /app
 RUN groupadd --system --gid 1001 kiashi && useradd --system --uid 1001 --gid kiashi --create-home kiashi
 COPY --from=build --chown=kiashi:kiashi /app/.next/standalone ./
