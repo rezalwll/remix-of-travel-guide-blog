@@ -53,6 +53,8 @@ jobs:
           RELEASE_CHECK_DATABASE: "true"
       - run: docker build --build-arg SITE_URL=https://example.test --target api --tag kiashi:${{ github.sha }} .
       - run: docker build --build-arg SITE_URL=https://example.test --target web --tag kiashi-web:${{ github.sha }} .
+      - run: docker build --build-arg SITE_URL=https://example.test --target migrate --tag kiashi-migrate:${{ github.sha }} .
+      - run: docker run --rm --network host --env DATABASE_URL="$DATABASE_URL" kiashi-migrate:${{ github.sha }}
       - run: docker build --target proxy --tag kiashi-proxy:${{ github.sha }} .
       - name: Smoke production API container
         shell: bash

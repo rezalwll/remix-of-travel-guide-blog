@@ -18,7 +18,7 @@ production برای `DATABASE_URL`، URLهای HTTPS، allow-list صریح `TRUS
 1. CI سبز، audit و بررسی migration.
 2. ساخت artifact و ثبت `APP_VERSION`/`GIT_SHA`/`BUILD_TIME`؛ اجرای `RELEASE_CHECK_DATABASE=true npm run release:check` روی runner دارای دسترسی DB، migration status و readiness را هم fail-closed بررسی می‌کند.
 3. backup با `npm run db:backup` و بررسی فضای restore.
-4. اجرای `npm run db:migrate:deploy`؛ هرگز `db:migrate` در production.
+4. اجرای `npm run db:migrate:deploy`؛ هرگز `db:migrate` در production. در استقرار کانتینری، target مستقل `migrate` را از همان commit بسازید و به‌صورت job یک‌باره با `DATABASE_URL` شبکهٔ خصوصی اجرا کنید؛ این image ابزار Prisma را دارد و به دسترسی npm روی میزبان production وابسته نیست.
 5. اجرای نسخهٔ جدید و بررسی `/health/live` و `/health/ready`.
 6. cutover در reverse proxy، سپس smoke تست auth، search، checkout sandbox و provider status.
 7. پایش logها و backlogهای reconciliation.

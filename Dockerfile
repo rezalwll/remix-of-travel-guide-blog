@@ -8,7 +8,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl \
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
-RUN test -n "$SITE_URL" && npm run db:generate && npm run build:web && npm run build:api && npm prune --omit=dev
+RUN test -n "$SITE_URL" && npm run db:generate && npm run build:web && npm run build:api
+
+# Keep the Prisma CLI in a dedicated, short-lived image so production
+# migrations never depend on npm/network access from the target host.
+FROM build AS migrate
+CMD ["npm", "run", "db:migrate:deploy"]
+
+FROM build AS production-deps
+RUN npm prune --omit=dev
 
 FROM nginx:1.27-alpine AS proxy
 COPY ops/nginx.example.conf /etc/nginx/conf.d/default.conf
@@ -18,10 +26,10 @@ FROM node:20-bookworm-slim AS web
 ENV NODE_ENV=production PORT=3000 HOSTNAME=0.0.0.0 STANDALONE_ROOT=/app
 WORKDIR /app
 RUN groupadd --system --gid 1001 kiashi && useradd --system --uid 1001 --gid kiashi --create-home kiashi
-COPY --from=build --chown=kiashi:kiashi /app/.next/standalone ./
-COPY --from=build --chown=kiashi:kiashi /app/.next/static ./.next/static
-COPY --from=build --chown=kiashi:kiashi /app/public ./public
-COPY --from=build --chown=kiashi:kiashi /app/scripts/start-web.mjs ./start-web.mjs
+COPY --from=production-deps --chown=kiashi:kiashi /app/.next/standalone ./
+COPY --from=production-deps --chown=kiashi:kiashi /app/.next/static ./.next/static
+COPY --from=production-deps --chown=kiashi:kiashi /app/public ./public
+COPY --from=production-deps --chown=kiashi:kiashi /app/scripts/start-web.mjs ./start-web.mjs
 USER kiashi
 EXPOSE 3000
 STOPSIGNAL SIGTERM
@@ -33,9 +41,9 @@ ENV NODE_ENV=production
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/* \
     && groupadd --system --gid 1001 kiashi && useradd --system --uid 1001 --gid kiashi --create-home kiashi
-COPY --from=build --chown=kiashi:kiashi /app/package.json /app/package-lock.json ./
-COPY --from=build --chown=kiashi:kiashi /app/node_modules ./node_modules
-COPY --from=build --chown=kiashi:kiashi /app/dist-server ./dist-server
+COPY --from=production-deps --chown=kiashi:kiashi /app/package.json /app/package-lock.json ./
+COPY --from=production-deps --chown=kiashi:kiashi /app/node_modules ./node_modules
+COPY --from=production-deps --chown=kiashi:kiashi /app/dist-server ./dist-server
 USER kiashi
 EXPOSE 8787
 STOPSIGNAL SIGTERM
