@@ -17,11 +17,13 @@ test('anonymous customer can search flights and reach passenger checkout', async
 
 test('tracking and help provide useful invalid and search states', async ({ page }) => {
   await page.route('**/api/order-tracking', async (route) => route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ error: { code: 'NOT_FOUND', message: 'سفارش با این مشخصات پیدا نشد' } }) }));
-  await page.goto('/track-order');
-  await page.getByLabel('شناسه سفارش').fill('KIA-INVALID');
-  await page.getByLabel('موبایل خریدار').fill('09120000000');
-  await page.getByRole('button', { name: 'جست‌وجوی سفارش' }).click();
-  await expect(page.getByRole('alert').filter({ hasText: 'پیدا نشد' })).toBeVisible();
+  await page.goto('/track-order', { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('networkidle');
+  const tracker = page.locator('main').last();
+  await tracker.getByRole('textbox', { name: 'شناسه سفارش' }).fill('KIA-INVALID');
+  await tracker.getByRole('textbox', { name: 'موبایل خریدار' }).fill('09120000000');
+  await tracker.getByRole('button', { name: 'جست‌وجوی سفارش' }).click();
+  await expect(tracker.getByRole('alert').filter({ hasText: 'پیدا نشد' })).toBeVisible();
   await page.goto('/support', { waitUntil: 'domcontentloaded' });
   await expect(page.getByRole('heading', { name: 'سوالات متداول' })).toBeVisible();
   const helpSearch = page.getByRole('textbox', { name: 'جست‌وجوی راهنما' });
