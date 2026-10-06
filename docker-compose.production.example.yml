@@ -122,6 +122,7 @@ services:
       - "443:443"
     volumes:
       - ./ops/certs:/etc/nginx/certs:ro
+      - ./ops/acme:/var/www/certbot:ro
     networks:
       production:
         ipv4_address: 172.28.0.10

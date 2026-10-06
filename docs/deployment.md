@@ -50,6 +50,25 @@ Fastify با Pino JSON، request id، route، status و duration log می‌کن
 
 `ops/nginx.example.conf` فقط نمونه است: HTTP به HTTPS redirect، HSTS و CSP/security header، forwarding header، body limit، gzip، cache immutable برای `/assets/` و no-store برای API/health/auth/payment callback. `TRUST_PROXY` باید IP/CIDR دقیق proxyهایی باشد که headerهای forwarded را overwrite می‌کنند؛ compose نمونه برای این کار subnet ثابت دارد.
 
+### HTTPS مستقیم روی IP عمومی
+
+برای استقرار بدون دامنه، `ops/nginx.example.conf` مسیر HTTP-01 را از `/var/www/certbot` ارائه می‌کند و `ops/manage-ip-certificate.sh` صدور و تمدید گواهی کوتاه‌مدت IP را با Certbot 5.4 انجام می‌دهد. گواهی IP فقط حدود شش روز اعتبار دارد؛ بنابراین timer دو بار در روز renewal را بررسی می‌کند و پس از جایگزینی اتمیک certificate، پیکربندی Nginx را اعتبارسنجی و reload می‌کند.
+
+روی میزبان production:
+
+```sh
+sudo install -m 0755 ops/manage-ip-certificate.sh /usr/local/sbin/kiashi-manage-ip-certificate
+sudo install -m 0644 ops/systemd/kiashi-ip-certificate.service /etc/systemd/system/
+sudo install -m 0644 ops/systemd/kiashi-ip-certificate.timer /etc/systemd/system/
+sudo sh -c 'printf "%s\n" "KIASHI_PUBLIC_IP=203.0.113.10" > /opt/kiashi/env/certificate.env'
+sudo chmod 0600 /opt/kiashi/env/certificate.env
+sudo KIASHI_PUBLIC_IP=203.0.113.10 kiashi-manage-ip-certificate issue
+sudo systemctl daemon-reload
+sudo systemctl enable --now kiashi-ip-certificate.timer
+```
+
+پیش از اجرای `issue`، reverse proxy جدید باید بالا باشد و volume مسیر ACME به `/var/www/certbot` متصل شده باشد. `SITE_URL`، `WEB_ORIGIN` و `API_PUBLIC_URL` نیز باید روی همان `https://IP` تنظیم شوند. IP نمونهٔ مستندات را با IP واقعی جایگزین کنید؛ certificate و کلید خصوصی نباید commit شوند.
+
 در production فرانت از same-origin مسیر `/api` استفاده می‌کند و `API_INTERNAL_URL` فقط برای rewrite داخلی Next.js به Fastify است. secret نباید با متغیرهای عمومی وارد bundle مرورگر شود. image وب خروجی standalone Next.js را اجرا می‌کند و TypeScript server نیز source map عمومی منتشر نمی‌کند؛ stack کامل فقط در log داخلی محیط اجرا می‌ماند.
 
 اگر میزبان production دسترسی خروجی registry نداشته باشد، workflow دستی `Offline image bundle` همان targetهای release، PostgreSQL و image آزمون Docker را با SHA کامیت در یک artifact کوتاه‌عمر قرار می‌دهد. checksum همراه bundle باید پیش از `docker load` بررسی شود؛ artifact شامل secret نیست و فایل env همچنان فقط روی میزبان نگهداری می‌شود.
