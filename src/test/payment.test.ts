@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateInstallmentPlans, checkoutPayloadFromDraft } from '@/services/payment';
+import { calculateInstallmentPlans, checkoutPayloadFromDraft, paymentMethodToApi } from '@/services/payment';
 import { validateCoupon } from '@/services/checkout';
 import type { BookingDraft } from '@/types/checkout';
 
@@ -8,6 +8,10 @@ describe('mock payment calculations', () => {
     const plans = calculateInstallmentPlans(27000000);
     expect(plans).toHaveLength(2);
     expect(plans[0].upfront + plans[0].monthly * 2).toBe(27000000);
+  });
+
+  it('maps Refah Card to its explicit sandbox API method', () => {
+    expect(paymentMethodToApi('refahCard')).toBe('refah_card_mock');
   });
 
   it('validates demo coupons against minimum order value', () => {

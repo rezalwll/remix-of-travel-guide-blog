@@ -33,7 +33,7 @@ const servicePrices = {
 } as const;
 const addOnPrices: Record<string, number> = { baggage: 900_000, breakfast: 350_000, transfer: 700_000, insurance: 950_000 };
 export type ServiceType = keyof typeof servicePrices;
-export type PaymentMethod = "online_mock" | "wallet" | "combined" | "installment_mock" | "organizational_credit_mock" | "voucher_mock";
+export type PaymentMethod = "online_mock" | "wallet" | "combined" | "installment_mock" | "organizational_credit_mock" | "voucher_mock" | "refah_card_mock";
 
 export type CheckoutInput = {
   serviceType: ServiceType;
