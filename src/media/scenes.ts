@@ -10,6 +10,7 @@ export type SceneKind =
   | "lounge"
   | "shield"
   | "connect"
+  | "support"
   | "document"
   | "market"
   | "forest";
@@ -78,6 +79,7 @@ export const sceneKinds: SceneKind[] = [
   "lounge",
   "shield",
   "connect",
+  "support",
   "document",
   "market",
   "forest",

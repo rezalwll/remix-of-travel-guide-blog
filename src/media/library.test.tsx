@@ -24,9 +24,13 @@ describe("travel media registry", () => {
     }
   });
 
-  it("uses real photographs for every visible media category", () => {
+  it("uses real photographs for media categories except the owned support illustration", () => {
     for (const [name, group] of Object.entries(mediaRegistry)) {
-      for (const asset of Object.values(group)) {
+      for (const [key, asset] of Object.entries(group)) {
+        if (name === "serviceMedia" && key === "support") {
+          expect(asset).toMatchObject({ kind: "scene", scene: "support", palette: "brand" });
+          continue;
+        }
         expect(asset.kind, `${name}/${asset.id}`).toBe("photo");
       }
     }
@@ -46,9 +50,8 @@ describe("travel media registry", () => {
     expect(destinationAsset("najaf-karbala")).toMatchObject({ src: "/media/ziyarat/karbala-hero.webp" });
   });
 
-  it("uses the current travel-planning photograph for support surfaces", () => {
-    expect(serviceAsset("support")).toMatchObject({ src: "/media/phone.webp" });
-    expect(serviceAsset("support")).not.toMatchObject({ src: "/media/support.webp" });
+  it("uses the owned branded illustration for support surfaces", () => {
+    expect(serviceAsset("support")).toMatchObject({ kind: "scene", scene: "support", palette: "brand" });
   });
 
   it("exposes content alt text and hides decorative photographs", () => {

@@ -192,7 +192,7 @@ export function PublicLanding({ page }: { page: PageKey }) {
         <div className="container-page">
           <PromoBanner
             href="/support"
-            asset={photoLibrary.kiashiTravelBanner}
+            asset={serviceAsset("support", "تصویرسازی پشتیبانی سفر")}
             title="قبل از خرید سؤال داری؟"
             description="راهنمای خرید، شرایط استرداد و پیگیری سفارش در مرکز راهنما جمع شده است."
             cta="مرکز راهنما"
