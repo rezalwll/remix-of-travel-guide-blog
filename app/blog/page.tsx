@@ -1,21 +1,36 @@
 import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import TravelHero from "@/components/media/TravelHero";
-import { EditorialCard, ImageCard, SectionHeader } from "@/components/media/Cards";
+import {
+  EditorialCard,
+  ImageCard,
+  SectionHeader,
+} from "@/components/media/Cards";
 import { continents, featuredArticles } from "@/data/destinations";
+import { localizeLegacyArticles } from "@/data/magazine";
 import { seoArticles } from "@/seo/content";
 import { createMetadata } from "@/seo/metadata";
 import { editorialMedia, legacyAsset, photoLibrary } from "@/media/library";
 
 export const metadata = createMetadata({
   title: "مجله و راهنمای سفر",
-  description: "راهنماهای فارسی سفر و آرشیو محتوای مقصدها برای برنامه‌ریزی آگاهانه‌تر.",
+  description:
+    "راهنماهای فارسی سفر و آرشیو محتوای مقصدها برای برنامه‌ریزی آگاهانه‌تر.",
   path: "/blog",
   image: "/travel-books.jpg",
 });
 export const revalidate = 86_400;
 
-const legacyArticles = [...featuredArticles, ...continents.flatMap((continent) => continent.countries.flatMap((country) => country.articles))];
-const covers = [editorialMedia.seasons, editorialMedia.planning, editorialMedia.travellers];
+const legacyArticles = localizeLegacyArticles([
+  ...featuredArticles,
+  ...continents.flatMap((continent) =>
+    continent.countries.flatMap((country) => country.articles),
+  ),
+]);
+const covers = [
+  editorialMedia.seasons,
+  editorialMedia.planning,
+  editorialMedia.travellers,
+];
 const faDate = (value: string) => new Date(value).toLocaleDateString("fa-IR");
 
 export default function BlogPage() {
@@ -30,7 +45,12 @@ export default function BlogPage() {
       />
 
       <div className="container-page pt-6">
-        <Breadcrumbs items={[{ label: "خانه", href: "/" }, { label: "مجله سفر", href: "/blog" }]} />
+        <Breadcrumbs
+          items={[
+            { label: "خانه", href: "/" },
+            { label: "مجله سفر", href: "/blog" },
+          ]}
+        />
       </div>
 
       <section className="pb-4 pt-8">
