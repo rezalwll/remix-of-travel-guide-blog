@@ -57,7 +57,7 @@ export default function BlogIndex() {
               <Link
                 key={article.id}
                 to={`/blog/${article.id}`}
-                className="overflow-hidden rounded-2xl border border-border bg-card transition-colors hover:border-secondary"
+                className="interactive-card overflow-hidden rounded-2xl border border-border bg-card hover:border-secondary"
               >
                 <img
                   src={article.image}

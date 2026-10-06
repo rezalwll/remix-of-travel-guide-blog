@@ -4,7 +4,7 @@ import type { Article } from "@/data/destinations";
 
 const ArticleCard = ({ article }: { article: Article }) => {
   return (
-    <div className="group bg-card rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300">
+    <div className="interactive-card group overflow-hidden rounded-lg bg-card hover:shadow-lg">
       <Link to={`/blog/${article.id}`}>
         <div className="overflow-hidden aspect-[4/3]">
           <img
