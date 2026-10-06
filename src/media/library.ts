@@ -158,14 +158,7 @@ export const serviceMedia: Record<string, MediaAsset> = {
   cip: photoLibrary.airportTraveller,
   transfer: photoLibrary.airportTraveller,
   visa: photoLibrary.mapAndPlane,
-  support: {
-    kind: "scene",
-    id: "travel-support",
-    scene: "support",
-    palette: "brand",
-    alt: "تصویرسازی پشتیبانی سفر با هدست، گفت‌وگو و مسیر پرواز",
-    usage: "hero",
-  },
+  support: photoLibrary.redMountainLake,
 };
 
 /** Stay categories used by hotel discovery blocks. */
