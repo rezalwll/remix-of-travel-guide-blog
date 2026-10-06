@@ -16,7 +16,7 @@ export const metadata = createMetadata({
   description:
     "راهنماهای فارسی سفر و آرشیو محتوای مقصدها برای برنامه‌ریزی آگاهانه‌تر.",
   path: "/blog",
-  image: "/travel-books.jpg",
+  image: "/travel-books.webp",
 });
 export const revalidate = 86_400;
 

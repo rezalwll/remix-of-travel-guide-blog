@@ -1,5 +1,5 @@
 import type { Destination, Hotel, Tour } from '@/types/travel';
-import travelBooksAsset from '@/assets/travel-books.jpg';
+import travelBooksAsset from '@/assets/travel-books.webp';
 import heroKishPremiumAsset from '@/assets/hero-kish-premium.webp';
 import hotelTehranPremiumAsset from '@/assets/hotel-tehran-premium.webp';
 import hotelIstanbulPremiumAsset from '@/assets/hotel-istanbul-premium.webp';
