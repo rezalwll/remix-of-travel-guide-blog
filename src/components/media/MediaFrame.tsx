@@ -31,7 +31,6 @@ export type MediaFrameProps = {
   imageClassName?: string;
   /** Decorative media gets an empty alt so screen readers skip it. */
   decorative?: boolean;
-  zoom?: boolean;
   children?: React.ReactNode;
 };
 

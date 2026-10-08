@@ -163,14 +163,14 @@ const ArticlePage = () => {
           {continent && country ? (
             <Link
               to={`/destinations/${continent.slug}/${country.slug}`}
-              className="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all"
+              className="inline-flex items-center gap-2 text-primary font-semibold transition-colors hover:text-primary/80"
             >
               <ArrowLeft className="w-4 h-4" /> بازگشت به صفحه مقصد
             </Link>
           ) : (
             <Link
               to="/destinations"
-              className="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all"
+              className="inline-flex items-center gap-2 text-primary font-semibold transition-colors hover:text-primary/80"
             >
               <ArrowLeft className="w-4 h-4" /> بازگشت به مقصدها
             </Link>
