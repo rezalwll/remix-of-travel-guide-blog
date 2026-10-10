@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { writeBookingDraft } from "@/store/booking";
+import { announceRouteNavigationStart } from "@/lib/navigation";
 import type { ExperienceCheckoutDraft } from "@/types/checkout";
 type Pack = {
   id: string;
@@ -267,6 +268,7 @@ export function ManagedProgramDetail({ slug }: { slug: string }) {
       termsAccepted: false,
     };
     writeBookingDraft(draft);
+    announceRouteNavigationStart();
     router.push(`/checkout/${type}-travelers`);
   };
   return (

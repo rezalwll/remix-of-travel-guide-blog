@@ -7,6 +7,7 @@ import {
   useSearchParams as useNextSearchParams,
 } from "next/navigation";
 import { useCallback, useEffect, useMemo, type AnchorHTMLAttributes, type ReactNode } from "react";
+import { announceRouteNavigationStart } from "@/lib/navigation";
 
 type Destination = string | { pathname?: string; search?: string; hash?: string };
 
@@ -54,6 +55,7 @@ export function useNavigate() {
       return;
     }
     const href = destinationToHref(to);
+    announceRouteNavigationStart();
     if (options?.replace) router.replace(href);
     else router.push(href);
   }, [router]);
@@ -74,6 +76,7 @@ export function useSearchParams(): [URLSearchParams, (next: URLSearchParams | Re
   const params = useMemo(() => new URLSearchParams(serialized), [serialized]);
   const setParams = useCallback((next: URLSearchParams | Record<string, string>) => {
     const value = next instanceof URLSearchParams ? next : new URLSearchParams(next);
+    announceRouteNavigationStart();
     router.push(value.size ? `${pathname}?${value}` : pathname);
   }, [pathname, router]);
   return [params, setParams];
