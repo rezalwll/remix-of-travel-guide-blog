@@ -2,7 +2,7 @@ import { Link } from '@/lib/router';
 import { Instagram, Send, Headphones, ShieldCheck } from 'lucide-react';
 
 const groups = [
-  { title: 'خدمات سفر', links: [['پرواز', '/flights'], ['هتل', '/hotels'], ['تور و زیارت', '/tours'], ['قطار', '/trains'], ['اتوبوس', '/buses'], ['ویزا', '/visa'], ['بیمه', '/insurance'], ['CIP و ترانسفر', '/cip']] },
+  { title: 'خدمات سفر', links: [['پرواز', '/flights'], ['هتل', '/hotels'], ['تور و زیارت', '/tours'], ['تورهای یک و دو روزه', '/tours/short-trips'], ['قطار', '/trains'], ['اتوبوس', '/buses'], ['ویزا', '/visa'], ['بیمه', '/insurance'], ['CIP و ترانسفر', '/cip']] },
   { title: 'راهنمایی و پشتیبانی', links: [['پیگیری خرید', '/track-order'], ['مرکز راهنما', '/help'], ['راهنمای خرید', '/help/purchase-guide'], ['راهنمای استرداد', '/help/refund-guide'], ['سیاست استرداد', '/refund-policy'], ['پشتیبانی', '/support'], ['تماس با ما', '/contact']] },
   { title: 'درباره و اعتماد', links: [['درباره ما', '/about'], ['قوانین و مقررات', '/terms'], ['حریم خصوصی', '/privacy'], ['مجوزها و اعتماد', '/licenses'], ['همکاری سازمانی', '/business-travel'], ['باشگاه مشتریان', '/club']] },
   { title: 'کشف و محتوا', links: [['مقصدهای محبوب', '/destinations'], ['مجله سفر', '/blog'], ['مسیرهای پرطرفدار', '/routes'], ['آمادگی سفر', '/travel-preparation']] },

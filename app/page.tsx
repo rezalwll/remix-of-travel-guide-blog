@@ -202,7 +202,15 @@ export default function HomePage() {
             description="تورهای چندروزه و سفرهای زیارتی را بر اساس مقصد، مدت و خدمات مقایسه کن."
           />
           <h2 id="tours-heading" className="sr-only">تور و سفرهای زیارتی</h2>
-          <div className="media-grid md:grid-cols-2">
+          <div className="media-grid md:grid-cols-3">
+            <ImageCard
+              href="/tours/short-trips"
+              asset={photoLibrary.qamsar}
+              title="تورهای یک و دو روزه"
+              description="برنامه‌های کوتاه آخر هفته به مقصدهای شهری، زیارتی و طبیعت‌گردی ایران."
+              chips={["قمصر", "جمکران", "کردستان"]}
+              cta="دیدن سفرهای کوتاه"
+            />
             <ImageCard
               href="/tours"
               asset={serviceAsset("tours", "تصویر معرفی تورهای کیاشی")}
