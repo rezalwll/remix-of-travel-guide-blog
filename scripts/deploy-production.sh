@@ -49,7 +49,7 @@ for candidate in \
   fi
 done
 if [[ -z "$env_file" ]]; then
-  env_file=$(find "$deploy_root" -maxdepth 3 -type f -name '.env.production' -print -quit)
+  env_file=$(find "$deploy_root" -maxdepth 3 -type f -name '.env.production' -print -quit 2>/dev/null || true)
 fi
 if [[ -z "$env_file" || ! -r "$env_file" ]]; then
   echo "No readable .env.production was found below $deploy_root." >&2
@@ -70,7 +70,7 @@ compose_candidates=(
 )
 while IFS= read -r candidate; do
   compose_candidates+=("$candidate")
-done < <(find "$deploy_root" -maxdepth 3 -type f \( -name '*compose*.yml' -o -name '*compose*.yaml' \) -print)
+done < <(find "$deploy_root" -maxdepth 3 -type f \( -name '*compose*.yml' -o -name '*compose*.yaml' \) -print 2>/dev/null || true)
 
 for candidate in "${compose_candidates[@]}"; do
   [[ -r "$candidate" ]] || continue
