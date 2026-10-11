@@ -77,14 +77,18 @@ for candidate in "${compose_candidates[@]}"; do
   services=$(docker compose --env-file "$env_file" -f "$candidate" config --services 2>/dev/null) || continue
   if grep -qx app <<<"$services" && \
      grep -qx web <<<"$services" && \
-     grep -qx migrate <<<"$services" && \
      grep -qx postgres <<<"$services"; then
     compose_file=$candidate
+    if grep -qx migrate <<<"$services"; then
+      compose_has_migrate=true
+    else
+      compose_has_migrate=false
+    fi
     break
   fi
 done
 if [[ -z "$compose_file" ]]; then
-  echo "No production Compose file with app, web, migrate and postgres services was found below $deploy_root." >&2
+  echo "No production Compose file with app, web and postgres services was found below $deploy_root." >&2
   exit 66
 fi
 
@@ -184,13 +188,17 @@ deployment_started=true
 new_override=$(mktemp "$env_dir/compose.release.new.XXXXXX")
 cat > "$new_override" <<EOF
 services:
-  migrate:
-    image: $migrate_image
   app:
     image: $api_image
   web:
     image: $web_image
 EOF
+if [[ "$compose_has_migrate" == true ]]; then
+  cat >> "$new_override" <<EOF
+  migrate:
+    image: $migrate_image
+EOF
+fi
 install -m 0600 "$new_override" "$release_override"
 rm -f "$new_override"
 
@@ -216,7 +224,15 @@ set_env_value BUILD_TIME "$build_time"
 compose=(docker compose --env-file "$env_file" -f "$compose_file" -f "$release_override")
 
 echo "Applying database migrations from the certified release image."
-"${compose[@]}" run --rm --no-deps migrate
+if [[ "$compose_has_migrate" == true ]]; then
+  "${compose[@]}" run --rm --no-deps migrate
+else
+  postgres_container=$("${compose[@]}" ps -q postgres)
+  test -n "$postgres_container"
+  production_network=$(docker inspect --format '{{range $name, $_ := .NetworkSettings.Networks}}{{println $name}}{{end}}' "$postgres_container" | awk 'NR == 1 { print; exit }')
+  test -n "$production_network"
+  docker run --rm --network "$production_network" --env-file "$env_file" "$migrate_image"
+fi
 
 "${compose[@]}" up -d --no-deps app
 
