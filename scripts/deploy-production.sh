@@ -22,7 +22,7 @@ if [[ ! "$site_url" =~ ^https://[a-zA-Z0-9.-]+(:[0-9]+)?$ ]]; then
   exit 64
 fi
 
-for command in awk curl docker flock git install; do
+for command in awk curl dirname docker find flock git grep install; do
   command -v "$command" >/dev/null || {
     echo "Required command is unavailable: $command" >&2
     exit 69
@@ -30,9 +30,6 @@ for command in awk curl docker flock git install; do
 done
 
 app_dir="$deploy_root/app"
-compose_file="$deploy_root/compose.production.yml"
-env_file="$deploy_root/env/.env.production"
-release_override="$deploy_root/env/compose.release.yml"
 backup_dir="$deploy_root/backups"
 lock_file="$deploy_root/deploy.lock"
 
@@ -40,14 +37,61 @@ test -d "$app_dir/.git" || {
   echo "Application checkout is missing at $app_dir." >&2
   exit 66
 }
-test -r "$compose_file" || {
-  echo "Production compose file is missing at $compose_file." >&2
+
+env_file=""
+for candidate in \
+  "$deploy_root/env/.env.production" \
+  "$deploy_root/.env.production" \
+  "$app_dir/.env.production"; do
+  if [[ -r "$candidate" ]]; then
+    env_file=$candidate
+    break
+  fi
+done
+if [[ -z "$env_file" ]]; then
+  env_file=$(find "$deploy_root" -maxdepth 3 -type f -name '.env.production' -print -quit)
+fi
+if [[ -z "$env_file" || ! -r "$env_file" ]]; then
+  echo "No readable .env.production was found below $deploy_root." >&2
   exit 66
-}
-test -r "$env_file" || {
-  echo "Production environment file is missing at $env_file." >&2
+fi
+
+compose_file=""
+compose_candidates=(
+  "$deploy_root/compose.production.yml"
+  "$deploy_root/compose.production.yaml"
+  "$deploy_root/docker-compose.production.yml"
+  "$deploy_root/docker-compose.production.yaml"
+  "$app_dir/compose.production.yml"
+  "$app_dir/compose.production.yaml"
+  "$app_dir/docker-compose.production.yml"
+  "$app_dir/docker-compose.production.yaml"
+  "$app_dir/docker-compose.production.example.yml"
+)
+while IFS= read -r candidate; do
+  compose_candidates+=("$candidate")
+done < <(find "$deploy_root" -maxdepth 3 -type f \( -name '*compose*.yml' -o -name '*compose*.yaml' \) -print)
+
+for candidate in "${compose_candidates[@]}"; do
+  [[ -r "$candidate" ]] || continue
+  services=$(docker compose --env-file "$env_file" -f "$candidate" config --services 2>/dev/null) || continue
+  if grep -qx app <<<"$services" && \
+     grep -qx web <<<"$services" && \
+     grep -qx migrate <<<"$services" && \
+     grep -qx postgres <<<"$services"; then
+    compose_file=$candidate
+    break
+  fi
+done
+if [[ -z "$compose_file" ]]; then
+  echo "No production Compose file with app, web, migrate and postgres services was found below $deploy_root." >&2
   exit 66
-}
+fi
+
+env_dir=$(dirname "$env_file")
+release_override="$env_dir/compose.release.yml"
+echo "Using production Compose file: $compose_file"
+echo "Using production environment file: $env_file"
 
 exec 9>"$lock_file"
 flock -n 9 || {
@@ -56,8 +100,8 @@ flock -n 9 || {
 }
 
 compose=(docker compose --env-file "$env_file" -f "$compose_file")
-previous_env=$(mktemp "$deploy_root/env/.env.production.rollback.XXXXXX")
-previous_override=$(mktemp "$deploy_root/env/compose.release.rollback.XXXXXX")
+previous_env=$(mktemp "$env_dir/.env.production.rollback.XXXXXX")
+previous_override=$(mktemp "$env_dir/compose.release.rollback.XXXXXX")
 deployment_started=false
 rollback_available=false
 
@@ -137,7 +181,7 @@ EOF
 fi
 
 deployment_started=true
-new_override=$(mktemp "$deploy_root/env/compose.release.new.XXXXXX")
+new_override=$(mktemp "$env_dir/compose.release.new.XXXXXX")
 cat > "$new_override" <<EOF
 services:
   migrate:
@@ -154,7 +198,7 @@ set_env_value() {
   local key=$1
   local value=$2
   local next_env
-  next_env=$(mktemp "$deploy_root/env/.env.production.new.XXXXXX")
+  next_env=$(mktemp "$env_dir/.env.production.new.XXXXXX")
   awk -v key="$key" -v value="$value" '
     BEGIN { replaced = 0 }
     index($0, key "=") == 1 { print key "=" value; replaced = 1; next }

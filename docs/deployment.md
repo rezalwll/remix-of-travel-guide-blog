@@ -32,7 +32,7 @@ Job استقرار به GitHub Environment با نام `production` متصل ا�
 - `PRODUCTION_SSH_PRIVATE_KEY`: کلید خصوصی اختصاصی و بدون passphrase کاربر محدود `deploy`.
 - `PRODUCTION_SSH_KNOWN_HOSTS`: خروجی تأییدشدهٔ host key سرور؛ Workflow هرگز `StrictHostKeyChecking` را خاموش نمی‌کند.
 
-روی VPS، checkout در `/opt/kiashi/app`، Compose در `/opt/kiashi/compose.production.yml` و env محرمانه در `/opt/kiashi/env/.env.production` نگهداری می‌شوند. اسکریپت `scripts/deploy-production.sh` SHA دقیق تأییدشده را fetch می‌کند، imageهای API/Web/Migration را می‌سازد، قبل از migration یک dump در `/opt/kiashi/backups` می‌گیرد، metadata انتشار را ثبت می‌کند و health داخلی و عمومی را بررسی می‌کند. اگر تعویض کانتینرها شکست بخورد، imageها و metadata نسخهٔ قبلی به‌صورت best-effort بازیابی می‌شوند؛ restore خودکار دیتابیس عمداً انجام نمی‌شود.
+روی VPS، checkout در `/opt/kiashi/app` نگهداری می‌شود. اسکریپت فایل `.env.production` و فایل Compose دارای سرویس‌های `app`، `web`، `migrate` و `postgres` را از نام‌های استاندارد زیر `/opt/kiashi` پیدا و پیش از هر تغییری اعتبارسنجی می‌کند. سپس SHA دقیق تأییدشده را fetch می‌کند، imageهای API/Web/Migration را می‌سازد، قبل از migration یک dump در `/opt/kiashi/backups` می‌گیرد، metadata انتشار را ثبت می‌کند و health داخلی و عمومی را بررسی می‌کند. اگر تعویض کانتینرها شکست بخورد، imageها و metadata نسخهٔ قبلی به‌صورت best-effort بازیابی می‌شوند؛ restore خودکار دیتابیس عمداً انجام نمی‌شود.
 
 کلید Deploy باید فقط همان دسترسی‌های لازم برای checkout، Docker Compose و مسیرهای `/opt/kiashi` را داشته باشد. تغییر IP، کاربر، پورت یا مسیر production باید هم‌زمان در `.github/workflows/deploy-production.yml` و زیرساخت VPS اعمال شود.
 
