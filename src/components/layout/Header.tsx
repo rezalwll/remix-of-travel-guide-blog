@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 
 const primaryLinks = [
   { label: "پرواز", to: "/flights" },
@@ -120,6 +121,7 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center gap-1.5">
+          <ThemeToggle />
           <Link
             to="/support"
             className="hidden min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-white/85 transition hover:bg-white/10 hover:text-white xl:inline-flex"
@@ -134,7 +136,7 @@ const Header = () => {
           </Link>
           {user ? (
             <div className="hidden items-center gap-1 md:flex">
-              <Link to="/account" className="secondary-cta min-h-10 border-white bg-white px-3 text-[#F12613] hover:border-white hover:bg-white/90 hover:text-[#F12613]">
+              <Link to="/account" className="secondary-cta theme-invariant-light min-h-10 border-white bg-white px-3 text-[#F12613] hover:border-white hover:bg-white/90 hover:text-[#F12613]">
                 <UserRound className="size-4" /> {user.firstName || "حساب من"}
               </Link>
               <button
@@ -146,7 +148,7 @@ const Header = () => {
               </button>
             </div>
           ) : (
-            <Link to="/auth/login" className="secondary-cta hidden min-h-10 border-white bg-white px-3 text-[#F12613] hover:border-white hover:bg-white/90 hover:text-[#F12613] md:inline-flex">
+            <Link to="/auth/login" className="secondary-cta theme-invariant-light hidden min-h-10 border-white bg-white px-3 text-[#F12613] hover:border-white hover:bg-white/90 hover:text-[#F12613] md:inline-flex">
               <UserRound className="size-4" /> ورود / ثبت‌نام
             </Link>
           )}
@@ -174,7 +176,7 @@ const Header = () => {
                   className={({ isActive }) =>
                     cn(
                       "min-w-0 rounded-xl border px-3 py-3 text-center text-sm font-bold",
-                      isActive ? "border-white bg-white text-[#DF301C]" : "border-white/20 bg-white/10 text-white",
+                      isActive ? "theme-invariant-light border-white bg-white text-[#DF301C]" : "border-white/20 bg-white/10 text-white",
                     )
                   }
                 >
@@ -190,7 +192,7 @@ const Header = () => {
                 </Link>
               ))}
               <Link to="/track-order" className="min-w-0 rounded-xl px-3 py-2.5 text-center text-sm font-semibold hover:bg-white/10">پیگیری خرید</Link>
-              <Link to={user ? "/account" : "/auth/login"} className="min-w-0 rounded-xl bg-white px-3 py-2.5 text-center text-sm font-semibold text-[#DF301C] hover:bg-white/90">
+              <Link to={user ? "/account" : "/auth/login"} className="theme-invariant-light min-w-0 rounded-xl bg-white px-3 py-2.5 text-center text-sm font-semibold text-[#DF301C] hover:bg-white/90">
                 {user ? "حساب کاربری" : "ورود / ثبت‌نام"}
               </Link>
             </div>

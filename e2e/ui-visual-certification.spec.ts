@@ -49,6 +49,27 @@ test("home hero exposes a readable accessible heading", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "سفر بعدی‌ات را همین‌جا پیدا کن" })).toBeVisible();
 });
 
+test("theme switch is accessible, persistent, and shared across routes", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  const root = page.locator("html");
+  const toggle = page.getByTestId("theme-toggle");
+  await expect(toggle).toBeEnabled();
+
+  const startedDark = await root.evaluate((element) => element.classList.contains("dark"));
+  await toggle.click();
+  await expect(root).toHaveClass(startedDark ? /light/ : /dark/);
+
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await expect(root).toHaveClass(startedDark ? /light/ : /dark/);
+
+  await page.goto("/support", { waitUntil: "domcontentloaded" });
+  await expect(root).toHaveClass(startedDark ? /light/ : /dark/);
+  await expect(page.getByTestId("theme-toggle")).toHaveAttribute(
+    "aria-label",
+    startedDark ? "فعال‌کردن حالت تیره" : "فعال‌کردن حالت روشن",
+  );
+});
+
 for (const route of screenshotRoutes) {
   test(`visual review artifact: ${route}`, async ({ page }, testInfo) => {
     await page.goto(route, { waitUntil: "domcontentloaded" });

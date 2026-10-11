@@ -241,7 +241,7 @@ export function RouteCard({
       <div className="relative grid grid-cols-2 gap-0.5">
         <MediaFrame asset={originAsset} ratio="4/3" sizes="(max-width: 768px) 40vw, 18vw" decorative overlay="soft" />
         <MediaFrame asset={destinationAsset} ratio="4/3" sizes="(max-width: 768px) 40vw, 18vw" decorative overlay="soft" />
-        <span className="absolute left-1/2 top-1/2 z-10 grid size-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white text-primary shadow-lg">
+        <span className="theme-invariant-light absolute left-1/2 top-1/2 z-10 grid size-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white text-primary shadow-lg">
           <ArrowLeft className="size-5" />
         </span>
         {badge && <span className="absolute start-3 top-3 z-10">{<Badge>{badge}</Badge>}</span>}
@@ -284,7 +284,7 @@ export function PromoBanner({
           {eyebrow && <Badge tone="accent">{eyebrow}</Badge>}
           <h3 className={`max-w-xl text-2xl font-black leading-tight sm:text-4xl ${align === "center" ? "text-center" : "text-start"}`}>{title}</h3>
           {description && <p className={`max-w-xl text-sm leading-7 text-white/82 sm:text-base ${align === "center" ? "text-center" : "text-start"}`}>{description}</p>}
-          <span className="promo-cta mt-1 inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-foreground group-hover:bg-accent group-hover:text-accent-foreground">
+          <span className="promo-cta theme-invariant-light mt-1 inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-[#18202b] group-hover:bg-accent group-hover:text-accent-foreground">
             {cta} <ArrowLeft className="size-4" />
           </span>
         </div>

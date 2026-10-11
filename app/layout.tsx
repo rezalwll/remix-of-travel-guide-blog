@@ -27,11 +27,19 @@ export const metadata: Metadata = {
   formatDetection: { telephone: false },
 };
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, colorScheme: "light" };
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  colorScheme: "light dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0d1117" },
+  ],
+};
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="fa" dir="rtl" className={iranYekan.variable}>
+    <html lang="fa" dir="rtl" className={iranYekan.variable} suppressHydrationWarning>
       <body className={`${iranYekan.className} min-h-screen bg-background text-foreground`}>
         <Providers>
           <div className="flex min-h-screen flex-col">

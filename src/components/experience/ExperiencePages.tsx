@@ -480,7 +480,7 @@ export const ExperienceDetailPage = ({ type }: { type: ExperienceType }) => {
               type="button"
               onClick={toggle}
               aria-pressed={favorite}
-              className="absolute end-4 top-4 grid size-11 place-items-center rounded-full bg-white text-primary"
+              className="theme-invariant-light absolute end-4 top-4 grid size-11 place-items-center rounded-full bg-white text-primary"
             >
               <Heart className={favorite ? "fill-current" : ""} />
             </button>

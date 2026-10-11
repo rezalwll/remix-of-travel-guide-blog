@@ -79,7 +79,7 @@ export default function TravelHero({
           {(primary || secondary) && (
             <div className="flex flex-wrap gap-3">
               {primary && (
-                <Link href={primary.href} className="primary-cta bg-white text-foreground hover:bg-white/90">
+                <Link href={primary.href} className="primary-cta theme-invariant-light bg-white text-[#18202b] hover:bg-white/90">
                   {primary.label}
                 </Link>
               )}

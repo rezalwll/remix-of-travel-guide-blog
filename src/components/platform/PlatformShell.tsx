@@ -94,7 +94,7 @@ export default function PlatformShell({ scope, children }: { scope: Scope; child
   if (state === "error" || !access) return <div className="mx-auto grid min-h-[55vh] max-w-3xl place-items-center px-4"><div className="w-full rounded-3xl border border-amber-200 bg-amber-50 p-8 text-center"><h1 className="text-lg font-black">ارتباط با سرویس پنل برقرار نشد</h1><p className="mt-2 text-sm text-amber-900">پس از اطمینان از اجرای API دوباره صفحه را بارگذاری کنید.</p></div></div>;
 
   return (
-    <main className="min-h-[70vh] bg-[#fffafa] py-8" data-platform-scope={scope}>
+    <main className="min-h-[70vh] bg-background py-8" data-platform-scope={scope}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <header className="rounded-3xl border border-red-100 bg-white p-5 shadow-[0_16px_50px_rgba(223,48,28,0.08)] sm:p-7">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">

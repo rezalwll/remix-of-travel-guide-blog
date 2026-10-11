@@ -105,9 +105,9 @@ export default function RouteTransitionOverlay() {
       role="status"
       aria-live="polite"
       aria-hidden={!visible}
-      className={`pointer-events-none fixed inset-0 z-[200] grid place-items-center bg-white/58 px-4 backdrop-blur-[2px] transition-opacity duration-200 ${visible ? "visible opacity-100" : "invisible opacity-0"}`}
+      className={`pointer-events-none fixed inset-0 z-[200] grid place-items-center bg-background/70 px-4 backdrop-blur-[2px] transition-opacity duration-200 ${visible ? "visible opacity-100" : "invisible opacity-0"}`}
     >
-      <div className="route-loader-card flex min-w-56 flex-col items-center rounded-[1.5rem] border border-primary/25 bg-white/95 px-8 py-7 text-center shadow-[0_24px_70px_rgb(137_20_10/0.24)]">
+      <div className="route-loader-card flex min-w-56 flex-col items-center rounded-[1.5rem] border border-primary/25 bg-card/95 px-8 py-7 text-center shadow-[0_24px_70px_rgb(137_20_10/0.24)]">
         <div className="relative grid size-24 place-items-center" aria-hidden="true">
           <span className="absolute inset-2 rounded-full border-2 border-dashed border-primary/30" />
           <span className="grid size-11 place-items-center rounded-full bg-primary/10 text-primary">
