@@ -77,7 +77,7 @@ jobs:
             -o ServerAliveInterval=15 \
             -o ServerAliveCountMax=3 \
             "$PRODUCTION_USER@$PRODUCTION_HOST" \
-            "bash -s -- '$RELEASE_SHA' '$PRODUCTION_ROOT' '$PRODUCTION_SITE_URL'" \
+            "sudo -n bash -s -- '$RELEASE_SHA' '$PRODUCTION_ROOT' '$PRODUCTION_SITE_URL'" \
             < scripts/deploy-production.sh
 
       - name: Verify public release
