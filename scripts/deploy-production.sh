@@ -163,7 +163,7 @@ backup_file="$backup_dir/pre-deploy-$short_sha-$(date -u +%Y%m%dT%H%M%SZ).dump"
 echo "Creating pre-deployment database backup."
 "${compose[@]}" exec -T postgres sh -c \
   'pg_dump --format=custom --no-owner --no-privileges -U "$POSTGRES_USER" -d "$POSTGRES_DB"' \
-  > "$backup_file"
+  < /dev/null > "$backup_file"
 test -s "$backup_file"
 chmod 0600 "$backup_file"
 
@@ -225,13 +225,13 @@ compose=(docker compose --env-file "$env_file" -f "$compose_file" -f "$release_o
 
 echo "Applying database migrations from the certified release image."
 if [[ "$compose_has_migrate" == true ]]; then
-  "${compose[@]}" run --rm --no-deps migrate
+  "${compose[@]}" run --rm --no-deps -T migrate < /dev/null
 else
   postgres_container=$("${compose[@]}" ps -q postgres)
   test -n "$postgres_container"
   production_network=$(docker inspect --format '{{range $name, $_ := .NetworkSettings.Networks}}{{println $name}}{{end}}' "$postgres_container" | awk 'NR == 1 { print; exit }')
   test -n "$production_network"
-  docker run --rm --network "$production_network" --env-file "$env_file" "$migrate_image"
+  docker run --rm --network "$production_network" --env-file "$env_file" "$migrate_image" < /dev/null
 fi
 
 "${compose[@]}" up -d --no-deps app
