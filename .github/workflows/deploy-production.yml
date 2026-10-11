@@ -1,0 +1,98 @@
+name: Deploy production
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref or SHA to deploy
+        required: false
+        default: main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment:
+      name: production
+      url: https://91.247.171.204
+    env:
+      PRODUCTION_HOST: 91.247.171.204
+      PRODUCTION_PORT: "22"
+      PRODUCTION_USER: deploy
+      PRODUCTION_ROOT: /opt/kiashi
+      PRODUCTION_SITE_URL: https://91.247.171.204
+    steps:
+      - name: Select certified revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || inputs.ref }}
+          fetch-depth: 1
+
+      - name: Record exact release SHA
+        id: release
+        shell: bash
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Configure production SSH identity
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.PRODUCTION_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.PRODUCTION_SSH_KNOWN_HOSTS }}
+        run: |
+          test -n "$SSH_PRIVATE_KEY"
+          test -n "$SSH_KNOWN_HOSTS"
+          install -d -m 0700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/production"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 0600 "$HOME/.ssh/production" "$HOME/.ssh/known_hosts"
+          ssh-keygen -y -f "$HOME/.ssh/production" >/dev/null
+          ssh-keygen -F "$PRODUCTION_HOST" -f "$HOME/.ssh/known_hosts" >/dev/null
+
+      - name: Deploy certified revision
+        shell: bash
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          ssh \
+            -i "$HOME/.ssh/production" \
+            -p "$PRODUCTION_PORT" \
+            -o BatchMode=yes \
+            -o ConnectTimeout=20 \
+            -o ServerAliveInterval=15 \
+            -o ServerAliveCountMax=3 \
+            "$PRODUCTION_USER@$PRODUCTION_HOST" \
+            "bash -s -- '$RELEASE_SHA' '$PRODUCTION_ROOT' '$PRODUCTION_SITE_URL'" \
+            < scripts/deploy-production.sh
+
+      - name: Verify public release
+        shell: bash
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          for attempt in {1..12}; do
+            response=$(curl --fail --silent --show-error \
+              --connect-timeout 10 --max-time 20 \
+              "$PRODUCTION_SITE_URL/health/version") && \
+              grep -Fq "$RELEASE_SHA" <<<"$response" && exit 0
+            if [ "$attempt" -eq 12 ]; then
+              echo "Production did not report release $RELEASE_SHA" >&2
+              exit 1
+            fi
+            sleep 5
+          done

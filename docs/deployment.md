@@ -23,6 +23,19 @@ production برای `DATABASE_URL`، URLهای HTTPS، allow-list صریح `TRUS
 6. cutover در reverse proxy، سپس smoke تست auth، search، checkout sandbox و provider status.
 7. پایش logها و backlogهای reconciliation.
 
+## استقرار خودکار از GitHub Actions
+
+Workflow `Deploy production` پس از موفقیت کامل Workflow `CI` برای Push شاخهٔ `main` اجرا می‌شود. کامیت‌های ناموفق، Pull Requestها و اجرای CI برای شاخه‌های دیگر به production راه پیدا نمی‌کنند. قفل concurrency نیز اجازه نمی‌دهد دو انتشار هم‌زمان روی VPS اجرا شوند. اجرای دستی همان Workflow برای بازیابی عملیاتی در دسترس است و ref یا SHA ورودی باید عضوی از `origin/main` باشد.
+
+Job استقرار به GitHub Environment با نام `production` متصل است و فقط دو Secret محیطی می‌خواهد:
+
+- `PRODUCTION_SSH_PRIVATE_KEY`: کلید خصوصی اختصاصی و بدون passphrase کاربر محدود `deploy`.
+- `PRODUCTION_SSH_KNOWN_HOSTS`: خروجی تأییدشدهٔ host key سرور؛ Workflow هرگز `StrictHostKeyChecking` را خاموش نمی‌کند.
+
+روی VPS، checkout در `/opt/kiashi/app`، Compose در `/opt/kiashi/compose.production.yml` و env محرمانه در `/opt/kiashi/env/.env.production` نگهداری می‌شوند. اسکریپت `scripts/deploy-production.sh` SHA دقیق تأییدشده را fetch می‌کند، imageهای API/Web/Migration را می‌سازد، قبل از migration یک dump در `/opt/kiashi/backups` می‌گیرد، metadata انتشار را ثبت می‌کند و health داخلی و عمومی را بررسی می‌کند. اگر تعویض کانتینرها شکست بخورد، imageها و metadata نسخهٔ قبلی به‌صورت best-effort بازیابی می‌شوند؛ restore خودکار دیتابیس عمداً انجام نمی‌شود.
+
+کلید Deploy باید فقط همان دسترسی‌های لازم برای checkout، Docker Compose و مسیرهای `/opt/kiashi` را داشته باشد. تغییر IP، کاربر، پورت یا مسیر production باید هم‌زمان در `.github/workflows/deploy-production.yml` و زیرساخت VPS اعمال شود.
+
 ## migration و rollback
 
 برای تغییرهای حساس از الگوی expand → deploy کد سازگار → backfill محدود و قابل تکرار → cutover → contract استفاده کنید. migrationهای destructive یا دارای lock طولانی باید جداگانه review شوند. rollback کد فقط تا زمانی امن است که schema backward-compatible باشد؛ بعد از migration ناسازگار، forward-fix و restore بررسی‌شده تنها راه است.
