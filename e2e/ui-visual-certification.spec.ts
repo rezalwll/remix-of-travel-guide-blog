@@ -45,7 +45,7 @@ test("priority visual routes render without broken images or horizontal overflow
 });
 
 test("home hero exposes a readable accessible heading", async ({ page }) => {
-  await page.goto("/");
+  await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { level: 1, name: "سفر بعدی‌ات را همین‌جا پیدا کن" })).toBeVisible();
 });
 

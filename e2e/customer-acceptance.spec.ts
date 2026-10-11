@@ -35,7 +35,7 @@ test('tracking and help provide useful invalid and search states', async ({ page
 
 test('mobile navigation and complementary service pages are reachable', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'mobile navigation check');
-  await page.goto('/');
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
   await page.getByRole('button', { name: 'باز کردن منو' }).click();
   const mobileMenu = page.getByRole('navigation', { name: 'منوی موبایل' });
   await expect(mobileMenu.getByRole('link', { name: 'پیگیری خرید' })).toBeVisible();
