@@ -9,15 +9,60 @@ const FLIGHT_DURATION_MS = 5_400;
 
 type Point = { x: number; y: number };
 
-const cubicPoint = (start: Point, controlA: Point, controlB: Point, end: Point, progress: number) => {
-  const inverse = 1 - progress;
+const interpolate = (start: number, end: number, progress: number) => start + ((end - start) * progress);
+
+const smoothstep = (progress: number) => progress * progress * (3 - (2 * progress));
+
+const catmullRomPoint = (pointA: Point, pointB: Point, pointC: Point, pointD: Point, progress: number) => {
+  const progressSquared = progress * progress;
+  const progressCubed = progressSquared * progress;
+
   return {
-    x: (inverse ** 3 * start.x) + (3 * inverse ** 2 * progress * controlA.x) + (3 * inverse * progress ** 2 * controlB.x) + (progress ** 3 * end.x),
-    y: (inverse ** 3 * start.y) + (3 * inverse ** 2 * progress * controlA.y) + (3 * inverse * progress ** 2 * controlB.y) + (progress ** 3 * end.y),
+    x: 0.5 * (
+      (2 * pointB.x)
+      + ((-pointA.x + pointC.x) * progress)
+      + ((2 * pointA.x - (5 * pointB.x) + (4 * pointC.x) - pointD.x) * progressSquared)
+      + ((-pointA.x + (3 * pointB.x) - (3 * pointC.x) + pointD.x) * progressCubed)
+    ),
+    y: 0.5 * (
+      (2 * pointB.y)
+      + ((-pointA.y + pointC.y) * progress)
+      + ((2 * pointA.y - (5 * pointB.y) + (4 * pointC.y) - pointD.y) * progressSquared)
+      + ((-pointA.y + (3 * pointB.y) - (3 * pointC.y) + pointD.y) * progressCubed)
+    ),
   };
 };
 
-const buildFlightKeyframes = (viewportWidth: number, viewportHeight: number) => {
+const resampleByDistance = (points: Point[], sampleCount: number) => {
+  const cumulativeDistances = [0];
+  for (let index = 1; index < points.length; index += 1) {
+    cumulativeDistances.push(
+      cumulativeDistances[index - 1]
+      + Math.hypot(points[index].x - points[index - 1].x, points[index].y - points[index - 1].y),
+    );
+  }
+
+  const totalDistance = cumulativeDistances[cumulativeDistances.length - 1];
+  let sourceIndex = 1;
+
+  return Array.from({ length: sampleCount }, (_, index) => {
+    const targetDistance = totalDistance * (index / (sampleCount - 1));
+    while (sourceIndex < cumulativeDistances.length - 1 && cumulativeDistances[sourceIndex] < targetDistance) {
+      sourceIndex += 1;
+    }
+
+    const segmentStartDistance = cumulativeDistances[sourceIndex - 1];
+    const segmentDistance = cumulativeDistances[sourceIndex] - segmentStartDistance;
+    const progress = segmentDistance === 0 ? 0 : (targetDistance - segmentStartDistance) / segmentDistance;
+
+    return {
+      x: interpolate(points[sourceIndex - 1].x, points[sourceIndex].x, progress),
+      y: interpolate(points[sourceIndex - 1].y, points[sourceIndex].y, progress),
+    };
+  });
+};
+
+export const buildFlightKeyframes = (viewportWidth: number, viewportHeight: number) => {
   const isMobile = viewportWidth < 640;
   const planeWidth = Math.min(304, Math.max(176, viewportWidth * 0.22));
   const dockButtonSize = isMobile ? 92 : 112;
@@ -29,45 +74,50 @@ const buildFlightKeyframes = (viewportWidth: number, viewportHeight: number) => 
     y: viewportHeight - dockInset - dockButtonSize + ((dockButtonSize - dockedHeight) / 2),
   };
   const landingScale = dockedWidth / planeWidth;
-  const segments: [Point, Point, Point, Point][] = [
-    [
-      { x: -planeWidth, y: viewportHeight * 0.14 },
-      { x: viewportWidth * 0.06, y: -40 },
-      { x: viewportWidth * 0.65, y: -10 },
-      { x: viewportWidth * 0.82, y: viewportHeight * 0.25 },
-    ],
-    [
-      { x: viewportWidth * 0.82, y: viewportHeight * 0.25 },
-      { x: viewportWidth * 1.06, y: viewportHeight * 0.42 },
-      { x: viewportWidth * 0.58, y: viewportHeight * 0.75 },
-      { x: viewportWidth * 0.22, y: viewportHeight * 0.56 },
-    ],
-    [
-      { x: viewportWidth * 0.22, y: viewportHeight * 0.56 },
-      { x: viewportWidth * 0.02, y: viewportHeight * 0.45 },
-      { x: landingPoint.x, y: viewportHeight * 0.72 },
-      landingPoint,
-    ],
+  const route: Point[] = [
+    { x: -planeWidth, y: viewportHeight * 0.14 },
+    { x: viewportWidth * 0.12, y: viewportHeight * 0.04 },
+    { x: viewportWidth * 0.55, y: viewportHeight * 0.07 },
+    { x: viewportWidth * 0.86, y: viewportHeight * 0.25 },
+    { x: viewportWidth * 0.82, y: viewportHeight * 0.48 },
+    { x: viewportWidth * 0.58, y: viewportHeight * 0.66 },
+    { x: viewportWidth * 0.25, y: viewportHeight * 0.58 },
+    { x: viewportWidth * 0.04, y: viewportHeight * 0.52 },
+    { x: viewportWidth * 0.02, y: viewportHeight * 0.72 },
+    landingPoint,
   ];
-  const points = segments.flatMap((segment, segmentIndex) => Array.from({ length: 60 }, (_, index) => {
-    const progress = index / 59;
-    const point = cubicPoint(...segment, progress);
-    const nextPoint = cubicPoint(...segment, Math.min(1, progress + 0.02));
-    const angle = Math.atan2(nextPoint.y - point.y, nextPoint.x - point.x) * (180 / Math.PI);
-    const overallProgress = (segmentIndex * 60 + index) / 179;
-    const scale = overallProgress < 0.2
-      ? 0.72 + (overallProgress * 0.7)
-      : 0.86 + ((landingScale - 0.86) * ((overallProgress - 0.2) / 0.8));
-    const pathRotation = Math.max(-16, Math.min(16, angle * 0.24));
-    const rotation = overallProgress > 0.84
-      ? pathRotation * (1 - ((overallProgress - 0.84) / 0.16))
-      : pathRotation;
+
+  const densePoints = [route[0]];
+  for (let routeIndex = 0; routeIndex < route.length - 1; routeIndex += 1) {
+    const pointA = route[Math.max(0, routeIndex - 1)];
+    const pointB = route[routeIndex];
+    const pointC = route[routeIndex + 1];
+    const pointD = route[Math.min(route.length - 1, routeIndex + 2)];
+    for (let sampleIndex = 1; sampleIndex <= 48; sampleIndex += 1) {
+      densePoints.push(catmullRomPoint(pointA, pointB, pointC, pointD, sampleIndex / 48));
+    }
+  }
+
+  const flightPoints = resampleByDistance(densePoints, 240);
+  return flightPoints.map((point, index) => {
+    const previousPoint = flightPoints[Math.max(0, index - 10)];
+    const nextPoint = flightPoints[Math.min(flightPoints.length - 1, index + 10)];
+    const horizontalTravel = Math.abs(nextPoint.x - previousPoint.x);
+    const bankAngle = Math.atan2(nextPoint.y - previousPoint.y, horizontalTravel) * (180 / Math.PI);
+    const overallProgress = index / (flightPoints.length - 1);
+    const takeoffProgress = smoothstep(Math.min(1, overallProgress / 0.15));
+    const landingProgress = smoothstep(Math.max(0, Math.min(1, (overallProgress - 0.7) / 0.3)));
+    const cruiseScale = interpolate(0.72, 0.88, takeoffProgress);
+    const scale = interpolate(cruiseScale, landingScale, landingProgress);
+    const pathRotation = Math.max(-12, Math.min(12, bankAngle * 0.17));
+    const rotationSettle = smoothstep(Math.max(0, Math.min(1, (overallProgress - 0.78) / 0.22)));
+    const rotation = interpolate(pathRotation, 0, rotationSettle);
+
     return {
       transform: `translate3d(${point.x}px, ${point.y}px, 0) rotate(${rotation}deg) scale(${scale})`,
-      opacity: overallProgress < 0.035 ? overallProgress / 0.035 : 1,
+      opacity: overallProgress < 0.04 ? smoothstep(overallProgress / 0.04) : 1,
     };
-  }));
-  return points;
+  });
 };
 
 export default function SupportAirplaneMascot() {

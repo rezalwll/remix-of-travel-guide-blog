@@ -1,12 +1,34 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import SupportAirplaneMascot from "@/components/next/SupportAirplaneMascot";
+import SupportAirplaneMascot, { buildFlightKeyframes } from "@/components/next/SupportAirplaneMascot";
 
 afterEach(() => {
   vi.useRealTimers();
 });
 
 describe("support airplane mascot", () => {
+  it("keeps movement and rotation continuous across the full flight path", () => {
+    const frames = buildFlightKeyframes(1_280, 720);
+    const positions = frames.map(({ transform }) => {
+      const match = transform.match(/translate3d\(([-\d.]+)px, ([-\d.]+)px/);
+      expect(match).not.toBeNull();
+      return { x: Number(match?.[1]), y: Number(match?.[2]) };
+    });
+    const distances = positions.slice(1).map((point, index) => (
+      Math.hypot(point.x - positions[index].x, point.y - positions[index].y)
+    ));
+    const rotations = frames.map(({ transform }) => {
+      const match = transform.match(/rotate\(([-\d.]+)deg\)/);
+      expect(match).not.toBeNull();
+      return Number(match?.[1]);
+    });
+    const rotationChanges = rotations.slice(1).map((rotation, index) => Math.abs(rotation - rotations[index]));
+
+    expect(Math.max(...distances) / Math.min(...distances)).toBeLessThan(1.08);
+    expect(Math.max(...rotationChanges)).toBeLessThan(1);
+    expect(rotations.at(-1)).toBeCloseTo(0, 5);
+  });
+
   it("flies on first render and greets the visitor after landing", () => {
     vi.useFakeTimers();
     render(<SupportAirplaneMascot />);
