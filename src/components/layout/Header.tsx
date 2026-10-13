@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import ThemeToggle from "@/components/theme/ThemeToggle";
+import LanguageToggle from "@/components/i18n/LanguageToggle";
 
 const primaryLinks = [
   { label: "پرواز", to: "/flights" },
@@ -121,6 +122,7 @@ const Header = () => {
         </nav>
 
         <div className="flex items-center gap-1.5">
+          <LanguageToggle />
           <ThemeToggle />
           <Link
             to="/support"

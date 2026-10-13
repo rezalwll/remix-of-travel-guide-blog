@@ -70,6 +70,27 @@ test("theme switch is accessible, persistent, and shared across routes", async (
   );
 });
 
+test("language switch translates the interface, changes direction, and persists", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  const root = page.locator("html");
+  const toggle = page.getByTestId("language-toggle");
+
+  await expect(toggle).toBeEnabled();
+  await toggle.click();
+  await expect(root).toHaveAttribute("lang", "en");
+  await expect(root).toHaveAttribute("dir", "ltr");
+  await expect(page.getByRole("heading", { level: 1, name: /Your next journey.*Find it right here/i })).toBeVisible();
+
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await expect(root).toHaveAttribute("lang", "en");
+  await expect(root).toHaveAttribute("dir", "ltr");
+  await expect(page.getByTestId("language-toggle")).toHaveText("فا");
+
+  await page.goto("/support", { waitUntil: "domcontentloaded" });
+  await expect(root).toHaveAttribute("lang", "en");
+  await expect(page.getByTestId("language-toggle")).toHaveAttribute("aria-label", "تغییر زبان به فارسی");
+});
+
 for (const route of screenshotRoutes) {
   test(`visual review artifact: ${route}`, async ({ page }, testInfo) => {
     await page.goto(route, { waitUntil: "domcontentloaded" });

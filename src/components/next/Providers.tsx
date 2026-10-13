@@ -9,6 +9,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { ApiError } from "@/services/apiClient";
 import RouteTransitionOverlay from "@/components/next/RouteTransitionOverlay";
 import { ThemeProvider } from "next-themes";
+import LanguageProvider from "@/components/i18n/LanguageProvider";
 
 export default function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
@@ -26,16 +27,18 @@ export default function Providers({ children }: { children: ReactNode }) {
       disableTransitionOnChange
       storageKey="kiashi-theme"
     >
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <AuthProvider>
-            {children}
-            <Suspense fallback={null}><RouteTransitionOverlay /></Suspense>
-            <Toaster />
-            <Sonner />
-          </AuthProvider>
-        </TooltipProvider>
-      </QueryClientProvider>
+      <LanguageProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <AuthProvider>
+              {children}
+              <Suspense fallback={null}><RouteTransitionOverlay /></Suspense>
+              <Toaster />
+              <Sonner />
+            </AuthProvider>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

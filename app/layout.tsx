@@ -14,6 +14,8 @@ const iranYekan = localFont({
   weight: "400",
 });
 
+const languageBootScript = `(function(){try{var l=localStorage.getItem('kiashi-locale')==='en'?'en':'fa';var d=document.documentElement;d.lang=l;d.dir=l==='en'?'ltr':'rtl';d.classList.add(l==='en'?'lang-en':'lang-fa');if(l==='en'){d.classList.add('locale-pending');setTimeout(function(){d.classList.add('locale-ready')},2500)}}catch(e){}})();`;
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: { default: "کیاشی | پرواز، هتل و برنامه‌ریزی سفر", template: "%s | کیاشی" },
@@ -40,6 +42,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="fa" dir="rtl" className={iranYekan.variable} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: languageBootScript }} />
+      </head>
       <body className={`${iranYekan.className} min-h-screen bg-background text-foreground`}>
         <Providers>
           <div className="flex min-h-screen flex-col">
