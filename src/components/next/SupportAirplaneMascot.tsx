@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
-import { MessageCircle, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { MessageCircleMore, X } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import SupportAssistantPanel from "@/components/next/SupportAssistantPanel";
 
 const FLIGHT_DURATION_MS = 5_400;
 
@@ -122,8 +122,11 @@ export const buildFlightKeyframes = (viewportWidth: number, viewportHeight: numb
 
 export default function SupportAirplaneMascot() {
   const flightRef = useRef<HTMLDivElement>(null);
+  const supportButtonRef = useRef<HTMLButtonElement>(null);
   const [hasLanded, setHasLanded] = useState(false);
   const [isGreetingOpen, setIsGreetingOpen] = useState(false);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [hasOpenedPanel, setHasOpenedPanel] = useState(false);
 
   useEffect(() => {
     const land = () => {
@@ -159,6 +162,17 @@ export default function SupportAirplaneMascot() {
     return () => animation.cancel();
   }, []);
 
+  const openPanel = () => {
+    setIsGreetingOpen(false);
+    setHasOpenedPanel(true);
+    setIsPanelOpen(true);
+  };
+
+  const closePanel = useCallback(() => {
+    setIsPanelOpen(false);
+    window.setTimeout(() => supportButtonRef.current?.focus(), 0);
+  }, []);
+
   return (
     <>
       <div
@@ -178,7 +192,7 @@ export default function SupportAirplaneMascot() {
         />
       </div>
 
-      {hasLanded ? (
+      {hasLanded && !isPanelOpen ? (
         <aside
           aria-label="پشتیبان کیاشی"
           className="support-airplane-dock fixed bottom-3 left-3 z-[121] flex items-end gap-2 sm:bottom-5 sm:left-5"
@@ -200,27 +214,31 @@ export default function SupportAirplaneMascot() {
               </button>
               <p className="pe-6 text-sm font-black leading-7 text-foreground">سلام، من پشتیبان کیاشی هستم 👋</p>
               <p className="mt-1 text-xs leading-6 text-muted-foreground">برای راهنمایی سفر و پیگیری سفارش کنارت هستم.</p>
-              <Link
-                href="/support"
+              <button
+                type="button"
+                onClick={openPanel}
                 className="mt-3 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-xs font-extrabold text-white shadow-md shadow-primary/20 transition-colors hover:bg-[#d91d0c]"
               >
-                <MessageCircle className="size-4" />
-                گفتگو با پشتیبانی
-              </Link>
+                <MessageCircleMore className="size-4" />
+                شروع گفتگو
+              </button>
             </div>
           ) : null}
 
           <button
+            ref={supportButtonRef}
             type="button"
             className="support-airplane-button absolute bottom-0 left-0 size-[5.75rem] rounded-[2rem] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4 sm:size-28"
-            aria-label={isGreetingOpen ? "پشتیبان کیاشی" : "بازکردن پیام پشتیبان کیاشی"}
-            aria-expanded={isGreetingOpen}
-            onClick={() => setIsGreetingOpen((current) => !current)}
+            aria-label="بازکردن دستیار پشتیبانی کیاشی"
+            aria-expanded={isPanelOpen}
+            onClick={openPanel}
           >
             <span className="sr-only">پشتیبان کیاشی</span>
           </button>
         </aside>
       ) : null}
+
+      {hasOpenedPanel ? <SupportAssistantPanel isOpen={isPanelOpen} onClose={closePanel} /> : null}
     </>
   );
 }
