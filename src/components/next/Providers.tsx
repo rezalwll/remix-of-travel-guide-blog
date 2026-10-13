@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { ApiError } from "@/services/apiClient";
 import RouteTransitionOverlay from "@/components/next/RouteTransitionOverlay";
+import SupportAirplaneMascot from "@/components/next/SupportAirplaneMascot";
 
 export default function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
@@ -22,6 +23,7 @@ export default function Providers({ children }: { children: ReactNode }) {
         <AuthProvider>
           {children}
           <Suspense fallback={null}><RouteTransitionOverlay /></Suspense>
+          <SupportAirplaneMascot />
           <Toaster />
           <Sonner />
         </AuthProvider>

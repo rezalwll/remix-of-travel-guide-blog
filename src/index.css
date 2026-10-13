@@ -130,6 +130,80 @@
   animation: route-loader-card-enter 320ms var(--motion-ease-soft) both;
 }
 
+.support-airplane-artwork {
+  display: block;
+  background-image: url("/images/mascot/kiashi-support-airplane.webp");
+  background-repeat: no-repeat;
+  filter: drop-shadow(0 18px 24px rgb(105 20 13 / 0.2));
+}
+
+.support-airplane-artwork--flying {
+  width: clamp(12rem, 22vw, 19rem);
+  aspect-ratio: 1.72;
+  background-position: left 47%;
+  background-size: 200% auto;
+}
+
+.support-airplane-artwork--landed {
+  width: 8.75rem;
+  aspect-ratio: 1.2;
+  background-position: right 53%;
+  background-size: 200% auto;
+  transition: filter var(--motion-base) var(--motion-ease-soft);
+}
+
+.support-airplane-flight {
+  animation: support-airplane-tour 5.4s var(--motion-ease-soft) both;
+  will-change: transform;
+}
+
+.support-airplane-dock {
+  animation: support-airplane-dock-in 520ms var(--motion-ease-soft) both;
+}
+
+.support-airplane-greeting {
+  animation: support-airplane-greeting-in 520ms 180ms var(--motion-ease-soft) both;
+}
+
+.support-airplane-greeting::after {
+  position: absolute;
+  bottom: -0.55rem;
+  left: 2.25rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  content: "";
+  background: rgb(255 255 255 / 0.95);
+  border-right: 1px solid hsl(var(--primary) / 0.2);
+  border-bottom: 1px solid hsl(var(--primary) / 0.2);
+  transform: rotate(45deg);
+}
+
+@keyframes support-airplane-tour {
+  0% { transform: translate3d(-28vw, 12vh, 0) rotate(-8deg) scale(0.68); opacity: 0; }
+  8% { opacity: 1; }
+  24% { transform: translate3d(14vw, 7vh, 0) rotate(4deg) scale(0.82); }
+  48% { transform: translate3d(70vw, 25vh, 0) rotate(14deg) scale(1); }
+  70% { transform: translate3d(48vw, 58vh, 0) rotate(-12deg) scale(0.9); }
+  88% { transform: translate3d(15vw, 68vh, 0) rotate(-4deg) scale(0.78); }
+  100% { transform: translate3d(0.7rem, calc(100vh - 12.5rem), 0) rotate(0deg) scale(0.65); opacity: 1; }
+}
+
+@keyframes support-airplane-dock-in {
+  from { opacity: 0; transform: translateY(-1rem) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes support-airplane-greeting-in {
+  from { opacity: 0; transform: translate3d(-0.75rem, 0.75rem, 0) scale(0.94); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@media (max-width: 639px) {
+  .support-airplane-artwork--flying { width: 11rem; }
+  .support-airplane-artwork--landed { width: 7.25rem; }
+  .support-airplane-flight { animation-duration: 4.8s; }
+}
+
 @keyframes route-loader-card-enter {
   from { opacity: 0; transform: scale(0.96); }
   to { opacity: 1; transform: scale(1); }
