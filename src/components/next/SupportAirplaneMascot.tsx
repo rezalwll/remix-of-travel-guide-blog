@@ -1,38 +1,106 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { MessageCircle, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const FLIGHT_DURATION_MS = 5_400;
 
+type Point = { x: number; y: number };
+
+const cubicPoint = (start: Point, controlA: Point, controlB: Point, end: Point, progress: number) => {
+  const inverse = 1 - progress;
+  return {
+    x: (inverse ** 3 * start.x) + (3 * inverse ** 2 * progress * controlA.x) + (3 * inverse * progress ** 2 * controlB.x) + (progress ** 3 * end.x),
+    y: (inverse ** 3 * start.y) + (3 * inverse ** 2 * progress * controlA.y) + (3 * inverse * progress ** 2 * controlB.y) + (progress ** 3 * end.y),
+  };
+};
+
+const buildFlightKeyframes = (viewportWidth: number, viewportHeight: number) => {
+  const planeWidth = Math.min(304, Math.max(176, viewportWidth * 0.22));
+  const segments: [Point, Point, Point, Point][] = [
+    [
+      { x: -planeWidth, y: viewportHeight * 0.14 },
+      { x: viewportWidth * 0.06, y: -40 },
+      { x: viewportWidth * 0.65, y: -10 },
+      { x: viewportWidth * 0.82, y: viewportHeight * 0.25 },
+    ],
+    [
+      { x: viewportWidth * 0.82, y: viewportHeight * 0.25 },
+      { x: viewportWidth * 1.06, y: viewportHeight * 0.42 },
+      { x: viewportWidth * 0.58, y: viewportHeight * 0.75 },
+      { x: viewportWidth * 0.22, y: viewportHeight * 0.56 },
+    ],
+    [
+      { x: viewportWidth * 0.22, y: viewportHeight * 0.56 },
+      { x: viewportWidth * 0.02, y: viewportHeight * 0.45 },
+      { x: 18, y: viewportHeight * 0.72 },
+      { x: 12, y: viewportHeight - 170 },
+    ],
+  ];
+  const points = segments.flatMap((segment, segmentIndex) => Array.from({ length: 60 }, (_, index) => {
+    const progress = index / 59;
+    const point = cubicPoint(...segment, progress);
+    const nextPoint = cubicPoint(...segment, Math.min(1, progress + 0.02));
+    const angle = Math.atan2(nextPoint.y - point.y, nextPoint.x - point.x) * (180 / Math.PI);
+    const overallProgress = (segmentIndex * 60 + index) / 179;
+    const scale = overallProgress < 0.2 ? 0.72 + (overallProgress * 0.7) : 0.86 - (overallProgress * 0.12);
+    return {
+      transform: `translate3d(${point.x}px, ${point.y}px, 0) rotate(${Math.max(-16, Math.min(16, angle * 0.24))}deg) scale(${scale})`,
+      opacity: overallProgress < 0.035 ? overallProgress / 0.035 : 1,
+    };
+  }));
+  return points;
+};
+
 export default function SupportAirplaneMascot() {
+  const flightRef = useRef<HTMLDivElement>(null);
   const [hasLanded, setHasLanded] = useState(false);
   const [isGreetingOpen, setIsGreetingOpen] = useState(false);
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const land = () => {
       setHasLanded(true);
       setIsGreetingOpen(true);
+    };
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      land();
       return;
     }
 
-    const landingTimer = window.setTimeout(() => {
-      setHasLanded(true);
-      setIsGreetingOpen(true);
-    }, FLIGHT_DURATION_MS);
+    const flightElement = flightRef.current;
+    if (!flightElement || typeof flightElement.animate !== "function") {
+      const landingTimer = window.setTimeout(land, FLIGHT_DURATION_MS);
+      return () => window.clearTimeout(landingTimer);
+    }
 
-    return () => window.clearTimeout(landingTimer);
+    const animation = flightElement.animate(buildFlightKeyframes(window.innerWidth, window.innerHeight), {
+      duration: FLIGHT_DURATION_MS,
+      easing: "linear",
+      fill: "forwards",
+    });
+    animation.onfinish = land;
+    return () => animation.cancel();
   }, []);
 
   if (!hasLanded) {
     return (
       <div
+        ref={flightRef}
         aria-hidden="true"
         className="support-airplane-flight pointer-events-none fixed left-0 top-0 z-[120]"
         data-support-mascot="flying"
       >
-        <span className="support-airplane-artwork support-airplane-artwork--flying" />
+        <Image
+          src="/images/mascot/kiashi-support-airplane-v2.webp"
+          alt=""
+          width={800}
+          height={533}
+          priority
+          sizes="(max-width: 640px) 176px, 304px"
+          className="support-airplane-artwork support-airplane-artwork--flying"
+        />
       </div>
     );
   }
@@ -76,7 +144,15 @@ export default function SupportAirplaneMascot() {
         aria-expanded={isGreetingOpen}
         onClick={() => setIsGreetingOpen((current) => !current)}
       >
-        <span className="support-airplane-artwork support-airplane-artwork--landed" aria-hidden="true" />
+        <Image
+          src="/images/mascot/kiashi-support-airplane-v2.webp"
+          alt=""
+          width={800}
+          height={533}
+          sizes="(max-width: 640px) 116px, 140px"
+          className="support-airplane-artwork support-airplane-artwork--landed"
+          aria-hidden="true"
+        />
       </button>
     </aside>
   );
