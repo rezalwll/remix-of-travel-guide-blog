@@ -142,19 +142,10 @@
   width: clamp(12rem, 22vw, 19rem);
 }
 
-.support-airplane-artwork--landed {
-  width: 8.75rem;
-  transition: filter var(--motion-base) var(--motion-ease-soft);
-}
-
 .support-airplane-flight {
   will-change: transform;
-  transform-origin: center;
+  transform-origin: top left;
   contain: layout paint;
-}
-
-.support-airplane-dock {
-  animation: support-airplane-dock-in 520ms var(--motion-ease-soft) both;
 }
 
 .support-airplane-greeting {
@@ -174,11 +165,6 @@
   transform: rotate(45deg);
 }
 
-@keyframes support-airplane-dock-in {
-  from { opacity: 0; transform: translateY(-1rem) scale(0.9); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
 @keyframes support-airplane-greeting-in {
   from { opacity: 0; transform: translate3d(-0.75rem, 0.75rem, 0) scale(0.94); }
   to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
@@ -186,7 +172,6 @@
 
 @media (max-width: 639px) {
   .support-airplane-artwork--flying { width: 11rem; }
-  .support-airplane-artwork--landed { width: 7.25rem; }
 }
 
 @keyframes route-loader-card-enter {
