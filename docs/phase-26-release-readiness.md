@@ -45,7 +45,7 @@ Docker daemon برای کاربر محیط محلی قابل دسترسی نبو
 | PostgreSQL | DB خارجی | credential DB و admin URL جدا فقط برای restore drill | محلی/CI موجود | readiness و migration status fail-closed | backup retention و restore drill دوره‌ای |
 | Reverse proxy | Nginx/TLS | certificate/key و upstreamهای داخلی | فقط نمونه/CI | `nginx -t` و health compose | certificate و IP/CIDR واقعی proxy |
 | Payment | `mock` / `sandbox` | real adapter، merchant credential، callback secret | خیر | mock صریح؛ real ناقص fail-closed | قرارداد، credential، callback certification |
-| SMS | `development` / `sandbox` | real adapter، API key و template تأییدشده | خیر | status redacted؛ real ناقص fail-closed | قرارداد و sender/template واقعی |
+| SMS | `development` / `sandbox` | آداپتر ملی‌پیامک موجود؛ API key و BodyId محیط production لازم است | پس از فعال‌سازی محیط | status redacted؛ real ناقص fail-closed | تست ارسال واقعی با شماره کنترل‌شده |
 | Travel providers | `mock` / `sandbox` | adapter/URL/credential مجزای flight، hotel، train، bus، insurance، CIP، transfer و visa | خیر | optional health؛ هیچ fallback پنهان به mock نیست | قرارداد، sandbox و certification هر تأمین‌کننده |
 
 ## امنیت، داده و ریسک پذیرفته‌شده

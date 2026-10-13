@@ -19,11 +19,18 @@ describe("SMS provider", () => {
 
   it("retries failures through the interface", async () => {
     const send = vi.fn().mockResolvedValueOnce({ status: "failed" }).mockResolvedValueOnce({ status: "sent" });
-    const provider: SmsProvider = { name: "test", send, checkStatus: async () => "sent" };
+    const provider: SmsProvider = { name: "test", supportsIdempotency: true, send, checkStatus: async () => "sent" };
     expect((await sendSmsWithRetry(provider, { mobile: "09121234567", template: "otp", idempotencyKey: "sms-test-1" })).status).toBe("sent");
     expect(send).toHaveBeenCalledTimes(2);
     const failed = new DevelopmentSmsProvider({ fail: true });
     expect((await sendSmsWithRetry(failed, { mobile: "09121234567", template: "otp" })).status).toBe("failed");
+  });
+
+  it("does not retry a real provider without an idempotency contract", async () => {
+    const send = vi.fn().mockRejectedValue(new ProviderError("PROVIDER_TIMEOUT", "unknown submission outcome", true, "real-sms"));
+    const provider: SmsProvider = { name: "real-sms", supportsIdempotency: false, send, checkStatus: async () => "queued" };
+    await expect(sendSmsWithRetry(provider, { mobile: "09121234567", template: "otp", variables: { code: "12345" }, idempotencyKey: "challenge-1" })).rejects.toMatchObject({ code: "PROVIDER_UNAVAILABLE" });
+    expect(send).toHaveBeenCalledTimes(1);
   });
 
   it("records success and failure through SmsService", async () => {

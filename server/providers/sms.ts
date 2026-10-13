@@ -3,20 +3,22 @@ import { ProviderError } from "./types.js";
 
 export type SmsStatus = "queued" | "sent" | "failed" | "expired";
 export type SmsTemplate = "OTP_LOGIN" | "BOOKING_CONFIRMED" | "PAYMENT_RECEIPT" | "BOOKING_STATUS" | "login_otp" | "otp";
-export type SmsSendInput = { mobile: string; template: SmsTemplate; variables?: Record<string, string>; idempotencyKey?: string };
+export type SmsSendInput = { mobile: string; template: SmsTemplate; variables?: Record<string, string>; idempotencyKey?: string; requestId?: string };
 export type SmsSendResult = { status: SmsStatus; providerReference?: string; errorCode?: string };
 
 export interface SmsProvider {
   readonly name: string;
+  readonly supportsIdempotency?: boolean;
   send(input: SmsSendInput): Promise<SmsSendResult>;
   checkStatus(providerReference: string): Promise<SmsStatus>;
 }
 
 export type DevelopmentSmsProviderOptions = { fail?: boolean; latencyMs?: number };
 
-/** Deterministic SMS adapter used until a real vendor is configured. */
+/** Deterministic SMS adapter for local development and sandbox certification. */
 export class DevelopmentSmsProvider implements SmsProvider {
   readonly name = "development";
+  readonly supportsIdempotency = true;
   private readonly deliveries = new Map<string, SmsStatus>();
 
   constructor(private readonly options: DevelopmentSmsProviderOptions = {}) {}
@@ -40,7 +42,7 @@ export class DevelopmentSmsProvider implements SmsProvider {
 }
 
 export async function sendSmsWithRetry(provider: SmsProvider, input: SmsSendInput, attempts = 2): Promise<SmsSendResult> {
-  if (!input.idempotencyKey) attempts = 1;
+  if (!input.idempotencyKey || !provider.supportsIdempotency) attempts = 1;
   let lastError: unknown;
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     try {

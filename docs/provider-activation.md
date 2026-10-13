@@ -2,7 +2,7 @@
 
 این پروژه اکنون مرز provider را برای فعال‌سازی واقعی آماده می‌کند، اما هیچ API یا credential واقعی در مخزن وجود ندارد. adapterهای فعلی `development` و `mock` فقط در حالت `sandbox` هستند و سیستم هرگز از real به mock fallback نمی‌کند.
 
-در گواهی فاز ۲۶، SMS همچنان `development/sandbox`، پرداخت `mock/sandbox` و تمام travel providerها `mock/sandbox` هستند. این وضعیت برای دموی production-like قابل قبول است، اما برای go-live عمومی مجوز نیست. پس از فعال‌سازی هر provider واقعی باید contract suite، callback/reconciliation، health، E2E و گواهی کامل انتشار دوباره اجرا شود.
+در گواهی فاز ۲۶، SMS به‌صورت پیش‌فرض `development/sandbox`، پرداخت `mock/sandbox` و تمام travel providerها `mock/sandbox` هستند. آداپتر واقعی `melipayamak` برای OTP موجود است، اما فقط با `SMS_PROVIDER_MODE=real`، URL رسمی، نام کاربری، API Key و BodyId تأییدشده فعال می‌شود. پس از قرار دادن credential در secretهای محیط باید ارسال آزمایشی و گواهی انتشار دوباره اجرا شود.
 
 ## چرخهٔ وضعیت
 

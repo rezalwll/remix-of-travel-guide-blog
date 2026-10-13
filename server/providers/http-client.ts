@@ -4,7 +4,7 @@ import { redactProviderData } from "./redaction.js";
 export type HttpRetrySafety = "unsafe" | "safe" | "idempotent";
 export type ProviderHttpRequest = {
   path: string; method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"; headers?: Record<string, string>; body?: unknown;
-  requestId: string; operation: string; retrySafety?: HttpRetrySafety; idempotencyKey?: string; signal?: AbortSignal;
+  requestId: string; operation: string; retrySafety?: HttpRetrySafety; idempotencyKey?: string; signal?: AbortSignal; bodyEncoding?: "json" | "form";
 };
 export type ProviderHttpClientOptions = {
   provider: string; baseUrl: string; timeoutMs?: number; maxResponseBytes?: number; maxAttempts?: number; retryBudgetMs?: number;
@@ -34,10 +34,19 @@ export class ProviderHttpClient {
       try {
         const url = new URL(input.path.replace(/^\//, ""), `${this.baseUrl.toString().replace(/\/$/, "")}/`);
         if (url.origin !== this.baseUrl.origin) throw new ProviderError("INVALID_REQUEST", "Cross-origin provider request was blocked", false, this.options.provider, undefined, "CONFIGURATION");
+        let body: string | undefined;
+        if (input.body !== undefined && input.bodyEncoding === "form") {
+          if (!input.body || typeof input.body !== "object" || Array.isArray(input.body)) throw new ProviderError("INVALID_REQUEST", "Form provider request must be an object", false, this.options.provider);
+          const fields = Object.entries(input.body as Record<string, unknown>);
+          if (fields.some(([, value]) => !["string", "number", "boolean"].includes(typeof value))) throw new ProviderError("INVALID_REQUEST", "Form provider request contains an invalid value", false, this.options.provider);
+          body = new URLSearchParams(fields.map(([key, value]) => [key, String(value)])).toString();
+        } else if (input.body !== undefined) {
+          body = JSON.stringify(input.body);
+        }
         const response = await (this.options.fetch ?? globalThis.fetch)(url, {
           method, signal: controller.signal,
-          headers: { accept: "application/json", "content-type": "application/json", "x-request-id": input.requestId, ...(input.idempotencyKey ? { "idempotency-key": input.idempotencyKey } : {}), ...input.headers },
-          body: input.body === undefined ? undefined : JSON.stringify(input.body),
+          headers: { accept: "application/json", "content-type": input.bodyEncoding === "form" ? "application/x-www-form-urlencoded;charset=UTF-8" : "application/json", "x-request-id": input.requestId, ...(input.idempotencyKey ? { "idempotency-key": input.idempotencyKey } : {}), ...input.headers },
+          body,
         });
         const declared = Number(response.headers.get("content-length") ?? 0);
         const maxBytes = this.options.maxResponseBytes ?? 262_144;
