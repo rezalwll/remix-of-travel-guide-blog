@@ -139,10 +139,11 @@
 }
 
 .support-airplane-artwork--flying {
-  width: clamp(12rem, 22vw, 19rem);
+  width: 100%;
 }
 
 .support-airplane-flight {
+  width: min(11rem, calc(100vw - 1.5rem));
   will-change: transform;
   transform-origin: top left;
   contain: layout paint;
@@ -199,10 +200,6 @@
 @keyframes support-airplane-greeting-in {
   from { opacity: 0; transform: translate3d(-0.75rem, 0.75rem, 0) scale(0.94); }
   to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
-}
-
-@media (max-width: 639px) {
-  .support-airplane-artwork--flying { width: 11rem; }
 }
 
 @keyframes route-loader-card-enter {
