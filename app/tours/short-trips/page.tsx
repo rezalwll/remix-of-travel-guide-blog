@@ -1,4 +1,4 @@
-import { Backpack, CalendarRange, CircleCheck, ShieldCheck } from "lucide-react";
+import { Backpack, CalendarRange, ShieldCheck } from "lucide-react";
 import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import ShortTourCatalog from "@/components/experience/ShortTourCatalog";
 import TravelHero from "@/components/media/TravelHero";
@@ -68,10 +68,6 @@ export default function ShortTripsPage() {
               </article>
             ))}
           </div>
-          <div className="mt-5 flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-7 text-amber-950">
-            <CircleCheck className="mt-1 size-4 shrink-0" />
-            <p>قیمت، تاریخ و ظرفیت این صفحه برای دموی محصول است. پیش از فعال‌شدن فروش واقعی باید از تأمین‌کننده دریافت و در قرارداد نهایی تأیید شود.</p>
-          </div>
         </div>
       </section>
 
@@ -82,7 +78,7 @@ export default function ShortTripsPage() {
             asset={photoLibrary.palangan}
             eyebrow="پیشنهاد دو‌روزه"
             title="کردستان؛ از سنندج تا بافت پلکانی پالنگان"
-            description="برنامه، سطح فعالیت، نوع اقامت و خدمات نمایشی این سفر را در صفحه جزئیات ببین."
+            description="برنامه، سطح فعالیت، نوع اقامت و خدمات این سفر را در صفحه جزئیات ببین."
             cta="مشاهده برنامه کردستان"
           />
           <details className="mt-6 rounded-2xl border border-border/70 bg-card p-5 text-sm text-muted-foreground">

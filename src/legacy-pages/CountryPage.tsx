@@ -133,9 +133,7 @@ const CountryPage = () => {
             <span className="section-eyebrow">شناخت مقصد</span>
             <h2 className="page-heading">پیش از رزرو چه چیزهایی بدانیم؟</h2>
             <p className="mt-5 max-w-3xl text-sm leading-8 text-muted-foreground">
-              {countryIntroFa(country.name)} قیمت‌ها و موجودی سرویس‌ها در بخش
-              جست‌وجو به‌صورت نمایشی ارائه می‌شود و پیش از پرداخت دوباره بررسی
-              خواهد شد.
+              {countryIntroFa(country.name)}
             </p>
             {country.regions?.length ? (
               <div className="mt-7">

@@ -17,7 +17,6 @@ import {
   RotateCcw,
   Search,
   Send,
-  ShieldCheck,
   TicketCheck,
   X,
   type LucideIcon,
@@ -301,10 +300,6 @@ export default function SupportAssistantPanel({ isOpen, onClose }: { isOpen: boo
                 <ActionButton icon={Headphones} title="ثبت درخواست" description="ارتباط با پشتیبان" onClick={() => setView("ticket")} featured />
               </div>
 
-              <div className="flex items-start gap-2 rounded-2xl border border-amber-200/80 bg-amber-50 p-3 text-[11px] leading-5 text-amber-900">
-                <ShieldCheck className="mt-0.5 size-4 shrink-0" />
-                رمز کارت، CVV2 و کد تأیید بانکی را برای هیچ‌کس ارسال نکن.
-              </div>
             </div>
           ) : null}
 

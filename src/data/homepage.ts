@@ -65,7 +65,7 @@ export const popularDestinations: Destination[] = [
 export const offers: Offer[] = [
   { id: 'kish', title: 'چند روز آبی در کیش', description: 'پرواز و اقامت جزیره را برای یک سفر کوتاه کنار هم ببین', image: heroKishPremium, accent: 'bg-primary', href: '/hotels' },
   { id: 'istanbul', title: 'استانبول و محله‌های دیدنی', description: 'تورهای شهری با اقامت در قلب شهر و دسترسی آسان', image: photoLibrary.istanbul.src, accent: 'bg-secondary', href: '/tours' },
-  { id: 'international', title: 'پروازهای خارجی پیشنهادی', description: 'مسیرهای منتخب برای سفر بعدی، با قیمت شروع نمایشی', image: photoLibrary.aircraft.src, accent: 'bg-warning', href: '/flights' },
+  { id: 'international', title: 'پروازهای خارجی پیشنهادی', description: 'مسیرهای منتخب برای سفر بعدی شما', image: photoLibrary.aircraft.src, accent: 'bg-warning', href: '/flights' },
 ];
 
 export const popularRoutes: RouteCard[] = [

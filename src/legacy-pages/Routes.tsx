@@ -12,13 +12,13 @@ const Routes = () => (
         <div className="container-page">
           <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-bold backdrop-blur"><Compass className="size-4 text-accent" /> مسیرهای پیشنهادی سفر</span>
           <h1 className="max-w-3xl text-4xl font-black leading-tight sm:text-6xl">برای روزهای سفرت یک نقشهٔ روشن داشته باش</h1>
-          <p className="mt-5 max-w-2xl text-sm leading-8 text-white/75 sm:text-base">مسیرهای آماده با ترتیب شهرها، زمان پیشنهادی و برآورد نمایشی بودجه؛ برای الهام و شروع برنامه‌ریزی، نه جایگزین بررسی نهایی.</p>
+          <p className="mt-5 max-w-2xl text-sm leading-8 text-white/75 sm:text-base">مسیرهای پیشنهادی با ترتیب شهرها، زمان‌بندی و برآورد هزینه برای برنامه‌ریزی سفر.</p>
         </div>
       </section>
 
       <section className="container-page -mt-7 relative z-10">
         <div className="grid overflow-hidden rounded-2xl border border-border bg-card shadow-xl sm:grid-cols-3">
-          {[{ icon: CalendarRange, title: "برنامهٔ روزبه‌روز", text: "ریتم متعادل و زمان آزاد" }, { icon: MapPin, title: "جابه‌جایی روشن", text: "ترتیب منطقی مقصدها" }, { icon: ShieldCheck, title: "بودجهٔ شفاف", text: "برآورد نمایشی و قابل تغییر" }].map(({ icon: Icon, title, text }, index) => (
+          {[{ icon: CalendarRange, title: "برنامهٔ روزبه‌روز", text: "ریتم متعادل و زمان آزاد" }, { icon: MapPin, title: "جابه‌جایی روشن", text: "ترتیب منطقی مقصدها" }, { icon: ShieldCheck, title: "بودجهٔ شفاف", text: "برآورد هزینهٔ سفر" }].map(({ icon: Icon, title, text }, index) => (
             <div key={title} className={`flex items-center gap-3 px-5 py-4 ${index ? "border-t border-border sm:border-r sm:border-t-0" : ""}`}><span className="grid size-10 place-items-center rounded-xl bg-secondary/10 text-secondary"><Icon className="size-5" /></span><div><p className="text-sm font-extrabold">{title}</p><p className="text-xs text-muted-foreground">{text}</p></div></div>
           ))}
         </div>
@@ -40,7 +40,7 @@ const Routes = () => (
                 <p className="mt-2 text-sm font-bold text-secondary">{route.subtitle}</p>
                 <p className="mt-4 line-clamp-3 text-sm leading-7 text-muted-foreground">{route.description}</p>
                 <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-4">
-                  <div><p className="text-[11px] text-muted-foreground">برآورد نمایشی</p><p className="text-sm font-extrabold">{route.budget}</p></div>
+                  <div><p className="text-[11px] text-muted-foreground">برآورد هزینه</p><p className="text-sm font-extrabold">{route.budget}</p></div>
                   <Link to={`/routes/${route.id}`} className="inline-flex items-center gap-2 text-sm font-extrabold text-primary">جزئیات مسیر <ArrowLeft className="size-4" /></Link>
                 </div>
               </div>
