@@ -8,7 +8,6 @@ import {
   Headphones,
   Menu,
   Search,
-  Sparkles,
   UserRound,
   X,
 } from "lucide-react";
@@ -101,9 +100,6 @@ const Header = () => {
                 className="absolute start-0 top-full mt-3 grid min-w-64 grid-cols-2 gap-1 rounded-2xl border border-border/80 bg-card p-2.5 text-foreground shadow-2xl"
                 role="menu"
               >
-                <div className="col-span-2 mb-1 flex items-center gap-2 rounded-xl bg-secondary/[0.08] px-3 py-2 text-xs font-bold text-secondary">
-                  <Sparkles className="size-4" /> خدمات مکمل سفر
-                </div>
                 {moreLinks.map(([label, to]) => (
                   <Link
                     key={to}

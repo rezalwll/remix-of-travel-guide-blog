@@ -27,9 +27,6 @@ const ContinentPage = () => {
               <span className="text-white">{continentFa(continent.name)}</span>
             </nav>
             <div className="max-w-2xl pb-8">
-              <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-xs font-bold backdrop-blur">
-                <MapPin className="size-4 text-accent" /> {continent.countries.length.toLocaleString("fa-IR")} کشور برای کشف
-              </span>
               <h1 className="text-4xl font-black sm:text-6xl">راهنمای سفر به {continentFa(continent.name)}</h1>
               <p className="mt-5 max-w-xl text-sm leading-8 text-white/78 sm:text-base">{continentDescriptionsFa[continent.name]}</p>
             </div>
@@ -62,9 +59,6 @@ const ContinentPage = () => {
               <Link key={country.slug} to={`/destinations/${continent.slug}/${country.slug}`} className="image-card group">
                 <div className="relative aspect-[16/10] overflow-hidden">
                   <img src={country.heroImage} alt={countryFa(country.name)} className="size-full object-cover" loading="lazy" />
-                  <span className="absolute end-3 top-3 rounded-full bg-black/55 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur">
-                    {country.articles.length.toLocaleString("fa-IR")} راهنما
-                  </span>
                 </div>
                 <div className="p-5">
                   <div className="flex items-center justify-between gap-3">

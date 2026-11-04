@@ -42,9 +42,9 @@ export function RailItem({ children, className = "" }: { children: React.ReactNo
 
 function Badge({ children, tone = "demo" }: { children: React.ReactNode; tone?: "demo" | "accent" | "muted" }) {
   const tones = {
-    demo: "bg-foreground/72 text-white backdrop-blur",
+    demo: "bg-foreground text-white",
     accent: "bg-accent text-accent-foreground",
-    muted: "bg-white/88 text-foreground backdrop-blur",
+    muted: "bg-white text-foreground",
   } as const;
   return <span className={`inline-flex min-h-6 items-center rounded-full px-2.5 text-[0.7rem] font-extrabold ${tones[tone]}`}>{children}</span>;
 }
@@ -114,7 +114,7 @@ export function ImageCard({
 }) {
   return (
     <Link href={href} className="premium-media-card group flex h-full flex-col overflow-hidden rounded-[1.25rem] border border-border/70 bg-card shadow-[var(--shadow-xs)] transition-colors duration-300 hover:border-secondary/40 hover:shadow-[var(--shadow-card)]">
-      <MediaFrame asset={asset} ratio={ratio} sizes={sizes} priority={priority} zoom decorative overlay="soft">
+      <MediaFrame asset={asset} ratio={ratio} sizes={sizes} priority={priority} zoom decorative>
         {badge && <div className="absolute start-3 top-3 z-10">{<Badge>{badge}</Badge>}</div>}
         {meta && <div className="absolute bottom-3 end-3 z-10">{<Badge tone="muted">{meta}</Badge>}</div>}
       </MediaFrame>
@@ -248,7 +248,7 @@ export function RouteCard({
       </div>
       <div className="flex flex-1 flex-col p-5">
         <h3 className="text-base font-extrabold group-hover:text-primary sm:text-lg">
-          {origin} <span className="text-muted-foreground">→</span> {destination}
+          {origin} <span className="text-muted-foreground">←</span> {destination}
         </h3>
         {note && <p className="mt-2 line-clamp-2 text-sm leading-7 text-muted-foreground">{note}</p>}
         <span className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-secondary">راهنمای مسیر <ArrowLeft className="size-4" /></span>

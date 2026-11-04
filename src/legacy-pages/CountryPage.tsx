@@ -48,9 +48,6 @@ const CountryPage = () => {
               <span className="text-white">{countryFa(country.name)}</span>
             </nav>
             <div className="max-w-2xl pb-10">
-              <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-bold backdrop-blur">
-                <Compass className="size-4 text-accent" /> راهنمای برنامه‌ریزی مقصد
-              </span>
               <h1 className="text-5xl font-black sm:text-7xl">{countryFa(country.name)}</h1>
               <p className="mt-5 max-w-xl text-sm leading-8 text-white/80 sm:text-base">{countryIntroFa(country.name)}</p>
             </div>

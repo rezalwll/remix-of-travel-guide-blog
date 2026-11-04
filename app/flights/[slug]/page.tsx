@@ -46,7 +46,7 @@ export default async function FlightRoutePage({ params }: { params: Promise<{ sl
 
   return (
     <main id="main-content" className="min-h-[70vh] bg-muted/35">
-      <TravelHero asset={destinationMedia} title={route.title} description={route.summary} badges={[route.duration, `${route.originCode} ← ${route.destinationCode}`]} overlapBottom />
+      <TravelHero asset={destinationMedia} title={route.title} description={route.summary} overlapBottom />
 
       <form action="/flights/search" method="get" id="route-search" className="container-page relative z-10 -mt-24">
         <div className="grid gap-3 rounded-2xl border bg-card p-5 shadow-xl sm:grid-cols-[1fr_1fr_1fr_auto]">

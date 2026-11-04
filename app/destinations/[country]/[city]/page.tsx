@@ -86,7 +86,7 @@ export default async function DestinationPage({ params }: { params: Promise<{ co
   const relatedTour = seoTourLandings.find((tour) => tour.relatedDestination === canonical);
   return (
     <main id="main-content" className="min-h-[70vh] bg-muted/35">
-      <TravelHero asset={view.media} title={view.title} description={view.summary} badges={["زمان سفر", "رفت‌وآمد", "دیدنی‌ها"]} primary={{ href: "#plan", label: "برنامه‌ریزی سفر" }} secondary={{ href: "/flights", label: "جست‌وجوی پرواز" }} />
+      <TravelHero asset={view.media} title={view.title} description={view.summary} primary={{ href: "#plan", label: "برنامه‌ریزی سفر" }} secondary={{ href: "/flights", label: "جست‌وجوی پرواز" }} />
 
       <div className="container-page pt-7"><Breadcrumbs items={[{ label: "خانه", href: "/" }, { label: "مقصدها", href: "/destinations" }, { label: view.countryLabel, href: view.countryHref }, { label: view.city, href: canonical }]} /></div>
 

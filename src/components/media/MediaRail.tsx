@@ -61,7 +61,6 @@ export function MediaRail({ children, label }: { children: ReactNode; label: str
       startX: event.clientX,
       startScrollLeft: rail.scrollLeft,
     };
-    rail.setPointerCapture(event.pointerId);
   };
 
   const handlePointerMove = (event: PointerEvent<HTMLUListElement>) => {
@@ -70,7 +69,13 @@ export function MediaRail({ children, label }: { children: ReactNode; label: str
     if (!rail || !drag.active || drag.pointerId !== event.pointerId) return;
 
     const distance = event.clientX - drag.startX;
-    if (Math.abs(distance) > 6) drag.moved = true;
+    if (!drag.moved && Math.abs(distance) > 6) {
+      drag.moved = true;
+      rail.setPointerCapture(event.pointerId);
+      rail.style.scrollBehavior = "auto";
+      rail.style.scrollSnapType = "none";
+      rail.style.userSelect = "none";
+    }
     if (!drag.moved) return;
 
     event.preventDefault();
@@ -82,7 +87,13 @@ export function MediaRail({ children, label }: { children: ReactNode; label: str
     const rail = railRef.current;
     if (!rail || dragRef.current.pointerId !== event.pointerId) return;
     if (rail.hasPointerCapture(event.pointerId)) rail.releasePointerCapture(event.pointerId);
+    rail.style.removeProperty("scroll-behavior");
+    rail.style.removeProperty("scroll-snap-type");
+    rail.style.removeProperty("user-select");
     dragRef.current.active = false;
+    window.setTimeout(() => {
+      dragRef.current.moved = false;
+    }, 0);
   };
 
   return (
@@ -130,6 +141,7 @@ export function MediaRail({ children, label }: { children: ReactNode; label: str
         onPointerMove={handlePointerMove}
         onPointerUp={finishDrag}
         onPointerCancel={finishDrag}
+        onDragStart={(event) => event.preventDefault()}
         onClickCapture={(event) => {
           if (!dragRef.current.moved) return;
           event.preventDefault();

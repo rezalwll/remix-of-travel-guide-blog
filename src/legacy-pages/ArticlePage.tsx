@@ -37,7 +37,6 @@ const ArticlePage = () => {
                 <Link to={`/destinations/${continent.slug}/${country.slug}`} className="hover:text-white transition">{country.name}</Link>
               </div>
             )}
-            <span className="text-xs uppercase tracking-widest text-primary font-semibold bg-white/10 backdrop-blur px-3 py-1 rounded-full">{article.category}</span>
             <h1 className="font-display text-2xl md:text-4xl font-bold text-white mt-3 leading-tight">{article.title}</h1>
           </motion.div>
         </div>

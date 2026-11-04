@@ -4,8 +4,8 @@ import { photoLibrary } from '@/media/library';
 const destinationImages: Record<string, string> = {
   'استانبول': photoLibrary.istanbul.src,
   'دبی': photoLibrary.dubai.src,
-  'آنتالیا': photoLibrary.tropicalBeach.src,
-  'وان': photoLibrary.mountainLake.src,
+  'آنتالیا': photoLibrary.antalya.src,
+  'وان': photoLibrary.van.src,
   'تفلیس': photoLibrary.tbilisi.src,
   'ایروان': photoLibrary.yerevan.src,
   'کیش': photoLibrary.kishShore.src,

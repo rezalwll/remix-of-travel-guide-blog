@@ -5,7 +5,7 @@ import TravelHero from "@/components/media/TravelHero";
 import { ImageCard, PromoBanner, SectionHeader } from "@/components/media/Cards";
 import LegacyPage from "@/components/next/LegacyPage";
 import { tours } from "@/data/experiences";
-import { destinationAsset, serviceAsset } from "@/media/library";
+import { serviceAsset, tourGuideAsset } from "@/media/library";
 import { getTourLanding, seoTourLandings } from "@/seo/content";
 import { isIndexableSeoPath } from "@/seo/inventory";
 import { createMetadata, privateMetadata } from "@/seo/metadata";
@@ -40,10 +40,10 @@ export default async function TourDestinationPage({ params }: { params: Promise<
     if (legacyTourSlugs.has(slug)) return <LegacyPage name="TourDetail" />;
     return <ManagedProgramDetail slug={slug} />;
   }
-  const media = destinationAsset(item.slug, `نمایی از ${item.destination}`);
+  const media = tourGuideAsset(item.slug, `نمایی از ${item.destination}`);
   return (
     <main id="main-content" className="min-h-[70vh] bg-muted/35">
-      <TravelHero asset={media} title={item.title} description={item.summary} badges={["برنامه سفر", "خدمات اعلام‌شده", "قوانین لغو"]} primary={{ href: "/tours", label: "مشاهده تورها" }} />
+      <TravelHero asset={media} title={item.title} description={item.summary} primary={{ href: "/tours", label: "مشاهده تورها" }} />
       <div className="container-page pt-7"><Breadcrumbs items={[{ label: "خانه", href: "/" }, { label: "تورها", href: "/tours" }, { label: item.destination, href: `/tours/${item.slug}` }]} /></div>
 
       <section className="media-section pt-5"><div className="container-page"><SectionHeader title={`برای انتخاب تور ${item.destination}`} description="پیشنهاد واقعی را بر اساس جزئیات برنامه و قرارداد مقایسه کنید، نه یک عدد یا عنوان تبلیغاتی." /><div className="mt-7 grid gap-4 md:grid-cols-3">{item.planningNotes.map((note, index) => { const icons = [CalendarCheck, MapPinned, ShieldCheck]; const Icon = icons[index] ?? ShieldCheck; return <article key={note} className="rounded-2xl border bg-card p-6"><Icon className="size-6 text-secondary" /><p className="mt-3 text-sm leading-7 text-muted-foreground">{note}</p></article>; })}</div></div></section>

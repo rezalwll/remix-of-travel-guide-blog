@@ -41,7 +41,7 @@ export const metadata = createMetadata({
   title: "پرواز، هتل و راهنمای سفر",
   description: "جست‌وجوی پرواز و هتل، راهنمای مقصدهای منتخب و مدیریت شفاف سفر در کیاشی.",
   path: "/",
-  image: "/hero-kish-premium.webp",
+  image: "/media/destinations/kish-beach-real.webp",
 });
 
 export const revalidate = 86_400;
@@ -84,7 +84,7 @@ export default function HomePage() {
 
       <BookingSearch />
 
-      <section className="media-section" aria-labelledby="services-heading">
+      <section className="media-section pt-20 sm:pt-24 lg:pt-28" aria-labelledby="services-heading">
         <div className="container-page">
           <SectionHeader
             title="خدمات سفر"
@@ -135,7 +135,7 @@ export default function HomePage() {
         <div className="container-page">
           <PromoBanner
             href="/hotels/kish"
-            asset={experienceAsset("beach", "تصویرسازی ساحل و آب‌های کیش")}
+            asset={photoLibrary.kishShore}
             title="تعطیلاتی کنار خلیج فارس"
             description="پرواز و هتل کیش را برای تاریخ سفرت بررسی کن و برای تفریحات جزیره برنامه بریز."
             cta="مشاهده هتل‌های کیش"
@@ -213,7 +213,7 @@ export default function HomePage() {
             />
             <ImageCard
               href="/ziyarat"
-              asset={serviceAsset("ziyarat", "تصویر معرفی سفرهای زیارتی")}
+              asset={{ ...photoLibrary.karbalaDay, alt: "نمای حرم امام حسین در کربلا" }}
               title="سفر زیارتی"
               description="برنامه‌های سفر به مشهد، نجف و کربلا را همراه با خدمات هر سفر ببین."
               chips={["نجف و کربلا", "مشهد"]}

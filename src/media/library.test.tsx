@@ -4,7 +4,8 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { MediaRail, PromoBanner, RailItem } from "@/components/media/Cards";
 import MediaFrame from "@/components/media/MediaFrame";
-import { destinationAsset, mediaRegistry, photoLibrary, serviceAsset } from "@/media/library";
+import { destinationAsset, mediaRegistry, photoLibrary, serviceAsset, tourGuideAsset } from "@/media/library";
+import { seoDestinations, seoRoutes, seoTourLandings } from "@/seo/content";
 
 describe("travel media registry", () => {
   it("keeps every registered photograph local and present", () => {
@@ -38,12 +39,38 @@ describe("travel media registry", () => {
   });
 
   it("maps core destinations and pilgrimage surfaces to relevant local photographs", () => {
-    expect(destinationAsset("mashhad")).toMatchObject({ src: "/media/destinations/mashhad.webp" });
-    expect(destinationAsset("istanbul")).toMatchObject({ src: "/media/destinations/istanbul.webp" });
-    expect(destinationAsset("dubai")).toMatchObject({ src: "/media/destinations/dubai.webp" });
-    expect(destinationAsset("najaf")).toMatchObject({ src: "/media/destinations/najaf.webp" });
+    expect(destinationAsset("mashhad")).toMatchObject({ src: "/media/destinations/mashhad-shrine-courtyard.webp" });
+    expect(destinationAsset("istanbul")).toMatchObject({ src: "/media/destinations/istanbul-blue-mosque.webp" });
+    expect(destinationAsset("dubai")).toMatchObject({ src: "/media/destinations/dubai-marina.webp" });
+    expect(destinationAsset("najaf")).toMatchObject({ src: "/media/destinations/najaf-shrine-exterior.webp" });
+    expect(destinationAsset("kish")).toMatchObject({ src: "/media/destinations/kish-beach-real.webp" });
     expect(destinationAsset("karbala")).toMatchObject({ src: "/media/ziyarat/karbala-hero.webp" });
     expect(destinationAsset("najaf-karbala")).toMatchObject({ src: "/media/ziyarat/karbala-hero.webp" });
+  });
+
+  it("gives every published tour guide a distinct destination photograph", () => {
+    const sources = seoTourLandings.map((tour) => {
+      const asset = tourGuideAsset(tour.slug);
+      expect(asset.kind).toBe("photo");
+      return asset.kind === "photo" ? asset.src : "";
+    });
+    expect(new Set(sources).size).toBe(seoTourLandings.length);
+    for (const src of sources) expect(existsSync(join(process.cwd(), "public", src.slice(1)))).toBe(true);
+  });
+
+  it("uses place-specific imagery for Antalya and Van instead of generic scenery", () => {
+    expect(destinationAsset("antalya")).toMatchObject({ src: "/media/destinations/antalya-harbor.webp" });
+    expect(destinationAsset("van")).toMatchObject({ src: "/media/destinations/van-akdamar.webp" });
+  });
+
+  it("avoids unrelated fallback photos for published destinations and flight routes", () => {
+    for (const destination of seoDestinations) {
+      expect(destinationAsset(destination.citySlug).id, destination.citySlug).not.toMatch(/^fallback-/);
+    }
+    for (const route of seoRoutes) {
+      const destinationSlug = route.destinationPath.split("/").at(-1) ?? "";
+      expect(destinationAsset(destinationSlug).id, route.slug).not.toMatch(/^fallback-/);
+    }
   });
 
   it("uses the current travel-planning photograph for support surfaces", () => {

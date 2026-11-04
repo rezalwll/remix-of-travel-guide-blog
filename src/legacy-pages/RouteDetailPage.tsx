@@ -19,7 +19,6 @@ const RouteDetailPage = () => {
           <div className="container-page relative flex min-h-[500px] flex-col justify-between py-8">
             <nav aria-label="مسیر صفحه" className="flex items-center gap-2 text-xs text-white/65"><Link to="/" className="hover:text-white">خانه</Link><ChevronLeft className="size-3.5" /><Link to="/routes" className="hover:text-white">مسیرها</Link><ChevronLeft className="size-3.5" /><span className="text-white">{route.title}</span></nav>
             <div className="max-w-3xl pb-10">
-              <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-bold backdrop-blur"><Clock3 className="size-4 text-accent" /> برنامهٔ {route.duration}</span>
               <h1 className="text-4xl font-black leading-tight sm:text-6xl">{route.title}</h1>
               <p className="mt-4 text-lg font-bold text-white/90">{route.subtitle}</p>
               <p className="mt-4 max-w-2xl text-sm leading-8 text-white/72">{route.description}</p>

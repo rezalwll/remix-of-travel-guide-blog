@@ -41,7 +41,7 @@ export default async function HotelLandingPage({ params }: { params: Promise<{ s
   const destinationMedia = destinationAsset(item.slug, `نمایی از مقصد ${item.city}`);
   return (
     <main id="main-content" className="min-h-[70vh] bg-muted/35">
-      <TravelHero asset={destinationMedia} title={item.title} description={item.summary} badges={["انتخاب محله", "شرایط لغو", "هماهنگی با پرواز"]} overlapBottom />
+      <TravelHero asset={destinationMedia} title={item.title} description={item.summary} overlapBottom />
 
       <form action="/hotels/search" method="get" className="container-page relative z-10 -mt-24">
         <div className="grid gap-3 rounded-2xl border bg-card p-5 shadow-xl sm:grid-cols-[1.5fr_1fr_1fr_auto]">

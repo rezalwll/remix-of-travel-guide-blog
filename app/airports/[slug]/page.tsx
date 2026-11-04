@@ -31,7 +31,7 @@ export default async function AirportGuidePage({ params }: { params: Promise<{ s
 
   return (
     <main id="main-content" className="min-h-[70vh] bg-muted/35">
-      <TravelHero asset={media} title={item.title} description={item.summary} badges={[item.code, item.city, "منبع رسمی"]} />
+      <TravelHero asset={media} title={item.title} description={item.summary} />
       <div className="container-page pt-7"><Breadcrumbs items={[{ label: "خانه", href: "/" }, { label: "فرودگاه‌ها", href: "/airports" }, { label: item.airport, href: `/airports/${item.slug}` }]} /></div>
 
       <section className="media-section pt-5"><div className="container-page"><SectionHeader title="پیش از حرکت به فرودگاه" description="اطلاعات عملیاتی ممکن است تغییر کند؛ بلیط، اعلان ایرلاین و وب‌سایت رسمی مرجع نهایی‌اند." /><div className="mt-7 grid gap-4 lg:grid-cols-2"><article className="rounded-2xl border bg-card p-6"><MapPin className="size-6 text-secondary" /><h2 className="mt-3 text-lg font-black">دسترسی و زمان مسیر</h2><p className="mt-2 text-sm leading-7 text-muted-foreground">{item.access}</p></article><article className="rounded-2xl border bg-card p-6"><Signpost className="size-6 text-secondary" /><h2 className="mt-3 text-lg font-black">ترمینال و گیت</h2><p className="mt-2 text-sm leading-7 text-muted-foreground">{item.terminals}</p></article></div></div></section>

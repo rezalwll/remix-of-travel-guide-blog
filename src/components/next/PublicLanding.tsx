@@ -6,7 +6,7 @@ import { ImageCard, MediaRail, OverlayCard, PromoBanner, RailItem, SectionHeader
 import { routePolicy } from "@/seo/routes";
 import { createMetadata } from "@/seo/metadata";
 import { seoDestinations, seoTourLandings } from "@/seo/content";
-import { destinationAsset, photoLibrary, serviceAsset, type MediaAsset } from "@/media/library";
+import { destinationAsset, photoLibrary, serviceAsset, tourGuideAsset, type MediaAsset } from "@/media/library";
 
 type PageKey =
   | "flights"
@@ -72,7 +72,13 @@ function linkAsset(href: string, page: PageKey, label: string): MediaAsset {
   if (flightRoute) return destinationAsset(flightRoute[1], `تصویر مقصد ${label}`);
   const hotelCity = href.match(/^\/hotels\/([a-z-]+)$/);
   if (hotelCity) return destinationAsset(hotelCity[1], `تصویر مقصد ${label}`);
+  const tourDestination = href.match(/^\/tours\/([a-z-]+)$/);
+  if (tourDestination && seoTourLandings.some((tour) => tour.slug === tourDestination[1])) {
+    return tourGuideAsset(tourDestination[1], `تصویر مقصد ${label}`);
+  }
   if (href.startsWith("/visa/")) return serviceAsset("visa", `تصویر راهنمای ${label}`);
+  if (href === "/routes/turkiye-city-coast") return destinationAsset("istanbul", `تصویر ${label}`);
+  if (href === "/routes/persian-classic") return destinationAsset("isfahan", `تصویر ${label}`);
   if (href.startsWith("/routes/")) return serviceAsset("routes", `تصویر ${label}`);
   if (href.startsWith("/support") || href.startsWith("/travel-preparation")) return serviceAsset("support", `تصویر ${label}`);
   return serviceAsset(page, `تصویر ${label}`);

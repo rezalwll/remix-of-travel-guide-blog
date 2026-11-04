@@ -5,12 +5,10 @@ import MediaFrame from "@/components/media/MediaFrame";
 
 export type TravelHeroProps = {
   asset: MediaAsset;
-  eyebrow?: string;
   title: React.ReactNode;
   description?: string;
   primary?: { href: string; label: string };
   secondary?: { href: string; label: string };
-  badges?: string[];
   size?: "page" | "landing" | "compact";
   /** Rendered under the copy, e.g. a booking widget that should visually attach to the hero. */
   children?: React.ReactNode;
@@ -33,12 +31,10 @@ const sizes = {
  */
 export default function TravelHero({
   asset,
-  eyebrow,
   title,
   description,
   primary,
   secondary,
-  badges,
   size = "landing",
   children,
   align = "start",
@@ -62,20 +58,8 @@ export default function TravelHero({
       </div>
       <div className={`container-page flex ${sizes[size]} flex-col justify-center py-12 sm:py-16 ${overlapBottom ? "pb-32 sm:pb-36" : ""}`}>
         <div className={`flex flex-col ${relaxedCopy ? "gap-7" : "gap-5"} ${align === "center" ? "mx-auto max-w-3xl items-center text-center" : "max-w-2xl items-start"}`}>
-          {eyebrow && (
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-black/20 px-4 py-2 text-xs font-extrabold backdrop-blur">
-              {eyebrow}
-            </span>
-          )}
           <h1 className={`text-[2.1rem] font-black drop-shadow-sm sm:text-5xl lg:text-[3.6rem] ${relaxedCopy ? "leading-[1.4]" : "leading-[1.25]"}`}>{title}</h1>
           {description && <p className="max-w-xl text-sm leading-8 text-white/82 sm:text-base">{description}</p>}
-          {badges && badges.length > 0 && (
-            <ul className="flex flex-wrap gap-2">
-              {badges.map((badge) => (
-                <li key={badge} className="rounded-full bg-white/12 px-3 py-1.5 text-xs font-bold backdrop-blur">{badge}</li>
-              ))}
-            </ul>
-          )}
           {(primary || secondary) && (
             <div className="flex flex-wrap gap-3">
               {primary && (
