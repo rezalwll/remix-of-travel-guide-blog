@@ -29,6 +29,7 @@ describe("production operational surface", () => {
     expect(version.json()).toMatchObject({ version: "1.2.3", gitSha: "abc123" });
     expect(version.headers["strict-transport-security"]).toContain("max-age=31536000");
     expect(version.headers["content-security-policy"]).toContain("default-src 'none'");
+    expect((await app.inject({ method: "POST", url: "/api/payments/mock/MOCK-PAY-PROBE/simulate", payload: { status: "succeeded" } })).statusCode).toBe(401);
     await app.close();
   });
 

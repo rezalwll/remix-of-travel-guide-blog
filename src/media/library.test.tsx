@@ -25,7 +25,7 @@ describe("travel media registry", () => {
     }
   });
 
-  it("uses real photographs for every visible media category", () => {
+  it("uses real photographs across every registered media category", () => {
     for (const [name, group] of Object.entries(mediaRegistry)) {
       for (const asset of Object.values(group)) {
         expect(asset.kind, `${name}/${asset.id}`).toBe("photo");
@@ -73,8 +73,8 @@ describe("travel media registry", () => {
     }
   });
 
-  it("uses the current travel-planning photograph for support surfaces", () => {
-    expect(serviceAsset("support")).toMatchObject({ src: "/media/phone.webp" });
+  it("uses the warm mountain-lake photograph for support surfaces", () => {
+    expect(serviceAsset("support")).toMatchObject({ kind: "photo", src: "/hero-red-mountain-lake.webp" });
     expect(serviceAsset("support")).not.toMatchObject({ src: "/media/support.webp" });
   });
 

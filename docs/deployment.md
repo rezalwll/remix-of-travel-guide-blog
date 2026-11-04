@@ -18,10 +18,23 @@ production برای `DATABASE_URL`، URLهای HTTPS، allow-list صریح `TRUS
 1. CI سبز، audit و بررسی migration.
 2. ساخت artifact و ثبت `APP_VERSION`/`GIT_SHA`/`BUILD_TIME`؛ اجرای `RELEASE_CHECK_DATABASE=true npm run release:check` روی runner دارای دسترسی DB، migration status و readiness را هم fail-closed بررسی می‌کند.
 3. backup با `npm run db:backup` و بررسی فضای restore.
-4. اجرای `npm run db:migrate:deploy`؛ هرگز `db:migrate` در production.
+4. اجرای `npm run db:migrate:deploy`؛ هرگز `db:migrate` در production. در استقرار کانتینری، target مستقل `migrate` را از همان commit بسازید و به‌صورت job یک‌باره با `DATABASE_URL` شبکهٔ خصوصی اجرا کنید؛ این image ابزار Prisma را دارد و به دسترسی npm روی میزبان production وابسته نیست.
 5. اجرای نسخهٔ جدید و بررسی `/health/live` و `/health/ready`.
 6. cutover در reverse proxy، سپس smoke تست auth، search، checkout sandbox و provider status.
 7. پایش logها و backlogهای reconciliation.
+
+## استقرار خودکار از GitHub Actions
+
+Workflow `Deploy production` پس از موفقیت کامل Workflow `CI` برای Push شاخهٔ `main` اجرا می‌شود. کامیت‌های ناموفق، Pull Requestها و اجرای CI برای شاخه‌های دیگر به production راه پیدا نمی‌کنند. قفل concurrency نیز اجازه نمی‌دهد دو انتشار هم‌زمان روی VPS اجرا شوند. اجرای دستی همان Workflow برای بازیابی عملیاتی در دسترس است و ref یا SHA ورودی باید عضوی از `origin/main` باشد.
+
+Job استقرار به GitHub Environment با نام `production` متصل است و فقط دو Secret محیطی می‌خواهد:
+
+- `PRODUCTION_SSH_PRIVATE_KEY`: کلید خصوصی اختصاصی و بدون passphrase کاربر محدود `deploy`.
+- `PRODUCTION_SSH_KNOWN_HOSTS`: خروجی تأییدشدهٔ host key سرور؛ Workflow هرگز `StrictHostKeyChecking` را خاموش نمی‌کند.
+
+روی VPS، checkout در `/opt/kiashi/app` نگهداری می‌شود. اسکریپت فایل `.env.production` و فایل Compose دارای سرویس‌های `app`، `web` و `postgres` را از نام‌های استاندارد زیر `/opt/kiashi` پیدا و پیش از هر تغییری اعتبارسنجی می‌کند. سرویس `migrate` اختیاری است؛ اگر در Compose تعریف نشده باشد، image مهاجرت یک‌باره روی همان شبکه خصوصی PostgreSQL اجرا می‌شود. سپس SHA دقیق تأییدشده fetch می‌شود، imageهای API/Web/Migration ساخته می‌شوند، قبل از migration یک dump در `/opt/kiashi/backups` گرفته می‌شود، metadata انتشار ثبت می‌شود و health داخلی و عمومی بررسی می‌شود. اگر تعویض کانتینرها شکست بخورد، imageها و metadata نسخهٔ قبلی به‌صورت best-effort بازیابی می‌شوند؛ restore خودکار دیتابیس عمداً انجام نمی‌شود.
+
+کلید Deploy باید فقط همان دسترسی‌های لازم برای checkout و اجرای بدون تعامل `sudo -n` برای اسکریپت استقرار، Docker Compose و مسیرهای محافظت‌شدهٔ `/opt/kiashi` را داشته باشد. Workflow هیچ رمز sudoای ذخیره نمی‌کند. تغییر IP، کاربر، پورت یا مسیر production باید هم‌زمان در `.github/workflows/deploy-production.yml` و زیرساخت VPS اعمال شود.
 
 ## migration و rollback
 
@@ -29,7 +42,7 @@ production برای `DATABASE_URL`، URLهای HTTPS، allow-list صریح `TRUS
 
 ## backup و restore
 
-`npm run db:backup` با `pg_dump --format=custom` فایل timestamped در `BACKUP_DIR` می‌سازد و credential را چاپ نمی‌کند. برای آزمون، `BACKUP_FILE=... RESTORE_ADMIN_DATABASE_URL=... npm run db:restore:verify` را اجرا کنید. script یک database با نام تصادفی می‌سازد، restore و table check را انجام می‌دهد و در `finally` آن را حذف می‌کند؛ به‌طور پیش‌فرض اجازه استفاده از `DATABASE_URL` به‌عنوان اتصال admin را نمی‌دهد. فقط برای بررسی دستی می‌توان `RESTORE_VERIFY_KEEP=true` داد.
+`DATABASE_URL=... BACKUP_DIR=... npm run db:backup` با `pg_dump --format=custom` فایل timestamped می‌سازد و credential را چاپ نمی‌کند. پارامتر Prisma یعنی `schema` پیش از فراخوانی ابزار PostgreSQL حذف می‌شود. برای آزمون، `BACKUP_FILE=... RESTORE_ADMIN_DATABASE_URL=... npm run db:restore:verify` را اجرا کنید. اتصال admin باید به DB نگهداری مانند `postgres` اشاره کند و نباید همان `DATABASE_URL` فعال باشد. script یک database با نام تصادفی می‌سازد، restore و integrity check را انجام می‌دهد و در `finally` آن را حذف می‌کند؛ فقط برای بررسی دستی می‌توان `RESTORE_VERIFY_KEEP=true` داد.
 
 baseline عملیاتی: backup منطقی روزانه، backup پیش از migration، retention قابل تنظیم، نگهداری رمزنگاری‌شدهٔ خارج از این repository و restore drill دوره‌ای.
 
@@ -50,7 +63,28 @@ Fastify با Pino JSON، request id، route، status و duration log می‌کن
 
 `ops/nginx.example.conf` فقط نمونه است: HTTP به HTTPS redirect، HSTS و CSP/security header، forwarding header، body limit، gzip، cache immutable برای `/assets/` و no-store برای API/health/auth/payment callback. `TRUST_PROXY` باید IP/CIDR دقیق proxyهایی باشد که headerهای forwarded را overwrite می‌کنند؛ compose نمونه برای این کار subnet ثابت دارد.
 
+### HTTPS مستقیم روی IP عمومی
+
+برای استقرار بدون دامنه، `ops/nginx.example.conf` مسیر HTTP-01 را از `/var/www/certbot` ارائه می‌کند و `ops/manage-ip-certificate.sh` صدور و تمدید گواهی کوتاه‌مدت IP را با Certbot 5.4 انجام می‌دهد. گواهی IP فقط حدود شش روز اعتبار دارد؛ بنابراین timer دو بار در روز renewal را بررسی می‌کند و پس از جایگزینی اتمیک certificate، پیکربندی Nginx را اعتبارسنجی و reload می‌کند.
+
+روی میزبان production:
+
+```sh
+sudo install -m 0755 ops/manage-ip-certificate.sh /usr/local/sbin/kiashi-manage-ip-certificate
+sudo install -m 0644 ops/systemd/kiashi-ip-certificate.service /etc/systemd/system/
+sudo install -m 0644 ops/systemd/kiashi-ip-certificate.timer /etc/systemd/system/
+sudo sh -c 'printf "%s\n" "KIASHI_PUBLIC_IP=203.0.113.10" > /opt/kiashi/env/certificate.env'
+sudo chmod 0600 /opt/kiashi/env/certificate.env
+sudo KIASHI_PUBLIC_IP=203.0.113.10 kiashi-manage-ip-certificate issue
+sudo systemctl daemon-reload
+sudo systemctl enable --now kiashi-ip-certificate.timer
+```
+
+پیش از اجرای `issue`، reverse proxy جدید باید بالا باشد و volume مسیر ACME به `/var/www/certbot` متصل شده باشد. `SITE_URL`، `WEB_ORIGIN` و `API_PUBLIC_URL` نیز باید روی همان `https://IP` تنظیم شوند. IP نمونهٔ مستندات را با IP واقعی جایگزین کنید؛ certificate و کلید خصوصی نباید commit شوند.
+
 در production فرانت از same-origin مسیر `/api` استفاده می‌کند و `API_INTERNAL_URL` فقط برای rewrite داخلی Next.js به Fastify است. secret نباید با متغیرهای عمومی وارد bundle مرورگر شود. image وب خروجی standalone Next.js را اجرا می‌کند و TypeScript server نیز source map عمومی منتشر نمی‌کند؛ stack کامل فقط در log داخلی محیط اجرا می‌ماند.
+
+اگر میزبان production دسترسی خروجی registry نداشته باشد، workflow دستی `Offline image bundle` همان targetهای release، PostgreSQL و image آزمون Docker را با SHA کامیت در یک artifact کوتاه‌عمر قرار می‌دهد. checksum همراه bundle باید پیش از `docker load` بررسی شود؛ artifact شامل secret نیست و فایل env همچنان فقط روی میزبان نگهداری می‌شود.
 
 ## reconciliation و scheduler
 
@@ -59,3 +93,5 @@ Fastify با Pino JSON، request id، route، status و duration log می‌کن
 ## failure drills
 
 DB unavailable باید readiness را 503 کند؛ provider unavailable باید safe provider error بدهد؛ env ناقص production باید قبل از start fail شود؛ mock payment و provider stub در production endpoint فعال ندارند؛ SIGTERM باید بدون قطع ناگهانی Prisma خارج شود. جزئیات checklist در `docs/production-checklist.md` است.
+
+گواهی command-by-command آخرین release، محدودیت‌های محیط و ماتریس production در `docs/phase-26-release-readiness.md` ثبت می‌شود. Docker certification باید شامل build targetهای `web`، `api` و `proxy`، `nginx -t`، same-origin `/api`، static assets و smoke مسیرهای customer/merchant/backoffice باشد.

@@ -1,12 +1,14 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState, type ReactNode } from "react";
+import { Suspense, useState, type ReactNode } from "react";
 import { AuthProvider } from "@/context/AuthProvider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { ApiError } from "@/services/apiClient";
+import RouteTransitionOverlay from "@/components/next/RouteTransitionOverlay";
+import SupportAirplaneMascot from "@/components/next/SupportAirplaneMascot";
 
 export default function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient({
@@ -20,6 +22,8 @@ export default function Providers({ children }: { children: ReactNode }) {
       <TooltipProvider>
         <AuthProvider>
           {children}
+          <Suspense fallback={null}><RouteTransitionOverlay /></Suspense>
+          <SupportAirplaneMascot />
           <Toaster />
           <Sonner />
         </AuthProvider>

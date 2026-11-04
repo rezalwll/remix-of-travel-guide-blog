@@ -2,7 +2,7 @@ import { Link } from '@/lib/router';
 import { Instagram, Send, Headphones, ShieldCheck } from 'lucide-react';
 
 const groups = [
-  { title: 'خدمات سفر', links: [['پرواز', '/flights'], ['هتل', '/hotels'], ['تور و زیارت', '/tours'], ['قطار', '/trains'], ['اتوبوس', '/buses'], ['ویزا', '/visa'], ['بیمه', '/insurance'], ['CIP و ترانسفر', '/cip']] },
+  { title: 'خدمات سفر', links: [['پرواز', '/flights'], ['هتل', '/hotels'], ['تور و زیارت', '/tours'], ['تورهای یک و دو روزه', '/tours/short-trips'], ['قطار', '/trains'], ['اتوبوس', '/buses'], ['ویزا', '/visa'], ['بیمه', '/insurance'], ['CIP و ترانسفر', '/cip']] },
   { title: 'راهنمایی و پشتیبانی', links: [['پیگیری خرید', '/track-order'], ['مرکز راهنما', '/help'], ['راهنمای خرید', '/help/purchase-guide'], ['راهنمای استرداد', '/help/refund-guide'], ['سیاست استرداد', '/refund-policy'], ['پشتیبانی', '/support'], ['تماس با ما', '/contact']] },
   { title: 'درباره و اعتماد', links: [['درباره ما', '/about'], ['قوانین و مقررات', '/terms'], ['حریم خصوصی', '/privacy'], ['مجوزها و اعتماد', '/licenses'], ['همکاری سازمانی', '/business-travel'], ['باشگاه مشتریان', '/club']] },
   { title: 'کشف و محتوا', links: [['مقصدهای محبوب', '/destinations'], ['مجله سفر', '/blog'], ['مسیرهای پرطرفدار', '/routes'], ['آمادگی سفر', '/travel-preparation']] },
@@ -12,7 +12,7 @@ const Footer = () => <footer className="mt-auto border-t border-white/20 bg-[#F1
   <div className="container-page py-12 sm:py-16">
     <div className="grid gap-10 lg:grid-cols-[minmax(11rem,1.1fr)_minmax(0,4fr)]">
       <div>
-        <Link to="/" className="inline-flex"><img src="/kiashi-logo.png" alt="کیاشی" className="h-11 w-auto max-w-[124px] object-contain object-right brightness-0 invert" /></Link>
+        <Link to="/" className="inline-flex"><img src="/kiashi-logo.webp" alt="کیاشی" className="h-11 w-auto max-w-[124px] object-contain object-right brightness-0 invert" /></Link>
         <p className="mt-4 max-w-xs text-sm leading-7 text-white/80">همراه شما برای جست‌وجو، رزرو و پیگیری خدمات سفر.</p>
         <div className="mt-5 flex gap-2"><span title="اینستاگرام کیاشی" className="rounded-lg border border-white/25 bg-white/10 p-2 text-white/85"><Instagram className="size-4" /></span><span title="کانال کیاشی" className="rounded-lg border border-white/25 bg-white/10 p-2 text-white/85"><Send className="size-4" /></span><Link to="/contact" aria-label="تماس با پشتیبانی" className="rounded-lg border border-white/25 bg-white/10 p-2 text-white/85 transition hover:bg-white hover:text-[#DF301C]"><Headphones className="size-4" /></Link></div>
       </div>

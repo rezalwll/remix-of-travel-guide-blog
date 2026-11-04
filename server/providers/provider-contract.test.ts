@@ -49,6 +49,19 @@ describe("provider activation", () => {
   it("fails closed when real configuration is incomplete", () => {
     expect(() => createProviderRegistry({ ...config, SMS_PROVIDER_MODE: "real", SMS_PROVIDER: "vendor" })).toThrow("missing required configuration");
   });
+  it("activates the Melipayamak adapter only with complete real configuration", async () => {
+    const registry = createProviderRegistry({
+      ...config,
+      SMS_PROVIDER: "melipayamak",
+      SMS_PROVIDER_MODE: "real",
+      SMS_PROVIDER_BASE_URL: "https://rest.payamak-panel.com/api/SendSMS/",
+      SMS_PROVIDER_USERNAME: "test-user",
+      SMS_PROVIDER_API_KEY: "test-api-key",
+      SMS_PROVIDER_OTP_TEMPLATE: "557502",
+    });
+    expect(registry.sms.name).toBe("melipayamak");
+    expect((await registry.status()).find((entry) => entry.key === "sms")).toMatchObject({ adapter: "melipayamak", lifecycle: "READY", enabled: true });
+  });
   it("never falls back to mock for an unavailable real adapter", () => {
     expect(() => createProviderRegistry({ ...config, PAYMENT_PROVIDER_MODE: "real", PAYMENT_PROVIDER: "vendor", PAYMENT_PROVIDER_BASE_URL: "https://payments.example.test", PAYMENT_PROVIDER_MERCHANT_ID: "merchant", PAYMENT_PROVIDER_SECRET: "a-private-secret-value" })).toThrow("not available in this build");
   });

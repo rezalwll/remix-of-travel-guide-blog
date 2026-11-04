@@ -13,6 +13,7 @@ export const paymentMethodToApi = (method: PaymentMethodKind) => ({
   combined: 'combined',
   installment: 'installment_mock',
   organization: 'organizational_credit_mock',
+  refahCard: 'refah_card_mock',
 } as const)[method];
 
 const serviceSnapshot = (draft: BookingDraft): Record<string, unknown> => {

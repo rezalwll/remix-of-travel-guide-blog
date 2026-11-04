@@ -1,77 +1,77 @@
 #!/usr/bin/env node
-// Converts oversized demo photography into web-ready WebP derivatives.
-// Source assets stay project-owned; no external downloads happen here.
-import { mkdir, readdir, stat, writeFile } from "node:fs/promises";
+// Convert locally owned raster assets to browser-friendly WebP derivatives.
+// Existing WebP files are deliberately left alone so repeated runs do not
+// introduce generational quality loss.
+import { readdir, stat, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
 
 const root = process.cwd();
-const assetsDir = path.join(root, "src", "assets");
-const publicDir = path.join(root, "public");
+const roots = [path.join(root, "src", "assets"), path.join(root, "public")];
+const sourcePattern = /\.(?:jpe?g|png)$/i;
+const preservedFiles = new Set(["favicon-kiashi.png"]);
+const kb = (bytes) => `${(bytes / 1024).toFixed(1)} KB`;
 
-/** @type {{ file: string; width: number; quality: number; targets: string[] }[]} */
-const jobs = [
-  { file: "hero-kish-premium.png", width: 1920, quality: 76, targets: ["assets", "public"] },
-  { file: "hotel-tehran-premium.png", width: 1600, quality: 76, targets: ["assets", "public"] },
-  { file: "hotel-istanbul-premium.png", width: 1600, quality: 76, targets: ["assets", "public"] },
-  { file: "world-map.jpg", width: 1600, quality: 72, targets: ["public"] },
-];
-
-const kb = (bytes) => `${Math.round(bytes / 1024)}KB`;
-
-async function convert({ file, width, quality, targets }) {
-  const source = path.join(assetsDir, file);
-  if (!existsSync(source)) {
-    const fallback = path.join(publicDir, file);
-    if (!existsSync(fallback)) return { file, skipped: true };
-    return convertFrom(fallback, file, width, quality, targets);
-  }
-  return convertFrom(source, file, width, quality, targets);
+async function walk(directory) {
+  if (!existsSync(directory)) return [];
+  const entries = await readdir(directory, { withFileTypes: true });
+  const files = await Promise.all(
+    entries.map((entry) => {
+      const absolute = path.join(directory, entry.name);
+      return entry.isDirectory() ? walk(absolute) : absolute;
+    }),
+  );
+  return files.flat();
 }
 
-async function convertFrom(source, file, width, quality, targets) {
+async function convert(source) {
+  const parsed = path.parse(source);
+  const output = path.join(parsed.dir, `${parsed.name}.webp`);
+  const isLogo = parsed.base === "kiashi-logo.webp";
   const before = (await stat(source)).size;
-  const output = `${path.parse(file).name}.webp`;
-  const buffer = await sharp(source)
-    .resize({ width, withoutEnlargement: true })
-    .webp({ quality, effort: 6 })
+
+  let pipeline = sharp(source).rotate();
+  pipeline = isLogo
+    ? pipeline.resize({ width: 512, withoutEnlargement: true })
+    : pipeline.resize({ width: 1920, height: 1800, fit: "inside", withoutEnlargement: true });
+
+  const buffer = await pipeline
+    .webp({ quality: isLogo ? 88 : 76, alphaQuality: 100, effort: 6, smartSubsample: true })
     .toBuffer();
-  for (const target of targets) {
-    const dir = target === "assets" ? assetsDir : publicDir;
-    await mkdir(dir, { recursive: true });
-    await writeFile(path.join(dir, output), buffer);
+
+  const previous = existsSync(output) ? (await stat(output)).size : Number.POSITIVE_INFINITY;
+  if (buffer.length >= previous) {
+    return { source, output, before, after: previous, skipped: true };
   }
-  return { file, output, before, after: buffer.length, skipped: false };
+
+  await writeFile(output, buffer);
+  return { source, output, before, after: buffer.length, skipped: false };
 }
 
 async function main() {
-  const results = [];
-  for (const job of jobs) results.push(await convert(job));
+  const sourceFiles = (await Promise.all(roots.map(walk)))
+    .flat()
+    .filter((file) => sourcePattern.test(file) && !preservedFiles.has(path.basename(file)))
+    .sort();
+
   let saved = 0;
-  for (const result of results) {
+  let converted = 0;
+  for (const source of sourceFiles) {
+    const result = await convert(source);
+    const relativeSource = path.relative(root, result.source);
+    const relativeOutput = path.relative(root, result.output);
     if (result.skipped) {
-      console.log(`skip    ${result.file} (source missing)`);
+      console.log(`keep    ${relativeOutput} (existing file is already smaller)`);
       continue;
     }
+    converted += 1;
     saved += result.before - result.after;
-    console.log(`convert ${result.file} ${kb(result.before)} -> ${result.output} ${kb(result.after)}`);
+    console.log(`convert ${relativeSource} ${kb(result.before)} -> ${relativeOutput} ${kb(result.after)}`);
   }
-  console.log(`total saved ${kb(saved)}`);
 
-  const remaining = [];
-  for (const dir of [assetsDir, publicDir]) {
-    if (!existsSync(dir)) continue;
-    for (const entry of await readdir(dir)) {
-      if (!/\.(png|jpe?g|webp)$/i.test(entry)) continue;
-      const size = (await stat(path.join(dir, entry))).size;
-      if (size > 700 * 1024) remaining.push(`${path.relative(root, path.join(dir, entry))} ${kb(size)}`);
-    }
-  }
-  if (remaining.length) {
-    console.log("\noversized assets still present:");
-    for (const entry of remaining) console.log(`  ${entry}`);
-  }
+  console.log(`\nconverted ${converted} files; derivative savings ${kb(saved)}`);
+  console.log("Original source files are retained until references and builds are verified.");
 }
 
 main().catch((error) => {

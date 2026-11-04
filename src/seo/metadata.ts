@@ -19,7 +19,7 @@ export function createMetadata(input: {
 }): Metadata {
   const index = input.index ?? true;
   const title = input.title.includes(siteName) ? input.title : `${input.title} | ${siteName}`;
-  const image = input.image ? absoluteUrl(input.image) : absoluteUrl("/hero-greece.jpg");
+  const image = input.image ? absoluteUrl(input.image) : absoluteUrl("/hero-greece.webp");
   return {
     title: input.title,
     description: input.description,

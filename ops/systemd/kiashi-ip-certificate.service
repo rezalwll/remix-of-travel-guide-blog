@@ -1,0 +1,12 @@
+[Unit]
+Description=Renew the Kiashi short-lived public IP certificate
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=/opt/kiashi/env/certificate.env
+ExecStart=/usr/local/sbin/kiashi-manage-ip-certificate renew
+
+[Install]
+WantedBy=multi-user.target

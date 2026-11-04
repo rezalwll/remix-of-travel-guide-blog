@@ -1,4 +1,24 @@
 services:
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrate
+      args:
+        SITE_URL: ${SITE_URL:?set SITE_URL outside this file}
+    profiles: ["tools"]
+    restart: "no"
+    env_file:
+      - path: .env.production
+        required: false
+    environment:
+      DATABASE_URL: postgresql://kiashi:${POSTGRES_PASSWORD}@postgres:5432/kiashi
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      production:
+
   app:
     build:
       context: .
@@ -102,6 +122,7 @@ services:
       - "443:443"
     volumes:
       - ./ops/certs:/etc/nginx/certs:ro
+      - ./ops/acme:/var/www/certbot:ro
     networks:
       production:
         ipv4_address: 172.28.0.10

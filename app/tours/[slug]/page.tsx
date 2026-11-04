@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const item = getTourLanding(slug);
   if (item) return createMetadata({ title: item.title, description: item.description, path: `/tours/${slug}`, index: isIndexableSeoPath(`/tours/${slug}`) });
   const legacy = tours.find((tour) => tour.slug === slug);
-  return legacy ? privateMetadata(legacy.title, "جزئیات نمایشی تور تا زمان اتصال ظرفیت معتبر از ایندکس خارج است.") : {};
+  return legacy ? privateMetadata(legacy.title, "معرفی تور، برنامهٔ سفر، خدمات و شرایط رزرو.") : {};
 }
 
 export default async function TourDestinationPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -50,7 +50,7 @@ export default async function TourDestinationPage({ params }: { params: Promise<
 
       <section className="media-section-tinted"><div className="container-page grid gap-5 lg:grid-cols-2"><ImageCard href={item.relatedDestination} asset={media} title={`راهنمای سفر به ${item.destination}`} description="زمان سفر، رفت‌وآمد و انتخاب محله را پیش از رزرو بشناسید." cta="راهنمای مقصد" />{item.relatedFlight && <ImageCard href={`/flights/${item.relatedFlight}`} asset={serviceAsset("flights", `پرواز به ${item.destination}`)} title={`پرواز به ${item.destination}`} description="فرودگاه، بار مجاز و شرایط نرخ را روی نتیجه معتبر بررسی کنید." cta="راهنمای مسیر" />}</div></section>
 
-      <section className="pb-14 pt-10 sm:pb-20"><div className="container-page"><PromoBanner href="/tours" asset={serviceAsset("tours", "برنامه‌ریزی تور")} title="پیشنهادهای تور را مقایسه کن" description="ظرفیت و مبلغ نهایی فقط در نتیجه متصل به تأمین‌کننده معتبر است." cta="مشاهده تورها" align="center" /></div></section>
+      <section className="pb-14 pt-10 sm:pb-20"><div className="container-page"><PromoBanner href="/tours" asset={serviceAsset("tours", "برنامه‌ریزی تور")} title="پیشنهادهای تور را مقایسه کن" description="تاریخ حرکت، برنامهٔ سفر و خدمات هر تور را کنار هم بررسی کن." cta="مشاهده تورها" align="center" /></div></section>
     </main>
   );
 }

@@ -12,7 +12,7 @@ export const metadata = createMetadata({
   title: "راهنمای مقصدهای سفر",
   description: "راهنمای فارسی مقصدهای منتخب با اطلاعات زمان سفر، حمل‌ونقل، مسیرهای پرواز و اقامت.",
   path: "/destinations",
-  image: "/hero-greece.jpg",
+  image: "/hero-greece.webp",
 });
 export const revalidate = 86_400;
 

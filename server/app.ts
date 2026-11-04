@@ -29,7 +29,7 @@ const sessionCookie = "kiashi_session";
 const mobileSchema = z.string().regex(/^09\d{9}$/);
 const serviceTypeSchema = z.enum(["flight", "hotel", "tour", "ziyarat", "train", "bus", "insurance", "cip", "transfer"]);
 const supplierKindSchema = z.enum(["flight", "hotel", "train", "bus", "insurance", "cip", "transfer", "visa"]);
-const paymentMethodSchema = z.enum(["online_mock", "wallet", "combined", "installment_mock", "organizational_credit_mock", "voucher_mock"]);
+const paymentMethodSchema = z.enum(["online_mock", "wallet", "combined", "installment_mock", "organizational_credit_mock", "voucher_mock", "refah_card_mock"]);
 const errorResponse = (reply: FastifyReply, status: number, code: string, message: string, details?: Record<string, unknown>) => reply.code(status).send({ error: { code, message, ...(details ? { details } : {}), requestId: reply.request.id } });
 
 export type AppOptions = { repository?: PrismaRuntimeRepository; platformRepository?: PlatformRepository; programRepository?: ProgramRepository; hotelRepository?: HotelRepository; env?: Partial<typeof config>; providers?: ProviderRegistry };
@@ -222,7 +222,7 @@ export async function buildApp(options: AppOptions = {}) {
     const intent = await paymentService.createIntent({ checkoutSessionId: checkout.id, userId: user.id, method: parsed.data.method, amount: split.onlineAmount, currency: checkout.currency, idempotencyKey: parsed.data.idempotencyKey, callbackUrl: `${env.API_PUBLIC_URL}/api/payments/callback/${providers.payment.name}`, metadata: parsed.data.metadata, requestId: request.id });
     return reply.code(201).send({ paymentIntent: intent });
   });
-  if (env.NODE_ENV !== "production") app.post<{ Params: { reference: string } }>("/api/payments/mock/:reference/simulate", async (request, reply) => {
+  if (env.PAYMENT_PROVIDER_MODE === "sandbox" && providers.payment.name === "mock") app.post<{ Params: { reference: string } }>("/api/payments/mock/:reference/simulate", async (request, reply) => {
     const user = await requireUser(request, reply); if (!user) return;
     const parsed = z.object({ status: z.enum(["succeeded", "failed", "cancelled"]) }).safeParse(request.body);
     if (!parsed.success) return errorResponse(reply, 400, "VALIDATION_ERROR", "وضعیت پرداخت آزمایشی معتبر نیست");

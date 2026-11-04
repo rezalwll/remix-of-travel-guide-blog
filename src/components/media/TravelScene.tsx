@@ -318,6 +318,59 @@ function Connect({ palette }: SceneProps) {
   );
 }
 
+function Support({ palette }: SceneProps) {
+  return (
+    <>
+      <rect width="800" height="600" fill="url(#sky)" />
+      <circle cx="92" cy="170" r="190" fill={palette.accent} opacity="0.13" />
+      <circle cx="720" cy="420" r="236" fill={palette.near} opacity="0.42" />
+
+      <path
+        d="M70 210 C180 112 300 150 374 226 S560 314 724 178"
+        fill="none"
+        stroke="#ffffff"
+        strokeWidth="4"
+        strokeDasharray="7 18"
+        strokeLinecap="round"
+        opacity="0.34"
+      />
+      <g transform="translate(74 166) rotate(-18)">
+        <path d="M0 18 96 0q18-2 20 8 2 10-16 14L2 36Z" fill="#ffffff" opacity="0.94" />
+        <path d="m31 18-25-42h18l38 38Z" fill={palette.sun} />
+        <path d="m36 30-20 38h17l31-41Z" fill={palette.sun} opacity="0.86" />
+      </g>
+
+      <g transform="translate(78 310)">
+        <rect width="172" height="96" rx="30" fill="#ffffff" opacity="0.93" />
+        <circle cx="48" cy="48" r="10" fill={palette.accent} />
+        <circle cx="84" cy="48" r="10" fill={palette.accent} opacity="0.74" />
+        <circle cx="120" cy="48" r="10" fill={palette.accent} opacity="0.48" />
+        <path d="m42 90-20 30 52-26" fill="#ffffff" opacity="0.93" />
+      </g>
+
+      <g transform="translate(574 154)">
+        <circle cx="104" cy="142" r="116" fill="#ffffff" opacity="0.1" />
+        <circle cx="104" cy="136" r="66" fill={palette.sun} opacity="0.96" />
+        <path d="M18 138a86 86 0 0 1 172 0" fill="none" stroke="#ffffff" strokeWidth="22" strokeLinecap="round" opacity="0.95" />
+        <rect x="10" y="132" width="34" height="80" rx="17" fill="#ffffff" />
+        <rect x="164" y="132" width="34" height="80" rx="17" fill="#ffffff" />
+        <path d="M182 194q0 54-58 54" fill="none" stroke="#ffffff" strokeWidth="12" strokeLinecap="round" />
+        <circle cx="116" cy="248" r="11" fill="#ffffff" />
+        <path d="M38 392q18-108 132-108t132 108Z" fill={palette.accent} opacity="0.96" />
+        <path d="M104 202c-18 0-34-8-44-20 10 30 28 48 44 48s34-18 44-48c-10 12-26 20-44 20Z" fill={palette.near} opacity="0.72" />
+      </g>
+
+      <g opacity="0.28">
+        <circle cx="316" cy="166" r="8" fill="#ffffff" />
+        <circle cx="364" cy="118" r="5" fill="#ffffff" />
+        <circle cx="512" cy="170" r="7" fill="#ffffff" />
+        <path d="M286 456h232" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
+      </g>
+      <Vignette />
+    </>
+  );
+}
+
 function Document({ palette }: SceneProps) {
   return (
     <>
@@ -406,6 +459,7 @@ const scenes: Record<SceneKind, (props: SceneProps) => React.ReactElement> = {
   lounge: Lounge,
   shield: Shield,
   connect: Connect,
+  support: Support,
   document: Document,
   market: Market,
   forest: Forest,

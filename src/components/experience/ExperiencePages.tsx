@@ -529,7 +529,7 @@ export const ExperienceDetailPage = ({ type }: { type: ExperienceType }) => {
                 </div>
               </section>
               <section className="rounded-2xl border border-border bg-card p-5">
-                <h2 className="text-xl font-extrabold">انتخاب پکیج و هتل</h2>
+                <h2 className="text-xl font-extrabold">انتخاب پکیج و اقامت</h2>
                 <div className="mt-4 space-y-3">
                   {offer.packages.map((item) => (
                     <label
@@ -546,7 +546,7 @@ export const ExperienceDetailPage = ({ type }: { type: ExperienceType }) => {
                         />
                         <strong className="ms-2">{item.name}</strong>
                         <p className="mt-2 text-sm">
-                          {item.hotel} · {item.hotelStars} ستاره
+                          {item.hotel}{item.hotelStars > 0 ? ` · ${item.hotelStars} ستاره` : ""}
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground">
                           {item.roomType} · {item.mealPlan} ·{" "}

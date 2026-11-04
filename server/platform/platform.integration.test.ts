@@ -101,6 +101,18 @@ integration("platform database isolation and integrity", () => {
     expect((await repository.reportSummary(range, ids.merchantA)).totals.orders).toBe(1);
   });
 
+  it("keeps merchant support tenant-scoped and hides internal notes from the merchant view", async () => {
+    await prisma.supportTicket.update({ where: { id: ids.ticket }, data: { organizationId: ids.merchantA } });
+    await prisma.supportMessage.create({ data: { ticketId: ids.ticket, authorType: "merchant", authorUserId: ids.merchantUserA, body: "پیام قابل مشاهده", internal: false } });
+    await repository.addSupportInternalNote(ids.ticket, "یادداشت محرمانه عملیات", actor);
+    expect((await repository.listMerchantSupport(ids.merchantA, { page: 1, perPage: 20 })).items.map((item) => item.id)).toContain(ids.ticket);
+    expect((await repository.listMerchantSupport(ids.merchantB, { page: 1, perPage: 20 })).items.map((item) => item.id)).not.toContain(ids.ticket);
+    const merchantTicket = await repository.getMerchantSupport(ids.merchantA, ids.ticket);
+    expect(merchantTicket.messages.map((message) => message.body)).toEqual(["پیام قابل مشاهده"]);
+    expect(JSON.stringify(merchantTicket)).not.toContain("یادداشت محرمانه عملیات");
+    await expect(repository.getMerchantSupport(ids.merchantB, ids.ticket)).rejects.toMatchObject({ statusCode: 404 });
+  });
+
   it("records every sensitive mutation in the immutable audit stream", async () => {
     await repository.updateOwnMerchantProfile(ids.merchantA, { name: `Merchant A updated ${marker}` }, { ...actor, organizationId: ids.merchantA, userId: ids.merchantUserA });
     const adjustment = await repository.createFinanceAdjustment(ids.merchantA, { amount: 5_000, currency: "TOMAN", reason: "integration fixture", idempotencyKey: marker }, actor);
@@ -124,5 +136,26 @@ integration("platform database isolation and integrity", () => {
     await expect(prisma.organizationMembership.create({ data: { organizationId: ids.merchantA, userId: ids.merchantUserA } })).rejects.toMatchObject({ code: "P2002" });
     await expect(repository.updateSettlementStatus(ids.merchantA, ids.settlementA, "PAID", undefined, actor)).rejects.toMatchObject({ statusCode: 409 });
   });
-});
 
+  it("rejects changing the last active merchant owner and permits it after a second owner is active", async () => {
+    const organizationId = randomUUID();
+    const firstUserId = randomUUID();
+    const secondUserId = randomUUID();
+    const firstMembershipId = randomUUID();
+    const secondMembershipId = randomUUID();
+    const ownerRole = await prisma.role.upsert({ where: { code: "MERCHANT_OWNER" }, update: {}, create: { code: "MERCHANT_OWNER", name: "مالک پذیرنده", scope: "MERCHANT" } });
+    await prisma.organization.create({ data: { id: organizationId, type: "MERCHANT", name: `Owner safety ${marker}`, slug: `owner-safety-${marker}` } });
+    await prisma.user.createMany({ data: [
+      { id: firstUserId, mobile: `0930${marker.replace(/\D/g, "").padEnd(7, "4").slice(0, 7)}`, firstName: "First", lastName: "Owner" },
+      { id: secondUserId, mobile: `0931${marker.replace(/\D/g, "").padEnd(7, "5").slice(0, 7)}`, firstName: "Second", lastName: "Owner" },
+    ] });
+    await prisma.organizationMembership.create({ data: { id: firstMembershipId, organizationId, userId: firstUserId, status: "ACTIVE", roles: { create: { roleId: ownerRole.id } } } });
+
+    await expect(repository.updateMembershipStatus(organizationId, firstMembershipId, "SUSPENDED", actor)).rejects.toMatchObject({ code: "LAST_OWNER_REQUIRED", statusCode: 409 });
+    await expect(repository.setMembershipRoles(organizationId, firstMembershipId, [`TEST_MERCHANT_${marker}`], actor)).rejects.toMatchObject({ code: "LAST_OWNER_REQUIRED", statusCode: 409 });
+
+    await prisma.organizationMembership.create({ data: { id: secondMembershipId, organizationId, userId: secondUserId, status: "ACTIVE", roles: { create: { roleId: ownerRole.id } } } });
+    await expect(repository.setMembershipRoles(organizationId, firstMembershipId, [`TEST_MERCHANT_${marker}`], actor)).resolves.toMatchObject({ membershipId: firstMembershipId, roles: [`TEST_MERCHANT_${marker}`] });
+    expect(await prisma.auditLog.count({ where: { requestId: actor.requestId, resourceId: firstMembershipId, action: "membership.roles_changed" } })).toBeGreaterThan(0);
+  });
+});

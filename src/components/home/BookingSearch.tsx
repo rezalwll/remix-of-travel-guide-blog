@@ -496,7 +496,7 @@ const BookingSearch = () => {
     }
     if (active === "tour") {
       if (!tourDestination || !tourDate) return setError("مقصد و تاریخ تور را انتخاب کنید.");
-      return submit("/tours", { destination: tourDestination.city, date: tourDate, duration: tourDuration });
+      return submit(tourDuration === "۱ تا ۲ روز" ? "/tours/short-trips" : "/tours", { destination: tourDestination.city, date: tourDate, duration: tourDuration });
     }
     if (active === "ziyarat") {
       if (!ziyaratDestination || !ziyaratDate) return setError("مقصد و تاریخ سفر زیارتی را انتخاب کنید.");
@@ -528,7 +528,7 @@ const BookingSearch = () => {
       >
         <div className="mb-2 flex justify-end">
           <Link to="/" aria-label="کیاشی، صفحه اصلی" className="inline-flex">
-            <img src="/kiashi-logo.png" alt="کیاشی" className="h-14 w-auto max-w-[160px] object-contain" />
+            <img src="/kiashi-logo.webp" alt="کیاشی" className="h-14 w-auto max-w-[160px] object-contain" />
           </Link>
         </div>
         <div className="scrollbar-none flex gap-1 overflow-x-auto border-b border-border/80 pb-3" role="tablist" aria-label="انتخاب نوع خدمت">
@@ -617,7 +617,7 @@ const BookingSearch = () => {
             <div className="grid items-stretch gap-2 sm:grid-cols-2 lg:grid-cols-3">
               <LocationSelect label="مقصد تور" value={tourDestination} onChange={setTourDestination} cityOnly />
               <DateField label="تاریخ حرکت" value={tourDate} onChange={setTourDate} />
-              <SelectField label="مدت سفر" value={tourDuration} onChange={setTourDuration} options={["فرقی نمی‌کند", "۳ تا ۵ روز", "۶ تا ۸ روز", "بیشتر از ۸ روز"]} />
+              <SelectField label="مدت سفر" value={tourDuration} onChange={setTourDuration} options={["فرقی نمی‌کند", "۱ تا ۲ روز", "۳ تا ۵ روز", "۶ تا ۸ روز", "بیشتر از ۸ روز"]} />
             </div>
           ) : null}
 

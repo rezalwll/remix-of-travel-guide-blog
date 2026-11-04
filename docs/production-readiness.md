@@ -10,7 +10,7 @@
 | reverse proxy/TLS | READY WITH LIMITATION | Nginx نمونه است و certificate واقعی بیرونی است |
 | rate limit | READY WITH LIMITATION | فقط single replica؛ distributed store نداریم |
 | mock provider architecture | READY | fail-closed و sandbox |
-| SMS واقعی | BLOCKED ON EXTERNAL CREDENTIALS | adapter/credential واقعی در repository نیست |
+| SMS واقعی | BLOCKED ON APPROVED TEMPLATE | آداپتر و credential معتبرند؛ BodyId باید در تست کنترل‌شده از سمت ملی‌پیامک پذیرفته شود، سپس secretهای production فعال شوند |
 | payment واقعی | BLOCKED ON EXTERNAL CREDENTIALS | merchant/secret/contract لازم است |
 | flight/hotel supplier واقعی | BLOCKED ON EXTERNAL CONTRACT/API | فقط mock فعال است |
 | CI PostgreSQL integration | READY | service، migration و test API در CI موجود است |

@@ -43,7 +43,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         </Providers>
         <JsonLd data={[
           { "@context": "https://schema.org", "@type": "WebSite", name: siteName, url: siteUrl, inLanguage: "fa-IR" },
-          { "@context": "https://schema.org", "@type": "Organization", name: siteName, url: siteUrl, logo: absoluteUrl("/kiashi-logo.png") },
+          { "@context": "https://schema.org", "@type": "Organization", name: siteName, url: siteUrl, logo: absoluteUrl("/kiashi-logo.webp") },
         ]} />
       </body>
     </html>

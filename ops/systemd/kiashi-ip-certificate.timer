@@ -1,0 +1,11 @@
+[Unit]
+Description=Check the Kiashi public IP certificate twice daily
+
+[Timer]
+OnCalendar=*-*-* 03,15:15:00 UTC
+RandomizedDelaySec=30m
+Persistent=true
+Unit=kiashi-ip-certificate.service
+
+[Install]
+WantedBy=timers.target

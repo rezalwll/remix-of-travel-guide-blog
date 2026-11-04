@@ -14,7 +14,7 @@ export class SmsService {
     const attempt = await this.recorder?.createSmsDeliveryAttempt({ mobile: input.mobile, template: input.template, provider: this.provider.name, status: "queued" });
     try {
       const result = await this.executor.run(requestId, this.provider.name, "send", async () => {
-        const delivery = await sendSmsWithRetry(this.provider, input);
+        const delivery = await sendSmsWithRetry(this.provider, { ...input, requestId });
         if (delivery.status === "failed") throw new ProviderError("PROVIDER_UNAVAILABLE", "SMS delivery failed", true, this.provider.name);
         return delivery;
       });
