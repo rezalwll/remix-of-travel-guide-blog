@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import SupportAssistantPanel from "@/components/next/SupportAssistantPanel";
 
 const FLIGHT_DURATION_MS = 5_400;
+const GREETING_DURATION_MS = 15_000;
 const PLANE_ASPECT_RATIO = 533 / 800;
 const FLIGHT_INSET = 12;
 
@@ -229,6 +230,12 @@ export default function SupportAirplaneMascot() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!isGreetingOpen) return;
+    const timer = window.setTimeout(() => setIsGreetingOpen(false), GREETING_DURATION_MS);
+    return () => window.clearTimeout(timer);
+  }, [isGreetingOpen]);
+
   const openPanel = () => {
     setIsGreetingOpen(false);
     setHasOpenedPanel(true);
@@ -268,24 +275,26 @@ export default function SupportAirplaneMascot() {
         >
           {isGreetingOpen ? (
             <div
-              className="support-airplane-greeting relative mb-16 w-[min(17rem,calc(100vw-7rem))] rounded-2xl border border-primary/20 bg-white/95 p-4 shadow-[0_18px_60px_rgb(115_20_12/0.22)] backdrop-blur-md sm:mb-20 sm:w-72"
+              className="support-airplane-greeting relative mb-20 w-[min(14rem,calc(100vw-7rem))] rounded-2xl border border-primary/20 bg-white/95 p-2.5 shadow-[0_12px_36px_rgb(115_20_12/0.18)] backdrop-blur-md sm:mb-24 sm:w-60"
               role="status"
               aria-live="polite"
             >
-              <button
-                type="button"
-                className="absolute left-2 top-2 grid size-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
-                aria-label="بستن پیام پشتیبان"
-                onClick={() => setIsGreetingOpen(false)}
-              >
-                <X className="size-4" />
-              </button>
-              <p className="pe-6 text-sm font-black leading-7 text-foreground">سلام، من پشتیبان کیاشی هستم 👋</p>
-              <p className="mt-1 text-xs leading-6 text-muted-foreground">برای راهنمایی سفر و پیگیری سفارش کنارت هستم.</p>
+              <div className="flex items-center justify-between gap-1">
+                <p className="whitespace-nowrap text-xs font-black leading-5 text-foreground">سلام! پشتیبان کیاشی‌ام 👋</p>
+                <button
+                  type="button"
+                  className="grid size-7 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                  aria-label="بستن پیام پشتیبان"
+                  onClick={() => setIsGreetingOpen(false)}
+                >
+                  <X className="size-3.5" />
+                </button>
+              </div>
+              <p className="mt-0.5 text-[11px] leading-[18px] text-muted-foreground">برای سفر و پیگیری سفارش کنارت هستم.</p>
               <button
                 type="button"
                 onClick={openPanel}
-                className="mt-3 inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-xs font-extrabold text-white shadow-md shadow-primary/20 transition-colors hover:bg-[#d91d0c]"
+                className="mt-1.5 inline-flex min-h-8 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 text-[11px] font-extrabold text-white shadow-md shadow-primary/20 transition-colors hover:bg-[#d91d0c]"
               >
                 <MessageCircleMore className="size-4" />
                 شروع گفتگو

@@ -52,12 +52,12 @@ describe("support airplane mascot", () => {
     renderMascot();
 
     expect(document.querySelector('[data-support-mascot="flying"]')).toBeInTheDocument();
-    expect(screen.queryByText("سلام، من پشتیبان کیاشی هستم 👋")).not.toBeInTheDocument();
+    expect(screen.queryByText("سلام! پشتیبان کیاشی‌ام 👋")).not.toBeInTheDocument();
 
     act(() => vi.advanceTimersByTime(5_400));
 
     expect(document.querySelector('[data-support-mascot="landed"]')).toBeInTheDocument();
-    expect(screen.getByText("سلام، من پشتیبان کیاشی هستم 👋")).toBeInTheDocument();
+    expect(screen.getByText("سلام! پشتیبان کیاشی‌ام 👋")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "شروع گفتگو" })).toBeInTheDocument();
   });
 
@@ -67,7 +67,7 @@ describe("support airplane mascot", () => {
     act(() => vi.advanceTimersByTime(5_400));
 
     fireEvent.click(screen.getByRole("button", { name: "بستن پیام پشتیبان" }));
-    expect(screen.queryByText("سلام، من پشتیبان کیاشی هستم 👋")).not.toBeInTheDocument();
+    expect(screen.queryByText("سلام! پشتیبان کیاشی‌ام 👋")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "بازکردن دستیار پشتیبانی کیاشی" }));
     expect(screen.getByRole("dialog", { name: "پشتیبان کیاشی" })).toBeInTheDocument();
