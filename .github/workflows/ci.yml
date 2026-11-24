@@ -123,12 +123,21 @@ jobs:
       - name: Backup and isolated restore drill
         shell: bash
         run: |
-          # Keep the client tools on the same major version as the test database.
-          if [ ! -x /usr/lib/postgresql/16/bin/pg_restore ]; then
-            sudo apt-get update
-            sudo apt-get install -y --no-install-recommends postgresql-client-16
-          fi
-          export PATH="/usr/lib/postgresql/16/bin:$PATH"
+          # Use the same client version as the PostgreSQL service.
+          PG_BIN="$RUNNER_TEMP/postgres-bin"
+          mkdir -p "$PG_BIN"
+          cat > "$PG_BIN/run-postgres-client" <<'SH'
+          #!/bin/sh
+          exec docker run --rm --pull=never --network host \
+            --user "$(id -u):$(id -g)" \
+            --volume "$RUNNER_TEMP:$RUNNER_TEMP" \
+            --entrypoint "${0##*/}" postgres:16-alpine "$@"
+          SH
+          chmod +x "$PG_BIN/run-postgres-client"
+          for client in pg_dump pg_restore psql; do
+            ln -s run-postgres-client "$PG_BIN/$client"
+          done
+          export PATH="$PG_BIN:$PATH"
           pg_dump --version
           pg_restore --version
           BACKUP_DIR="$RUNNER_TEMP/backups" npm run db:backup
