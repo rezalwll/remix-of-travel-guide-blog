@@ -17,6 +17,7 @@ const nextConfig: NextConfig = {
       { source: "/help", destination: "/support", permanent: true },
       { source: "/faq", destination: "/support", permanent: true },
       { source: "/order-tracking", destination: "/track-order", permanent: true },
+      { source: "/trains/search", destination: "/trains", permanent: false },
       { source: "/transfers", destination: "/transfer", permanent: true },
       { source: "/travel-checklist", destination: "/travel-preparation", permanent: true },
       { source: "/article/:articleId", destination: "/blog/:articleId", permanent: true },

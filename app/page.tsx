@@ -51,7 +51,7 @@ const services = [
   { href: "/hotels", label: "هتل", hint: "اقامت شهری و ساحلی", icon: Hotel, media: "hotels" },
   { href: "/tours", label: "تور", hint: "برنامه‌های چندروزه", icon: Compass, media: "tours" },
   { href: "/ziyarat", label: "زیارت", hint: "نجف، کربلا و مشهد", icon: Sparkles, media: "ziyarat" },
-  { href: "/trains", label: "قطار", hint: "مسیرهای ریلی", icon: TrainFront, media: "trains" },
+  { href: "/trains", label: "قطار", hint: "به‌زودی", icon: TrainFront, media: "trains" },
   { href: "/buses", label: "اتوبوس", hint: "پوشش جاده‌ای", icon: BusFront, media: "buses" },
   { href: "/insurance", label: "بیمه سفر", hint: "پوشش متناسب مقصد", icon: ShieldCheck, media: "insurance" },
   { href: "/cip", label: "CIP", hint: "تشریفات فرودگاهی", icon: ArmchairIcon, media: "cip" },

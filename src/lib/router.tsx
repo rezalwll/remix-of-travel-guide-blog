@@ -55,7 +55,7 @@ export function useNavigate() {
       return;
     }
     const href = destinationToHref(to);
-    announceRouteNavigationStart();
+    announceRouteNavigationStart(href);
     if (options?.replace) router.replace(href);
     else router.push(href);
   }, [router]);
@@ -76,8 +76,9 @@ export function useSearchParams(): [URLSearchParams, (next: URLSearchParams | Re
   const params = useMemo(() => new URLSearchParams(serialized), [serialized]);
   const setParams = useCallback((next: URLSearchParams | Record<string, string>) => {
     const value = next instanceof URLSearchParams ? next : new URLSearchParams(next);
-    announceRouteNavigationStart();
-    router.push(value.size ? `${pathname}?${value}` : pathname);
+    const href = value.size ? `${pathname}?${value}` : pathname;
+    announceRouteNavigationStart(href);
+    router.push(href);
   }, [pathname, router]);
   return [params, setParams];
 }

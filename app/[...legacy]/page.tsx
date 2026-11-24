@@ -28,7 +28,6 @@ const staticRoutes: Record<string, Entry> = {
   "checkout/hotel-guests": { name: "HotelGuests", title: "اطلاعات مهمانان", index: false },
   "checkout/tour-travelers": { name: "ExperienceTravelers", props: { type: "tour" }, title: "مسافران تور", index: false },
   "checkout/ziyarat-travelers": { name: "ExperienceTravelers", props: { type: "ziyarat" }, title: "مسافران سفر زیارتی", index: false },
-  "trains/search": { name: "SecondaryServicePage", props: { type: "train" }, title: "نتایج قطار", index: false },
   "buses/search": { name: "SecondaryServicePage", props: { type: "bus" }, title: "نتایج اتوبوس", index: false },
   "checkout/secondary-passengers": { name: "SecondaryPassengers", title: "اطلاعات مسافران", index: false },
   "checkout/passengers": { name: "CheckoutPassengers", title: "اطلاعات مسافران", index: false },

@@ -5,6 +5,7 @@ creative-commons terms still apply to redistributed or published builds.
 
 | Local file | Subject | Creator / source | License |
 | --- | --- | --- | --- |
+| `public/media/veresk-railway.webp` | Passenger train crossing the Veresk Bridge (resized and converted to WebP) | [Kabelleger / David Gubler, Wikimedia Commons](https://commons.wikimedia.org/wiki/File:RAI_60-878_Veresk.jpg) | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |
 | `public/media/destinations/tehran-milad-night.webp` | Milad Tower and Tehran at night (active) | [Majid Masajedi, Pexels](https://www.pexels.com/photo/the-milad-tower-in-tehran-city-iran-illuminated-at-night-9183483/) | Pexels License |
 | `public/media/destinations/tehran.webp` | Tehran skyline from Milad Tower (retired asset) | [Amin Yari / Mojnews, Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Tehran_skyline_from_Milad_Tower_by_Mojnews_02.jpg) | CC BY 4.0 |
 | `public/media/destinations/kish-beach-real.webp` | Kish Island beach (active) | [Mehrraz, Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Kish_Island,_Persian_Gulf,_Iran.jpg) | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) |

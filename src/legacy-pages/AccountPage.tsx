@@ -11,6 +11,7 @@ import {
 import { Link, useLocation, useParams } from "@/lib/router";
 import Layout from "@/components/layout/Layout";
 import { PersianDatePicker } from "@/components/ui/PersianDatePicker";
+import LoadingStatus from "@/components/ui/LoadingStatus";
 import { AccountLayout } from "@/components/account/AccountLayout";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -141,7 +142,8 @@ export default function AccountPage() {
     birthDate: user?.birthDate || "",
     nationalId: user?.nationalId || "",
   });
-  const [saving, setSaving] = useState(false);
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const saving = pendingAction !== null;
 
   const reload = async () => {
     setError("");
@@ -203,45 +205,42 @@ export default function AccountPage() {
           ? `/ziyarat/${item.itemId}`
           : "/destinations";
 
-  const savePassenger = async () => {
-    if (!passengerForm.firstName || !passengerForm.lastName) return;
-    setSaving(true);
+  const runAction = async (action: string, work: () => Promise<unknown>, fallback: string) => {
+    if (saving) return;
+    setError("");
+    setPendingAction(action);
     try {
-      await backend.createPassenger(passengerForm);
-      setPassengerForm({
-        firstName: "",
-        lastName: "",
-        nationalId: "",
-        passportNumber: "",
-      });
-      await reload();
+      await work();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "ذخیره مسافر انجام نشد.");
+      setError(err instanceof Error ? err.message : fallback);
     } finally {
-      setSaving(false);
+      setPendingAction(null);
     }
   };
-  const createTicket = async () => {
+
+  const savePassenger = () => {
+    if (!passengerForm.firstName || !passengerForm.lastName) return;
+    void runAction("save-passenger", async () => {
+      await backend.createPassenger(passengerForm);
+      setPassengerForm({ firstName: "", lastName: "", nationalId: "", passportNumber: "" });
+      await reload();
+    }, "ذخیره مسافر انجام نشد.");
+  };
+
+  const createTicket = () => {
     if (!ticketForm.subject || !ticketForm.message) return;
-    setSaving(true);
-    try {
+    void runAction("create-ticket", async () => {
       await backend.createSupport(ticketForm.subject, ticketForm.message);
       setTicketForm({ subject: "", message: "" });
       await reload();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "ثبت تیکت انجام نشد.");
-    } finally {
-      setSaving(false);
-    }
+    }, "ثبت درخواست انجام نشد.");
   };
 
   let body: React.ReactNode;
   if (loading)
     body = (
       <Card>
-        <p className="py-16 text-center text-sm text-muted-foreground">
-          در حال دریافت اطلاعات از سرور...
-        </p>
+        <LoadingStatus className="py-16" message="در حال بارگذاری اطلاعات…" />
       </Card>
     );
   else if (id)
@@ -372,7 +371,7 @@ export default function AccountPage() {
             onClick={() => void savePassenger()}
             className="inline-flex w-fit items-center gap-2 rounded-lg bg-secondary px-4 py-2 text-xs font-bold text-white"
           >
-            <Save className="size-4" /> ذخیره
+            <Save className="size-4" aria-hidden="true" /> {pendingAction === "save-passenger" ? "در حال ذخیره…" : "ذخیره"}
           </button>
         </div>
         {data.passengers.length ? (
@@ -395,13 +394,12 @@ export default function AccountPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() =>
-                    void backend.deletePassenger(item.id).then(reload)
-                  }
-                  aria-label="حذف مسافر"
-                  className="text-destructive"
+                  onClick={() => void runAction(`passenger:${item.id}`, () => backend.deletePassenger(item.id).then(reload), "حذف مسافر انجام نشد.")}
+                  disabled={saving}
+                  aria-label={pendingAction === `passenger:${item.id}` ? "در حال حذف مسافر" : "حذف مسافر"}
+                  className="text-xs font-bold text-destructive disabled:opacity-60"
                 >
-                  <Trash2 className="size-4" />
+                  {pendingAction === `passenger:${item.id}` ? "در حال حذف…" : <Trash2 className="size-4" aria-hidden="true" />}
                 </button>
               </div>
             ))}
@@ -492,14 +490,11 @@ export default function AccountPage() {
                 <span>{order.orderNumber}</span>
                 <button
                   type="button"
-                  onClick={() =>
-                    void backend
-                      .requestRefund(order.id, "تغییر برنامه سفر")
-                      .then(reload)
-                  }
-                  className="rounded-lg border border-primary px-3 py-2 text-xs font-bold text-primary"
+                  onClick={() => void runAction(`refund:${order.id}`, () => backend.requestRefund(order.id, "تغییر برنامه سفر").then(reload), "ثبت درخواست استرداد انجام نشد.")}
+                  disabled={saving}
+                  className="rounded-lg border border-primary px-3 py-2 text-xs font-bold text-primary disabled:opacity-60"
                 >
-                  درخواست استرداد
+                  {pendingAction === `refund:${order.id}` ? "در حال ثبت…" : "درخواست استرداد"}
                 </button>
               </div>
             ))}
@@ -535,12 +530,11 @@ export default function AccountPage() {
                   </Link>
                   <button
                     type="button"
-                    onClick={() =>
-                      void backend.deleteFavorite(item.id).then(reload)
-                    }
-                    className="text-xs font-bold text-destructive"
+                    onClick={() => void runAction(`favorite:${item.id}`, () => backend.deleteFavorite(item.id).then(reload), "حذف علاقه‌مندی انجام نشد.")}
+                    disabled={saving}
+                    className="text-xs font-bold text-destructive disabled:opacity-60"
                   >
-                    حذف
+                    {pendingAction === `favorite:${item.id}` ? "در حال حذف…" : "حذف"}
                   </button>
                 </div>
               </div>
@@ -561,10 +555,11 @@ export default function AccountPage() {
           </div>
           <button
             type="button"
-            onClick={() => void backend.readAllNotifications().then(reload)}
-            className="text-xs font-bold text-secondary"
+            onClick={() => void runAction("notifications", () => backend.readAllNotifications().then(reload), "به‌روزرسانی اعلان‌ها انجام نشد.")}
+            disabled={saving}
+            className="text-xs font-bold text-secondary disabled:opacity-60"
           >
-            خواندن همه
+            {pendingAction === "notifications" ? "در حال به‌روزرسانی…" : "خواندن همه"}
           </button>
         </div>
         {data.notifications.length ? (
@@ -572,15 +567,15 @@ export default function AccountPage() {
             <button
               key={item.id}
               type="button"
-              onClick={() =>
-                void backend.readNotification(item.id).then(reload)
-              }
+              onClick={() => void runAction(`notification:${item.id}`, () => backend.readNotification(item.id).then(reload), "به‌روزرسانی اعلان انجام نشد.")}
+              disabled={saving}
               className={`mb-2 w-full rounded-xl border p-4 text-start ${item.readAt ? "border-border" : "border-secondary/40 bg-secondary/5"}`}
             >
               <p className="font-bold">{item.title}</p>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
                 {item.body}
               </p>
+              {pendingAction === `notification:${item.id}` && <span className="mt-2 block text-xs text-secondary">در حال به‌روزرسانی…</span>}
             </button>
           ))
         ) : (
@@ -618,7 +613,7 @@ export default function AccountPage() {
               onClick={() => void createTicket()}
               className="w-fit rounded-lg bg-primary px-4 py-3 text-xs font-bold text-white"
             >
-              ثبت تیکت
+              {pendingAction === "create-ticket" ? "در حال ثبت…" : "ثبت تیکت"}
             </button>
           </div>
         </Card>
@@ -654,15 +649,18 @@ export default function AccountPage() {
                   <button
                     type="button"
                     onClick={() => {
-                      if (reply)
-                        void backend.replySupport(ticket.id, reply).then(() => {
+                      if (reply) {
+                        void runAction(`reply:${ticket.id}`, async () => {
+                          await backend.replySupport(ticket.id, reply);
                           setReply("");
-                          return reload();
-                        });
+                          await reload();
+                        }, "ارسال پاسخ انجام نشد.");
+                      }
                     }}
-                    className="inline-flex items-center gap-1 rounded-lg bg-secondary px-3 text-xs font-bold text-white"
+                    disabled={saving}
+                    className="inline-flex items-center gap-1 rounded-lg bg-secondary px-3 text-xs font-bold text-white disabled:opacity-60"
                   >
-                    <Send className="size-4" /> ارسال
+                    <Send className="size-4" aria-hidden="true" /> {pendingAction === `reply:${ticket.id}` ? "در حال ارسال…" : "ارسال"}
                   </button>
                 </div>
               </div>
@@ -758,21 +756,10 @@ export default function AccountPage() {
         <button
           type="button"
           disabled={saving}
-          onClick={() => {
-            setSaving(true);
-            void updateProfile(profile)
-              .catch((err) =>
-                setError(
-                  err instanceof Error
-                    ? err.message
-                    : "ذخیره پروفایل انجام نشد.",
-                ),
-              )
-              .finally(() => setSaving(false));
-          }}
+          onClick={() => void runAction("profile", () => updateProfile(profile), "ذخیره پروفایل انجام نشد.")}
           className="mt-5 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-3 text-xs font-bold text-white"
         >
-          <Save className="size-4" /> ذخیره پروفایل
+          <Save className="size-4" aria-hidden="true" /> {pendingAction === "profile" ? "در حال ذخیره…" : "ذخیره پروفایل"}
         </button>
       </Card>
     );

@@ -21,6 +21,7 @@ import {
 import { travelLocations, type TravelLocation } from "@/data/homepage";
 import { cn } from "@/lib/utils";
 import { PersianDatePicker } from "@/components/ui/PersianDatePicker";
+import TrainComingSoonBanner from "@/components/media/TrainComingSoonBanner";
 
 type ServiceTab = "flight" | "hotel" | "tour" | "train" | "bus" | "ziyarat";
 type Counts = { adults: number; children: number; infants: number };
@@ -502,9 +503,10 @@ const BookingSearch = () => {
       if (!ziyaratDestination || !ziyaratDate) return setError("مقصد و تاریخ سفر زیارتی را انتخاب کنید.");
       return submit("/ziyarat", { destination: ziyaratDestination.city, date: ziyaratDate, type: ziyaratType });
     }
+    if (active !== "bus") return;
     if (!simpleFrom || !simpleTo || !simpleDate) return setError("مبدا، مقصد و تاریخ را تکمیل کنید.");
     if (simpleFrom.id === simpleTo.id) return setError("مبدا و مقصد نمی‌توانند یکسان باشند.");
-    return submit(active === "train" ? "/trains/search" : "/buses/search", {
+    return submit("/buses/search", {
       from: simpleFrom.code,
       to: simpleTo.code,
       date: simpleDate,
@@ -553,6 +555,7 @@ const BookingSearch = () => {
               >
                 <Icon className="size-4" aria-hidden="true" />
                 {tab.label}
+                {tab.id === "train" && <span className="rounded-full bg-[#ffded0] px-2 py-0.5 text-[11px] font-bold text-[#641e17]">به‌زودی</span>}
               </button>
             );
           })}
@@ -621,7 +624,9 @@ const BookingSearch = () => {
             </div>
           ) : null}
 
-          {active === "train" || active === "bus" ? (
+          {active === "train" && <TrainComingSoonBanner compact />}
+
+          {active === "bus" ? (
             <div className="grid items-stretch gap-2 sm:grid-cols-2 lg:grid-cols-4">
               <LocationSelect label="مبدا" value={simpleFrom} onChange={setSimpleFrom} cityOnly />
               <LocationSelect label="مقصد" value={simpleTo} onChange={setSimpleTo} cityOnly />
@@ -641,12 +646,14 @@ const BookingSearch = () => {
           {error ? (
             <p className="mt-3 rounded-xl bg-destructive/10 px-3 py-2.5 text-sm font-semibold text-destructive" role="alert">{error}</p>
           ) : null}
-          <div className="mt-4 flex justify-end">
-            <button type="button" onClick={onSubmit} className="primary-cta min-w-44 bg-[#DF301C] shadow-[#DF301C]/20 hover:bg-[#c92917]">
-              <Search className="size-4" aria-hidden="true" />
-              جست‌وجوی {tabs.find((tab) => tab.id === active)?.label}
-            </button>
-          </div>
+          {active !== "train" && (
+            <div className="mt-4 flex justify-end">
+              <button type="button" onClick={onSubmit} className="primary-cta min-w-44 bg-[#DF301C] shadow-[#DF301C]/20 hover:bg-[#c92917]">
+                <Search className="size-4" aria-hidden="true" />
+                جست‌وجوی {tabs.find((tab) => tab.id === active)?.label}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </section>

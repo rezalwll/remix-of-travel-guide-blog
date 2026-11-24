@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, Compass, Headphones, ShieldCheck } from "lucide-react";
 import BookingSearch from "@/components/home/BookingSearch";
 import TravelHero from "@/components/media/TravelHero";
+import TrainComingSoonBanner from "@/components/media/TrainComingSoonBanner";
 import { ImageCard, MediaRail, OverlayCard, PromoBanner, RailItem, SectionHeader } from "@/components/media/Cards";
 import { routePolicy } from "@/seo/routes";
 import { createMetadata } from "@/seo/metadata";
@@ -30,7 +31,7 @@ const content: Record<PageKey, { intro: string; links: LandingLink[] }> = {
   tours: { intro: "برنامه، خدمات مشمول و غیرمشمول و وضعیت مدارک را شفاف مقایسه کنید.", links: seoTourLandings.map((item) => ({ href: `/tours/${item.slug}`, label: `راهنمای تور ${item.destination}`, text: `نکات مقایسه برنامه و خدمات تور ${item.destination}` })) },
   ziyarat: { intro: "نوع جابه‌جایی، محل اقامت، مدارک و خدمات کاروان را پیش از انتخاب برنامه بررسی کنید.", links: [{ href: "/ziyarat/ziyarat-0-0", label: "تور نجف و کربلا", text: "برنامه و خدمات سفر زیارتی" }, { href: "/travel-preparation", label: "آمادگی سفر", text: "چک‌لیست عمومی پیش از حرکت" }] },
   visa: { intro: "اطلاعات این بخش راهنمای عمومی است؛ مدارک، هزینه و زمان رسیدگی را همیشه از مرجع رسمی مقصد کنترل کنید.", links: [{ href: "/visa/canada", label: "ویزای کانادا", text: "انواع درخواست و مدارک عمومی" }, { href: "/visa/schengen", label: "ویزای شنگن", text: "راهنمای اولیهٔ درخواست" }, { href: "/visa/uae", label: "ویزای امارات", text: "اطلاعات عمومی سفر و درخواست" }] },
-  trains: { intro: "زمان حرکت، ایستگاه، نوع واگن و قوانین استرداد را در نتیجهٔ معتبر بررسی کنید.", links: [{ href: "/trains/search", label: "جست‌وجوی قطار", text: "مشاهدهٔ گزینه‌های موجود" }] },
+  trains: { intro: "خرید بلیط قطار به‌زودی در کیاشی فعال می‌شود.", links: [] },
   buses: { intro: "پایانهٔ مبدأ و مقصد، نوع اتوبوس و ساعت حضور را پیش از خرید کنترل کنید.", links: [{ href: "/buses/search", label: "جست‌وجوی اتوبوس", text: "مشاهدهٔ گزینه‌های موجود" }] },
   insurance: { intro: "مقصد، مدت سفر، سن مسافران و سقف پوشش روی انتخاب بیمه اثر دارد.", links: [{ href: "/support", label: "پشتیبانی", text: "پرسش دربارهٔ فرایند خرید" }] },
   cip: { intro: "فرودگاه، پرواز و تعداد مسافران را ثبت کنید تا امکان ارائهٔ خدمت بررسی شود.", links: [{ href: "/transfer", label: "ترانسفر فرودگاهی", text: "هماهنگی مسیر فرودگاه تا محل اقامت" }] },
@@ -88,6 +89,15 @@ export function PublicLanding({ page }: { page: PageKey }) {
   const policy = routePolicy(`/${page}`);
   const item = content[page];
   if (!policy) throw new Error(`Missing route policy for ${page}`);
+  if (page === "trains") {
+    return (
+      <main className="bg-[#fff8f5] py-6 sm:py-12">
+        <div className="container-page">
+          <TrainComingSoonBanner />
+        </div>
+      </main>
+    );
+  }
   const showSearch = page === "flights" || page === "hotels";
   const showDestinations = ["flights", "hotels", "tours", "routes", "ziyarat"].includes(page);
 

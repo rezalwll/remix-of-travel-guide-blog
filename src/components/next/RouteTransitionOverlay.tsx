@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MapPin, Plane } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ROUTE_NAVIGATION_START_EVENT } from "@/lib/navigation";
+import { ROUTE_NAVIGATION_START_EVENT, routeLoadingKey } from "@/lib/navigation";
 
 const SHOW_DELAY_MS = 90;
 const MIN_VISIBLE_MS = 420;
@@ -16,7 +16,8 @@ const isInternalNavigation = (anchor: HTMLAnchorElement) => {
   if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return false;
   const destination = new URL(anchor.href, window.location.href);
   if (destination.origin !== window.location.origin) return false;
-  return `${destination.pathname}${destination.search}` !== `${window.location.pathname}${window.location.search}`;
+  if (destination.pathname.startsWith("/api/")) return false;
+  return routeLoadingKey(destination.pathname, destination.search) !== routeLoadingKey(window.location.pathname, window.location.search);
 };
 
 export default function RouteTransitionOverlay() {
@@ -30,7 +31,7 @@ export default function RouteTransitionOverlay() {
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const safetyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prefetchedRef = useRef(new Set<string>());
-  const routeKey = `${pathname}?${searchParams.toString()}`;
+  const routeKey = routeLoadingKey(pathname, searchParams.toString());
 
   const clearTimer = (timer: React.MutableRefObject<ReturnType<typeof setTimeout> | null>) => {
     if (timer.current) clearTimeout(timer.current);
@@ -62,6 +63,14 @@ export default function RouteTransitionOverlay() {
   }, [hide]);
 
   useEffect(() => hide(), [routeKey, hide]);
+
+  useEffect(() => {
+    const onHistoryChange = () => {
+      if (routeLoadingKey(window.location.pathname, window.location.search) !== routeKey) show();
+    };
+    window.addEventListener("popstate", onHistoryChange);
+    return () => window.removeEventListener("popstate", onHistoryChange);
+  }, [routeKey, show]);
 
   useEffect(() => {
     const onStart = () => show();

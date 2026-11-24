@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
 import { GuestRoute, ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import LoadingStatus from "@/components/ui/LoadingStatus";
 
 const pages = {
   Destinations: dynamic(() => import("@/legacy-pages/Destinations")),
@@ -54,5 +55,9 @@ function LegacyPageContent({ name, props = {}, guard }: { name: LegacyPageName; 
 }
 
 export default function LegacyPage(props: { name: LegacyPageName; props?: Record<string, unknown>; guard?: "protected" | "guest" }) {
-  return <Suspense fallback={<main className="container-page py-10" role="status"><span className="sr-only">در حال بارگذاری صفحه</span><div className="h-64 animate-pulse rounded-2xl bg-muted" /></main>}><LegacyPageContent {...props} /></Suspense>;
+  return (
+    <Suspense fallback={<LoadingStatus className="container-page min-h-64 py-10" message="در حال بارگذاری صفحه…" />}>
+      <LegacyPageContent {...props} />
+    </Suspense>
+  );
 }

@@ -20,9 +20,13 @@ export const metadata: Metadata = {
   description: "برنامه‌ریزی و مقایسه خدمات سفر، راهنمای مقصدها و مدیریت سفارش در کیاشی.",
   applicationName: siteName,
   icons: {
-    icon: [{ url: "/favicon-kiashi.png", type: "image/png", sizes: "512x512" }],
-    shortcut: "/favicon-kiashi.png",
-    apple: [{ url: "/favicon-kiashi.png", sizes: "512x512", type: "image/png" }],
+    icon: [
+      { url: "/favicon.ico?v=3", type: "image/x-icon", sizes: "16x16 32x32 48x48 256x256" },
+      { url: "/favicon-32x32.png?v=3", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-48x48.png?v=3", type: "image/png", sizes: "48x48" },
+      { url: "/kiashi-icon.svg", type: "image/svg+xml", sizes: "any" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png?v=3", type: "image/png", sizes: "180x180" }],
   },
   formatDetection: { telephone: false },
 };

@@ -1,9 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { writeBookingDraft } from "@/store/booking";
 import { announceRouteNavigationStart } from "@/lib/navigation";
+import LoadingStatus from "@/components/ui/LoadingStatus";
+import { apiRequest } from "@/services/apiClient";
 import type { ExperienceCheckoutDraft } from "@/types/checkout";
 type Pack = {
   id: string;
@@ -47,12 +50,16 @@ type Program = {
   startingPrice: number | null;
 };
 export function ManagedProgramCatalog({ type }: { type: "TOUR" | "ZIYARAT" }) {
-  const [items, setItems] = useState<Program[]>([]);
-  useEffect(() => {
-    fetch(`/api/catalog/programs?type=${type}`, { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : { programs: [] }))
-      .then((b) => setItems(b.programs ?? []));
-  }, [type]);
+  const { data, isPending, isError } = useQuery({
+    queryKey: ["catalog", "programs", type],
+    queryFn: ({ signal }) => apiRequest<{ programs: Program[] }>(`/api/catalog/programs?type=${type}`, { cache: "no-store", signal }),
+  });
+  if (isPending) {
+    return <LoadingStatus className="container-page py-10" message={type === "TOUR" ? "در حال بارگذاری تورها…" : "در حال بارگذاری سفرهای زیارتی…"} />;
+  }
+  if (isError) return <p className="container-page py-10 text-center text-sm text-muted-foreground" role="status">دریافت برنامه‌های قابل رزرو ممکن نشد.</p>;
+
+  const items = data?.programs ?? [];
   if (!items.length) return null;
   return (
     <section className="media-section">
@@ -110,34 +117,15 @@ export function ManagedProgramCatalog({ type }: { type: "TOUR" | "ZIYARAT" }) {
   );
 }
 export function ManagedProgramDetail({ slug }: { slug: string }) {
-  const [p, setP] = useState<Program | null>(null);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
   const [selected, setSelected] = useState({ departureId: "", packageId: "" });
-  useEffect(() => {
-    fetch(`/api/catalog/programs/${encodeURIComponent(slug)}`, {
-      cache: "no-store",
-    })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((b) => {
-        const program = b?.program ?? null;
-        setP(program);
-        const departure = program?.departures?.[0];
-        setSelected({
-          departureId: departure?.id ?? "",
-          packageId:
-            departure?.packages?.[0]?.id ?? program?.packages?.[0]?.id ?? "",
-        });
-      })
-      .catch(() => setP(null))
-      .finally(() => setLoading(false));
-  }, [slug]);
-  if (loading)
-    return (
-      <main className="container-page py-20 text-center" aria-live="polite">
-        در حال دریافت برنامه…
-      </main>
-    );
+  const { data, isPending } = useQuery({
+    queryKey: ["catalog", "program", slug],
+    queryFn: ({ signal }) => apiRequest<{ program: Program | null }>(`/api/catalog/programs/${encodeURIComponent(slug)}`, { cache: "no-store", signal }),
+  });
+  if (isPending) return <LoadingStatus className="container-page py-20" message="در حال دریافت برنامه…" />;
+
+  const p = data?.program;
   if (!p)
     return (
       <main className="container-page py-20 text-center">

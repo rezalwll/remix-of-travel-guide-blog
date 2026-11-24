@@ -51,7 +51,7 @@ export default function CheckoutResult() {
     return (
       <Layout>
         <main className="container-page grid min-h-[65vh] place-items-center">
-          در حال دریافت سفارش از سرور...
+          در حال بررسی سفارش…
         </main>
       </Layout>
     );

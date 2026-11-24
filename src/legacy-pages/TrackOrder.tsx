@@ -4,7 +4,6 @@ import {
   CheckCircle2,
   Headphones,
   Search,
-  ShieldCheck,
 } from "lucide-react";
 import { Link } from "@/lib/router";
 import Layout from "@/components/layout/Layout";
@@ -139,11 +138,6 @@ export default function TrackOrder() {
                 </div>
               </div>
             )}
-            <div className="mt-6 flex items-start gap-2 rounded-lg bg-muted/60 p-3 text-xs leading-6 text-muted-foreground">
-              <ShieldCheck className="mt-0.5 size-4 shrink-0 text-secondary" />
-              پاسخ پیگیری از سرور فقط اطلاعات ماسک‌شده و خلاصه وضعیت را
-              برمی‌گرداند.
-            </div>
           </section>
         </div>
       </main>
