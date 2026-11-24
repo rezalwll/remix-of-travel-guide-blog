@@ -30,13 +30,13 @@ jobs:
     timeout-minutes: 60
     environment:
       name: production
-      url: https://91.247.171.204
+      url: https://kiashi.ir
     env:
       PRODUCTION_HOST: 91.247.171.204
       PRODUCTION_PORT: "22"
       PRODUCTION_USER: deploy
       PRODUCTION_ROOT: /opt/kiashi
-      PRODUCTION_SITE_URL: https://91.247.171.204
+      PRODUCTION_SITE_URL: https://kiashi.ir
     steps:
       - name: Select certified revision
         uses: actions/checkout@v4

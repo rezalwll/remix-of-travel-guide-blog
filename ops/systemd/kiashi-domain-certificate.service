@@ -1,0 +1,9 @@
+[Unit]
+Description=Renew the Kiashi domain TLS certificate
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+TimeoutStartSec=300
+ExecStart=/usr/local/sbin/kiashi-manage-domain-certificate kiashi.ir

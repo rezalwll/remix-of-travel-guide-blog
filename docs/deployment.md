@@ -63,6 +63,12 @@ Fastify با Pino JSON، request id، route، status و duration log می‌کن
 
 `ops/nginx.example.conf` فقط نمونه است: HTTP به HTTPS redirect، HSTS و CSP/security header، forwarding header، body limit، gzip، cache immutable برای `/assets/` و no-store برای API/health/auth/payment callback. `TRUST_PROXY` باید IP/CIDR دقیق proxyهایی باشد که headerهای forwarded را overwrite می‌کنند؛ compose نمونه برای این کار subnet ثابت دارد.
 
+### دامنهٔ اصلی کیاشی
+
+در VPS، کانفیگ فعال Nginx از `/opt/kiashi/nginx` به کانتینر proxy وصل می‌شود. SNI دامنهٔ `kiashi.ir` و `www.kiashi.ir` از گواهی `/opt/kiashi/certs/kiashi.ir` استفاده می‌کند. آدرس `www` به دامنهٔ اصلی هدایت می‌شود و گواهی مستقیم IP جداست. هر دو گواهی برای HTTP-01 از `/opt/kiashi/acme` استفاده می‌کنند.
+
+`ops/manage-domain-certificate.sh` در `/usr/local/sbin/kiashi-manage-domain-certificate` نصب می‌شود و واحدهای `kiashi-domain-certificate` در `ops/systemd` تمدید را اجرا می‌کنند. Workflow انتشار از `https://kiashi.ir` برای ساخت، تنظیم origin و بررسی نسخهٔ عمومی استفاده می‌کند.
+
 ### HTTPS مستقیم روی IP عمومی
 
 برای استقرار بدون دامنه، `ops/nginx.example.conf` مسیر HTTP-01 را از `/var/www/certbot` ارائه می‌کند و `ops/manage-ip-certificate.sh` صدور و تمدید گواهی کوتاه‌مدت IP را با Certbot 5.4 انجام می‌دهد. گواهی IP فقط حدود شش روز اعتبار دارد؛ بنابراین timer دو بار در روز renewal را بررسی می‌کند و پس از جایگزینی اتمیک certificate، پیکربندی Nginx را اعتبارسنجی و reload می‌کند.

@@ -1,0 +1,11 @@
+[Unit]
+Description=Check the Kiashi domain TLS certificate daily
+
+[Timer]
+OnCalendar=*-*-* 05:30:00 UTC
+RandomizedDelaySec=30m
+Persistent=true
+Unit=kiashi-domain-certificate.service
+
+[Install]
+WantedBy=timers.target

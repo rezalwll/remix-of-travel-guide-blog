@@ -217,6 +217,9 @@ set_env_value() {
   rm -f "$next_env"
 }
 
+set_env_value SITE_URL "$site_url"
+set_env_value WEB_ORIGIN "$site_url"
+set_env_value API_PUBLIC_URL "$site_url"
 set_env_value APP_VERSION "$short_sha"
 set_env_value GIT_SHA "$release_sha"
 set_env_value BUILD_TIME "$build_time"
@@ -259,7 +262,7 @@ wait_for_health web
 site_host=${site_url#https://}
 site_host=${site_host%%:*}
 for attempt in {1..30}; do
-  response=$(curl --fail --silent --show-error --insecure \
+  response=$(curl --fail --silent --show-error \
     --resolve "$site_host:443:127.0.0.1" \
     --connect-timeout 5 --max-time 10 \
     "$site_url/health/version") && \
