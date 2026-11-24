@@ -123,6 +123,14 @@ jobs:
       - name: Backup and isolated restore drill
         shell: bash
         run: |
+          # Keep the client tools on the same major version as the test database.
+          if [ ! -x /usr/lib/postgresql/16/bin/pg_restore ]; then
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends postgresql-client-16
+          fi
+          export PATH="/usr/lib/postgresql/16/bin:$PATH"
+          pg_dump --version
+          pg_restore --version
           BACKUP_DIR="$RUNNER_TEMP/backups" npm run db:backup
           BACKUP_FILE=$(find "$RUNNER_TEMP/backups" -name '*.dump' -print -quit)
           BACKUP_FILE="$BACKUP_FILE" RESTORE_ADMIN_DATABASE_URL=postgresql://kiashi:kiashi@localhost:5432/postgres npm run db:restore:verify
